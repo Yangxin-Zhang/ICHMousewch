@@ -274,4 +274,73 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
           })
 ####
 
+####
+#' save Hematoma class
+#'
+#' @param hematoma the Hematoma class
+#' @param saving_path the path to save
+#' @export
 
+setGeneric(name = "save_Hematoma",
+           def = function(hematoma,saving_path) {
+
+             standardGeneric("save_Hematoma")
+
+           })
+
+#' save Hematoma class
+#'
+#' @param hematoma the Hematoma class
+#' @param saving_path the path to save
+
+setMethod(f = "save_Hematoma",
+          signature = signature(hematoma = "Hematoma",saving_path = "character"),
+          definition = function(hematoma,saving_path) {
+
+            on.exit(gc())
+
+            file_name <- paste(hematoma@analysis_symbol,"hematoma",sep = "_") %>%
+              paste(RData,sep = ".")
+
+            save(hematoma,file = paste(saving_path,file_name,sep = "/"))
+
+          })
+####
+
+####
+#' load Hematoma from local
+#'
+#' @param loading_path the path saving Hematoma
+#' @export
+
+setGeneric(name = "load_Hematoma",
+           def = function(loading_path) {
+
+             standardGeneric("load_Hematoma")
+
+           })
+
+#' load Hematoma from local
+#'
+#' @param loading_path the path saving Hematoma
+
+setMethod(f = "load_Hematoma",
+          signature = signature(loading_path = "character"),
+          definition = function(loading_path) {
+
+            on.exit(gc())
+
+            hematoma <- local(get(load(file = loading_path)))
+
+            if(class(hematoma) == "Hematoma") {
+
+              return(hematoma)
+
+            } else {
+
+              print("not a hematoma class")
+
+            }
+
+          })
+####
