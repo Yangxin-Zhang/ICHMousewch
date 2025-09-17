@@ -1,0 +1,17 @@
+Package: ICHMousewch
+Title: Analysis The Spatial Transcriptome Dataset With Hematoma
+Version: 1.0.0
+Authors@R: 
+    person("Yangxin", "Zhang", , "910858193@qq.com", role = c("aut", "cre"))
+Description: This package is for analysis the spatial transcriptome dataset with hematoma,including identifying the hematoma and its center and edge.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    dplyr,
+    Giotto,
+    magrittr,
+    Matrix,
+    mclust,
+    Seurat
