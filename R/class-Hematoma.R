@@ -1,5 +1,5 @@
 
-# R/class-ICH_Mouse.R
+# R/class-Hematoma.R
 
 #' Hematoma: A class for identify the hematoma from spatial trascriptome dataset
 #'
@@ -43,8 +43,11 @@ setClass(
 #' @param giotto_python_path the path to a python which the Giotto can use
 #' @param giotto_results_folder the folder for Giotto save plots
 
-setMethod("initialize","Hematoma",
+setMethod(f = "initialize",
+          signature = signature(.Object = "Hematoma"),
           definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder) {
+
+            on.exit(gc())
 
             # add color set
             .Object@color_set <- c("#F5D2A8","#3C77AF","#7DBFA7","#EE934E","#9B5B33","#B383B9","#FCED82","#BBDD78","#F5D2A8","#D1352B","#8FA4AE","#F5CFE4","#D2EBC8","#F3AE63","#E69F84","#AA3538","#5891BF","#89558D","#79B99D","#AFC2D9","#D0AFC4","#C6307C","#E9E55A")

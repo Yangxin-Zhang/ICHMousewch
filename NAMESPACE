@@ -2,6 +2,7 @@
 
 export("%>%")
 export(Create_Hematoma)
+export(Create_ICH_Mouse)
 export(create_spatial_image_with_highlighted_clusters)
 export(identify_hematoma)
 export(identify_hematoma_center_and_edge)
