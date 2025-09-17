@@ -300,7 +300,7 @@ setMethod(f = "save_Hematoma",
             on.exit(gc())
 
             file_name <- paste(hematoma@analysis_symbol,"hematoma",sep = "_") %>%
-              paste(RData,sep = ".")
+              paste("RData",sep = ".")
 
             save(hematoma,file = paste(saving_path,file_name,sep = "/"))
 
