@@ -138,6 +138,7 @@ Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_co
 #'
 #' @param hematoma the class of HematomaICHMousewch
 #' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
+#' @export
 
 setGeneric(name = "identify_hematoma",
            def = function(hematoma,hematoma_symbols) {
@@ -150,7 +151,6 @@ setGeneric(name = "identify_hematoma",
 #'
 #'  @param hematoma the class of HematomaICHMousewch
 #'  @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
-#'  @export
 
 setMethod(f = "identify_hematoma",
           signature = signature(hematoma = "Hematoma",hematoma_symbols = "numeric"),
@@ -188,6 +188,7 @@ setMethod(f = "identify_hematoma",
 #'
 #' @param hematoma the class of HematomaICHMousewch
 #' @param center_symbols the symbols identified by user as the the symbol of hematoma center
+#' @export
 
 setGeneric(name = "identify_hematoma_center_and_edge",
            def = function(hematoma,center_symbols) {
@@ -201,7 +202,6 @@ setGeneric(name = "identify_hematoma_center_and_edge",
 #'
 #'  @param hematoma the class of HematomaICHMousewch
 #'  @param center_symbols the symbols identified by user as the the symbol of hematoma center
-#'  @export
 
 setMethod(f = "identify_hematoma_center_and_edge",
           signature = signature(hematoma = "Hematoma",center_symbols = "numeric"),
@@ -238,6 +238,7 @@ setMethod(f = "identify_hematoma_center_and_edge",
 #' @param hematoma the class of HematomaICHMousewch
 #' @param cluster_symbol the cluster symbol for plotiing
 #' @param cluster_ls the cluster list for plot
+#' @export
 
 setGeneric(name = "create_spatial_image_with_highlighted_clusters",
            def = function(hematoma,cluster_symbol,cluster_ls) {
@@ -250,7 +251,6 @@ setGeneric(name = "create_spatial_image_with_highlighted_clusters",
 #' @param hematoma the Hematoma Class
 #' @param cluster_symbol the cluster symbol for plotiing
 #' @param cluster_ls the cluster list for plot
-#' @export
 
 setMethod(f = "create_spatial_image_with_highlighted_clusters",
           signature = signature(hematoma = "Hematoma",cluster_symbol = "character",cluster_ls = "numeric"),

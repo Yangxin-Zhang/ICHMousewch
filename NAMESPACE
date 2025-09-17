@@ -2,7 +2,9 @@
 
 export("%>%")
 export(Create_Hematoma)
-exportMethods(create_spatial_image_with_highlighted_clusters)
+export(create_spatial_image_with_highlighted_clusters)
+export(identify_hematoma)
+export(identify_hematoma_center_and_edge)
 importFrom(Giotto,addGiottoImage)
 importFrom(Giotto,createGiottoImage)
 importFrom(Giotto,createGiottoInstructions)

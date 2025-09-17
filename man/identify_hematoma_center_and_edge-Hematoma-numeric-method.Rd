@@ -9,5 +9,4 @@
 \description{
 @param hematoma the class of HematomaICHMousewch
 @param center_symbols the symbols identified by user as the the symbol of hematoma center
-@export
 }
