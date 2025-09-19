@@ -27,7 +27,7 @@ setClass(
     seu_metadata_with_cluster_symbol = "data.table",
     spatial_image = "list",
     identification_symbols = "list",
-    giotto_instruction = "giottoInstructions",
+    giotto_instruction = "list",
     filtered_genes = "character")
 )
 
@@ -105,7 +105,7 @@ setMethod(f = "initialize",
               .Object@file_address = character()
               .Object@color_set = character()
               .Object@tissue_position_matrix = data.table()
-              .Object@raw_count_matrix = Matrix(sparse = TRUE)
+              .Object@raw_count_matrix = sparseMatrix(i = integer(0),j = integer(0),x = numeric(0))
               .Object@original_seu_metadata = data.table()
               .Object@seu_metadata_with_cluster_symbol = data.table()
               .Object@spatial_image = list()
@@ -324,16 +324,23 @@ setMethod(f = "save_Hematoma",
 
             slot_na <- slotNames(hematoma)
 
+            file_na_ls <- list()
             for (i in 1:length(slot_na)) {
 
               slot_da <- slot(hematoma,slot_na[i])
 
-              file_name <- paste(hematoma@analysis_symbol,slot_na[i],sep = "_") %>%
-                paste("RData",sep = ".")
+              file_name <- paste(slot_na[i],"RData",sep = ".")
+
+              file_na_ls <- append(file_na_ls,file_name)
+              names(file_na_ls)[i] <- slot_na[i]
 
               save(slot_da,file = paste(file_path,file_name,sep = "/"))
 
             }
+
+            file_name <- paste("dataset_name","RData",sep = ".")
+
+            save(unlist(file_na_ls),file = paste(file_path,file_name,sep = "/"))
 
           })
 ####
@@ -361,17 +368,41 @@ setMethod(f = "load_Hematoma",
 
             on.exit(gc())
 
-            hematoma <- local(get(load(file = loading_path)))
+            file_path <- paste(loading_path,"DataBase",sep = "/")
 
-            if(class(hematoma) == "Hematoma") {
+            hematoma <- new(Class = "Hematoma",
+                            analysis_symbol = NULL,
+                            raw_count_matrix_address = NULL,
+                            filtered_count_matrix_address = NULL,
+                            tissue_position_address = NULL,
+                            background_image_address = NULL,
+                            giotto_python_path = NULL,
+                            giotto_results_folder = NULL,
+                            initialization = FALSE)
 
-              return(hematoma)
+            dataset_name <- local(get(load(file = paste(file_path,"dataset_name.RData",sep = "/"))))
 
-            } else {
+            dataset_ls <- list()
+            for (i in 1:length(dataset_name)) {
 
-              print("not a hematoma class")
+              dataset_ls <- append(dataset_ls,local(get(load(file = paste(file_path,dataset_name[i],sep = "/")))))
+              names(dataset_ls)[i] <- names(dataset_name)[i]
 
             }
 
-          })
+            hematoma@analysis_symbol <- dataset_ls["analysis_symbol"]
+            hematoma@file_address <- dataset_ls["file_address"]
+            hematoma@color_set <- dataset_ls["color_set"]
+            hematoma@tissue_position_matrix <- dataset_ls["tissue_position_matrix"]
+            hematoma@raw_count_matrix <- dataset_ls["raw_count_matrix"]
+            hematoma@original_seu_metadata <- dataset_ls["original_seu_metadata"]
+            hematoma@seu_metadata_with_cluster_symbol <- dataset_ls["seu_metadata_with_cluster_symbol"]
+            hematoma@spatial_image <- dataset_ls["spatial_image"]
+            hematoma@identification_symbols <- dataset_ls["identification_symbols"]
+            hematoma@giotto_instruction <- dataset_ls["giotto_instruction"]
+            hematoma@filtered_genes <- dataset_ls["filtered_genes"]
+
+            return(hematoma)
+
+            })
 ####
