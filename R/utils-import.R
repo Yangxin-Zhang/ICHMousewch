@@ -20,5 +20,6 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom Matrix rowSums
 #' @importFrom data.table as.data.table
+#' @importFrom data.table rbindlist
 
 NULL

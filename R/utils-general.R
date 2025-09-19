@@ -12,9 +12,10 @@
 
   on.exit(gc())
 
-  file_address <- c(raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address)
-
-  names(file_address) <- c("raw_count_matrix_address","filtered_count_matrix_address","tissue_position_address","background_image_address")
+  file_address <- c("raw_count_matrix_address" = raw_count_matrix_address,
+                    "filtered_count_matrix_address" = filtered_count_matrix_address,
+                    "tissue_position_address" = tissue_position_address,
+                    "background_image_address" = background_image_address)
 
   return(file_address)
 
@@ -29,12 +30,11 @@
   on.exit(gc())
 
   tissue_position_matrix <- Read10X_Coordinates(tissue_position_address,
-                                                filter.matrix = FALSE) %>%
-    as.data.table()
+                                                filter.matrix = FALSE)
 
-  tissue_position_matrix[,barcode := rownames(tissue_position_matrix)]
+  tissue_position_matrix$barcode <- rownames(tissue_position_matrix)
 
-  return(tissue_position_matrix)
+  return(as.data.table(tissue_position_matrix))
 
 }
 
@@ -78,16 +78,15 @@
 #' find filtered genes
 #'
 #' @param raw_count_matrix the matrix of raw count dataset
-#' @param in_tissue_barcodes the barcodes in tissue
+#' @param original_seu_metadata the original Seurat Object metadata
 
-.find_filtered_genes <- function(raw_count_matrix,in_tissue_barcodes) {
+.find_filtered_genes <- function(raw_count_matrix,original_seu_metadata) {
 
   on.exit(gc())
 
-  filtered_count_matrix <- raw_count_matrix[,in_tissue_barcodes]
+  filtered_count_matrix <- raw_count_matrix[,original_seu_metadata[tissue == 1,barcode]]
 
-  num_gene <- filtered_count_matrix %>%
-    rownames() %>%
+  num_gene <- rownames(filtered_count_matrix) %>%
     length()
 
   bins <- seq(1,num_gene,5000)

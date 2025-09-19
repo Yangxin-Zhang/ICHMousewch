@@ -25,7 +25,7 @@ setClass(
     tissue_position_matrix = "data.table",
     barcodes = "list",
     raw_count_matrix = "dgCMatrix",
-    original_seu_metadata = "data.frame",
+    original_seu_metadata = "data.table",
     seu_metadata_with_cluster_symbol = "data.frame",
     spatial_image = "list",
     identification_symbols = "list",
@@ -81,18 +81,17 @@ setMethod(f = "initialize",
 
             # filter genes
             .Object@filtered_genes <- ICHMousewch:::.find_filtered_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                         in_tissue_barcodes = .Object@barcodes$in_tissue)
+                                                                         original_seu_metadata = .Object@original_seu_metadata)
 
             # generate Seurat Object with cluster symbol
             .Object@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_cluster_symbol(original_seu_metadata = .Object@original_seu_metadata,
-                                                                                                                 in_tissue_barcode = .Object@barcodes$in_tissue,
                                                                                                                  raw_count_matrix = .Object@raw_count_matrix)
 
             # create spatial image plot
             .Object@spatial_image$GMM_cluster <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
                                                                                                         cluster_symbol = "GMM_cluster",
                                                                                                         raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                        background_image_address = .Object@file_address$background_image_address,
+                                                                                                        background_image_address = .Object@file_address["background_image_address"],
                                                                                                         color_set = .Object@color_set,
                                                                                                         self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
                                                                                                         giotto_instruction = .Object@giotto_instruction)
@@ -100,7 +99,7 @@ setMethod(f = "initialize",
             .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
                                                                                                                  cluster_symbol = "Louvain_cluster_posi",
                                                                                                                  raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                                 background_image_address = .Object@file_address$background_image_address,
+                                                                                                                 background_image_address = .Object@file_address["background_image_address"],
                                                                                                                  color_set = .Object@color_set,
                                                                                                                  self_definition_color = c("1"="#F5D2A8"),
                                                                                                                  giotto_instruction = .Object@giotto_instruction)
@@ -168,7 +167,7 @@ setMethod(f = "identify_hematoma",
             hematoma@spatial_image$hematoma <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
                                                                                                        cluster_symbol = "hematoma_symbol",
                                                                                                        raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                       background_image_address = hematoma@file_address$background_image_address,
+                                                                                                       background_image_address = hematoma@file_address["background_image_address"],
                                                                                                        color_set = hematoma@color_set,
                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
                                                                                                        giotto_instruction = hematoma@giotto_instruction)
@@ -176,7 +175,7 @@ setMethod(f = "identify_hematoma",
             hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
                                                                                                                         cluster_symbol = "Louvain_cluster_filt_gene",
                                                                                                                         raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                                        background_image_address = hematoma@file_address$background_image_address,
+                                                                                                                        background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                         color_set = hematoma@color_set,
                                                                                                                         self_definition_color = c("1"="#F5D2A8"),
                                                                                                                         giotto_instruction = hematoma@giotto_instruction)
@@ -225,7 +224,7 @@ setMethod(f = "identify_hematoma_center_and_edge",
             hematoma@spatial_image$hematoma_center_edge <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
                                                                                                                    cluster_symbol = "center_edge_symbol",
                                                                                                                    raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                                   background_image_address = hematoma@file_address$background_image_address,
+                                                                                                                   background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                    color_set = hematoma@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
                                                                                                                    giotto_instruction = hematoma@giotto_instruction)
@@ -267,7 +266,7 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
             highlighted_spatial_image <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
                                                                                                  cluster_symbol = cluster_symbol,
                                                                                                  raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                 background_image_address = hematoma@file_address$background_image_address,
+                                                                                                 background_image_address = hematoma@file_address["background_image_address"],
                                                                                                  color_set = hematoma@color_set,
                                                                                                  self_definition_color = c("1"="#F5D2A8",highlighted_color_set),
                                                                                                  giotto_instruction = hematoma@giotto_instruction)

@@ -4,12 +4,13 @@
 \alias{.conduct_GMM_classification}
 \title{conduct GMM classification}
 \usage{
-.conduct_GMM_classification(original_seu_metadata, in_tissue_barcode)
+.conduct_GMM_classification(
+  original_seu_metadata,
+  hematoma_larger_than_normal_tissue = TRUE
+)
 }
 \arguments{
 \item{original_seu_metadata}{original Seurat Object metadata}
-
-\item{in_tissue_barcode}{the barcodes in tissue}
 }
 \description{
 conduct GMM classification

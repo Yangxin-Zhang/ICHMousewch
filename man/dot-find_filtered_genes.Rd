@@ -4,12 +4,12 @@
 \alias{.find_filtered_genes}
 \title{find filtered genes}
 \usage{
-.find_filtered_genes(raw_count_matrix, in_tissue_barcodes)
+.find_filtered_genes(raw_count_matrix, original_seu_metadata)
 }
 \arguments{
 \item{raw_count_matrix}{the matrix of raw count dataset}
 
-\item{in_tissue_barcodes}{the barcodes in tissue}
+\item{original_seu_metadata}{the original Seurat Object metadata}
 }
 \description{
 find filtered genes

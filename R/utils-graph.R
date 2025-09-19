@@ -33,9 +33,9 @@
 
   on.exit(gc())
 
-  in_tissue_metadata$cell_ID <- in_tissue_metadata$barcode
+  in_tissue_metadata[,cell_ID := barcode]
 
-  in_tissue_count_matrix <- raw_count_matrix[,in_tissue_metadata$barcode]
+  in_tissue_count_matrix <- raw_count_matrix[,in_tissue_metadata[,barcode]]
 
   giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
                                       spatial_locs = in_tissue_metadata[,c("imagerow","imagecol")],

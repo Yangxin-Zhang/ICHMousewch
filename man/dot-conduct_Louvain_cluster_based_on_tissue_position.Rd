@@ -6,14 +6,11 @@
 \usage{
 .conduct_Louvain_cluster_based_on_tissue_position(
   original_seu_metadata,
-  in_tissue_barcode,
   raw_count_matrix
 )
 }
 \arguments{
 \item{original_seu_metadata}{original Seurat Object metadata}
-
-\item{in_tissue_barcode}{the barcodes in tissue}
 
 \item{raw_count_matrix}{the matrix of raw count dataset}
 }

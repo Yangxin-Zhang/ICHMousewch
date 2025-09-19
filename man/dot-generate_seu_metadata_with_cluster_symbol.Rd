@@ -13,8 +13,6 @@
 \arguments{
 \item{original_seu_metadata}{original Seurat Object metadata}
 
-\item{in_tissue_barcode}{the barcodes in tissue}
-
 \item{raw_count_matrix}{the matrix of raw count dataset}
 }
 \description{

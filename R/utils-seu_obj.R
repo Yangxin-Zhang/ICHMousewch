@@ -24,39 +24,39 @@
 
   seu_obj <- CreateSeuratObject(raw_count_matrix)
 
+  # add barcode to Seurat Object metadata
+  seu_obj@meta.data$barcode <- rownames(seu_obj@meta.data)
+
   # calculate mito and ribo percent from Seurat Object
   seu_obj[["percent.mt"]] <- PercentageFeatureSet(seu_obj,pattern = "^mt-")
   seu_obj[["percent.ribo"]] <- PercentageFeatureSet(seu_obj,pattern = "Rp[sl]")
 
+  # extract Seurat Object metadata
+  seu_obj_metadata <- as.data.table(seu_obj@meta.data)
+
   # calculate log2 value of nCount and nFeature
-  seu_obj@meta.data$nCount_log2 <- (seu_obj@meta.data$nCount_RNA+1) %>%
-    log2()
+  seu_obj_metadata[,nCount_log2 := log2(seu_obj_metadata[,nCount_RNA]+1)]
 
-  seu_obj@meta.data$nFeature_log2 <- (seu_obj@meta.data$nFeature_RNA+1) %>%
-    log2()
-
-  # add barcode to Seurat Object metadata
-  seu_obj@meta.data$barcode <- rownames(seu_obj@meta.data)
+  seu_obj_metadata[,nFeature_log2 := log2(seu_obj_metadata[,nFeature_RNA]+1)]
 
   # add tissue position information to Seurat Object metadata
-  adj_tissue_position_matrix <- tissue_position_matrix[tissue_position_matrix$barcode %in% seu_obj@meta.data$barcode,]
-  barcode_order <- match(seu_obj@meta.data$barcode,adj_tissue_position_matrix$barcode)
-  adj_tissue_position_matrix <- adj_tissue_position_matrix[barcode_order,]
+  adj_tissue_position_matrix <- tissue_position_matrix[tissue_position_matrix[,barcode] %in% seu_obj_metadata[,barcode]]
+  barcode_order <- match(seu_obj_metadata[,barcode],adj_tissue_position_matrix[,barcode])
+  adj_tissue_position_matrix <- adj_tissue_position_matrix[barcode_order]
 
-  seu_obj@meta.data$imagerow <- adj_tissue_position_matrix$imagerow
-  seu_obj@meta.data$imagecol <- adj_tissue_position_matrix$imagecol
-  seu_obj@meta.data$tissue <- adj_tissue_position_matrix$tissue
-  seu_obj@meta.data$row <- adj_tissue_position_matrix$row
-  seu_obj@meta.data$col <- adj_tissue_position_matrix$col
+  seu_obj_metadata[,imagerow := adj_tissue_position_matrix[,imagerow]]
+  seu_obj_metadata[,imagecol := adj_tissue_position_matrix[,imagecol]]
+  seu_obj_metadata[,tissue := adj_tissue_position_matrix[,tissue]]
+  seu_obj_metadata[,row := adj_tissue_position_matrix[,row]]
+  seu_obj_metadata[,col := adj_tissue_position_matrix[,col]]
 
-  return(seu_obj@meta.data)
+  return(seu_obj_metadata)
 
 }
 
 #' generate Seurat Object metadata with cluster symbol
 #'
 #' @param original_seu_metadata original Seurat Object metadata
-#' @param in_tissue_barcode the barcodes in tissue
 #' @param raw_count_matrix the matrix of raw count dataset
 
 .generate_seu_metadata_with_cluster_symbol <- function(original_seu_metadata,in_tissue_barcode,raw_count_matrix) {
@@ -64,7 +64,6 @@
   on.exit(gc())
 
   metadata_with_cluster_symbol <- ICHMousewch:::.conduct_Louvain_cluster_based_on_tissue_position(original_seu_metadata = original_seu_metadata,
-                                                                                                  in_tissue_barcode = in_tissue_barcode,
                                                                                                   raw_count_matrix = raw_count_matrix)
 
   return(metadata_with_cluster_symbol)
