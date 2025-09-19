@@ -12,10 +12,9 @@
 
   on.exit(gc())
 
-  file_address <- list("raw_count_matrix_address" = raw_count_matrix_address,
-                       "filtered_count_matrix_address" = filtered_count_matrix_address,
-                       "tissue_position_address" = tissue_position_address,
-                       "background_image_address" = background_image_address)
+  file_address <- c(raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address)
+
+  names(file_address) <- c("raw_count_matrix_address","filtered_count_matrix_address","tissue_position_address","background_image_address")
 
   return(file_address)
 
@@ -30,9 +29,10 @@
   on.exit(gc())
 
   tissue_position_matrix <- Read10X_Coordinates(tissue_position_address,
-                                                filter.matrix = FALSE)
+                                                filter.matrix = FALSE) %>%
+    as.data.table()
 
-  tissue_position_matrix$barcode <- rownames(tissue_position_matrix)
+  tissue_position_matrix[,barcode := rownames(tissue_position_matrix)]
 
   return(tissue_position_matrix)
 

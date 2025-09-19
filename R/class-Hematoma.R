@@ -20,9 +20,9 @@ setClass(
   Class = "Hematoma",
   slots = c(
     analysis_symbol = "character",
-    file_address = "list",
+    file_address = "character",
     color_set = "character",
-    tissue_position_matrix = "data.frame",
+    tissue_position_matrix = "data.table",
     barcodes = "list",
     raw_count_matrix = "dgCMatrix",
     original_seu_metadata = "data.frame",
