@@ -12,7 +12,8 @@
   tissue_position_address,
   background_image_address,
   giotto_python_path,
-  giotto_results_folder
+  giotto_results_folder,
+  initialization
 )
 }
 \arguments{
@@ -27,6 +28,8 @@
 \item{giotto_python_path}{the path to a python which the Giotto can use}
 
 \item{giotto_results_folder}{the folder for Giotto save plots}
+
+\item{initialization}{whether start at beginning}
 
 \item{filtered_count_matrix}{address for filtered count matrix}
 }

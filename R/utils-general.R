@@ -52,29 +52,6 @@
 
 }
 
-#' save barcodes
-#'
-#' @param tissue_position_matrix the matrix of tissue position
-#' @param in_tissue the location of barcodes value: TRUE or FALSE
-
-.save_barcodes <- function(tissue_position_matrix,in_tissue) {
-
-  on.exit(gc())
-
-  if(in_tissue) {
-
-    barcodes <- tissue_position_matrix[tissue_position_matrix$tissue == 1,]$barcode
-
-  } else {
-
-    barcodes <- tissue_position_matrix[tissue_position_matrix$tissue == 0,]$barcode
-
-  }
-
-  return(barcodes)
-
-}
-
 #' find filtered genes
 #'
 #' @param raw_count_matrix the matrix of raw count dataset

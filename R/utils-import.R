@@ -19,7 +19,9 @@
 #' @importFrom Giotto spatPlot2D
 #' @importFrom dplyr bind_rows
 #' @importFrom Matrix rowSums
+#' @importFrom Matrix Matrix
 #' @importFrom data.table as.data.table
 #' @importFrom data.table rbindlist
+#' @importFrom data.table data.table
 
 NULL

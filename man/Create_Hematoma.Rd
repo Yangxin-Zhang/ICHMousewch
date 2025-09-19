@@ -11,7 +11,8 @@ Create_Hematoma(
   tissue_position_address,
   background_image_address,
   giotto_python_path,
-  giotto_results_folder
+  giotto_results_folder,
+  initialization = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ Create_Hematoma(
 \item{tissue_position_address}{address for tissue position matrix}
 
 \item{background_image_address}{address for background address}
+
+\item{initialization}{whether start at beginning}
 
 \item{filtered_count_matrix}{address for filtered count matrix}
 }

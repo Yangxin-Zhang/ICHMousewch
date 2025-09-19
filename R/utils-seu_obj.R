@@ -83,23 +83,23 @@
 
   seu_metadata <- hematoma@seu_metadata_with_cluster_symbol
 
-  Louvain_cluster_posi <- seu_metadata$Louvain_cluster_posi %>%
+  Louvain_cluster_posi <- seu_metadata[,Louvain_cluster_posi] %>%
     unique() %>%
     unlist()
 
   non_hematoma_symbols <- Louvain_cluster_posi[!Louvain_cluster_posi %in% hematoma_symbols]
 
-  seu_metadata$hematoma_symbol <- seu_metadata$Louvain_cluster_posi
+  seu_metadata[,hematoma_symbol := Louvain_cluster_posi]
 
   for (i in 1:length(hematoma_symbols)) {
 
-    seu_metadata[seu_metadata$Louvain_cluster_posi == hematoma_symbols[i],]$hematoma_symbol <- 2
+    seu_metadata[Louvain_cluster_posi == hematoma_symbols[i],hematoma_symbol := 2]
 
   }
 
   for (i in 1:length(non_hematoma_symbols)) {
 
-    seu_metadata[seu_metadata$Louvain_cluster_posi == non_hematoma_symbols[i],]$hematoma_symbol <- 1
+    seu_metadata[Louvain_cluster_posi == non_hematoma_symbols[i],hematoma_symbol := 1]
 
   }
 
@@ -107,10 +107,10 @@
   filtered_genes <- hematoma@filtered_genes
   raw_count_matrix <- hematoma@raw_count_matrix
 
-  metadata_hematoma <- seu_metadata[seu_metadata$hematoma_symbol == 2,]
-  metadata_normal_tissue <- seu_metadata[seu_metadata$hematoma_symbol == 1,]
+  metadata_hematoma <- seu_metadata[hematoma_symbol == 2]
+  metadata_normal_tissue <- seu_metadata[hematoma_symbol == 1]
 
-  seu_obj_hematoma <- CreateSeuratObject(raw_count_matrix[filtered_genes,metadata_hematoma$barcode]) %>%
+  seu_obj_hematoma <- CreateSeuratObject(raw_count_matrix[filtered_genes,metadata_hematoma[,barcode]]) %>%
     NormalizeData(scale.factor = 1000000) %>%
     ScaleData() %>%
     RunPCA(features = filtered_genes,
@@ -122,19 +122,20 @@
                  random.seed = 2025,
                  cluster.name = "Louvain_cluster_filt_gene")
 
-  metadata_normal_tissue$Louvain_cluster_filt_gene <- 1
+  seu_obj_hematoma_metadata <- as.data.table(seu_obj_hematoma@meta.data)
 
-  diff_value <- seu_obj_hematoma@meta.data$Louvain_cluster_filt_gene %>%
+  metadata_normal_tissue[,Louvain_cluster_filt_gene := 1]
+
+  diff_value <- seu_obj_hematoma_metadata[,Louvain_cluster_filt_gene] %>%
     as.numeric() %>%
     unique() %>%
     unlist() %>%
     min()
 
-  metadata_hematoma$Louvain_cluster_filt_gene <- as.numeric(seu_obj_hematoma@meta.data$Louvain_cluster_filt_gene) + 2 - diff_value
-  metadata_hematoma <- metadata_hematoma[,colnames(metadata_normal_tissue)]
+  metadata_hematoma[,Louvain_cluster_filt_gene := (as.numeric(seu_obj_hematoma_metadata[,Louvain_cluster_filt_gene]) + 2 - diff_value)]
 
   metadata_hematoma_filt_gene <- bind_rows(metadata_hematoma,metadata_normal_tissue)
-  metadata_order <- match(seu_metadata$barcode,metadata_hematoma_filt_gene$barcode)
+  metadata_order <- match(seu_metadata[,barcode],metadata_hematoma_filt_gene[,barcode])
 
   return(metadata_hematoma_filt_gene[metadata_order,])
 
@@ -153,17 +154,17 @@
   center_symbols <- hematoma@identification_symbols$center_symbols
   edge_symbols <- hematoma@identification_symbols$edge_symbols
 
-  seu_metadata$center_edge_symbol <- seu_metadata$Louvain_cluster_filt_gene
+  seu_metadata[,center_edge_symbol := Louvain_cluster_filt_gene]
 
   for (i in 1:length(center_symbols)) {
 
-    seu_metadata[seu_metadata$Louvain_cluster_filt_gene == center_symbols[i],]$center_edge_symbol <- 2
+    seu_metadata[Louvain_cluster_filt_gene == center_symbols[i],center_edge_symbol := 2]
 
   }
 
   for (i in 1:length(edge_symbols)) {
 
-    seu_metadata[seu_metadata$Louvain_cluster_filt_gene == edge_symbols[i],]$center_edge_symbol <- 3
+    seu_metadata[Louvain_cluster_filt_gene == edge_symbols[i],center_edge_symbol := 3]
 
   }
 

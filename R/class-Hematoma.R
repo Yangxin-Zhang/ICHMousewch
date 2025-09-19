@@ -40,61 +40,80 @@ setClass(
 #' @param background_image_address address for background address
 #' @param giotto_python_path the path to a python which the Giotto can use
 #' @param giotto_results_folder the folder for Giotto save plots
+#' @param initialization whether start at beginning
 
 setMethod(f = "initialize",
           signature = signature(.Object = "Hematoma"),
-          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder) {
+          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization) {
 
             on.exit(gc())
 
-            # add color set
-            .Object@color_set <- c("#F5D2A8","#3C77AF","#7DBFA7","#EE934E","#9B5B33","#B383B9","#FCED82","#BBDD78","#F5D2A8","#D1352B","#8FA4AE","#F5CFE4","#D2EBC8","#F3AE63","#E69F84","#AA3538","#5891BF","#89558D","#79B99D","#AFC2D9","#D0AFC4","#C6307C","#E9E55A")
-            # add analysis symbol
-            .Object@analysis_symbol <- analysis_symbol
-            # add file address
-            .Object@file_address <- ICHMousewch ::: .integrate_file_address(raw_count_matrix_address = raw_count_matrix_address,
-                                                                            filtered_count_matrix_address = filtered_count_matrix_address,
-                                                                            tissue_position_address = tissue_position_address,
-                                                                            background_image_address = background_image_address)
+            if(initialization) {
 
-            # add Giotto instruction
-            .Object@giotto_instruction <- ICHMousewch:::.create_giotto_instruction(python_path = giotto_python_path,
-                                                                     results_folder = giotto_results_folder)
+              # add color set
+              .Object@color_set <- c("#F5D2A8","#3C77AF","#7DBFA7","#EE934E","#9B5B33","#B383B9","#FCED82","#BBDD78","#F5D2A8","#D1352B","#8FA4AE","#F5CFE4","#D2EBC8","#F3AE63","#E69F84","#AA3538","#5891BF","#89558D","#79B99D","#AFC2D9","#D0AFC4","#C6307C","#E9E55A")
+              # add analysis symbol
+              .Object@analysis_symbol <- analysis_symbol
+              # add file address
+              .Object@file_address <- ICHMousewch ::: .integrate_file_address(raw_count_matrix_address = raw_count_matrix_address,
+                                                                              filtered_count_matrix_address = filtered_count_matrix_address,
+                                                                              tissue_position_address = tissue_position_address,
+                                                                              background_image_address = background_image_address)
 
-            # load tissue position matrix
-            .Object@tissue_position_matrix <- ICHMousewch:::.load_tissue_position_matrix(tissue_position_address = tissue_position_address)
+              # add Giotto instruction
+              .Object@giotto_instruction <- ICHMousewch:::.create_giotto_instruction(python_path = giotto_python_path,
+                                                                                     results_folder = giotto_results_folder)
 
-            # load raw count matrix
-            .Object@raw_count_matrix <- ICHMousewch:::.load_raw_count_matrix(raw_count_matrix_address = raw_count_matrix_address)
+              # load tissue position matrix
+              .Object@tissue_position_matrix <- ICHMousewch:::.load_tissue_position_matrix(tissue_position_address = tissue_position_address)
 
-            # generate original Seurat Object metadata
-            .Object@original_seu_metadata <- ICHMousewch:::.generate_original_seu_metadata(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                           tissue_position_matrix = .Object@tissue_position_matrix)
+              # load raw count matrix
+              .Object@raw_count_matrix <- ICHMousewch:::.load_raw_count_matrix(raw_count_matrix_address = raw_count_matrix_address)
 
-            # filter genes
-            .Object@filtered_genes <- ICHMousewch:::.find_filtered_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                         original_seu_metadata = .Object@original_seu_metadata)
+              # generate original Seurat Object metadata
+              .Object@original_seu_metadata <- ICHMousewch:::.generate_original_seu_metadata(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                             tissue_position_matrix = .Object@tissue_position_matrix)
 
-            # generate Seurat Object with cluster symbol
-            .Object@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_cluster_symbol(original_seu_metadata = .Object@original_seu_metadata,
-                                                                                                                 raw_count_matrix = .Object@raw_count_matrix)
+              # filter genes
+              .Object@filtered_genes <- ICHMousewch:::.find_filtered_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                           original_seu_metadata = .Object@original_seu_metadata)
 
-            # create spatial image plot
-            .Object@spatial_image$GMM_cluster <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                        cluster_symbol = "GMM_cluster",
-                                                                                                        raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                        background_image_address = .Object@file_address["background_image_address"],
-                                                                                                        color_set = .Object@color_set,
-                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                        giotto_instruction = .Object@giotto_instruction)
+              # generate Seurat Object with cluster symbol
+              .Object@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_cluster_symbol(original_seu_metadata = .Object@original_seu_metadata,
+                                                                                                                   raw_count_matrix = .Object@raw_count_matrix)
 
-            .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                                 cluster_symbol = "Louvain_cluster_posi",
-                                                                                                                 raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                                 background_image_address = .Object@file_address["background_image_address"],
-                                                                                                                 color_set = .Object@color_set,
-                                                                                                                 self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                 giotto_instruction = .Object@giotto_instruction)
+              # create spatial image plot
+              .Object@spatial_image$GMM_cluster <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
+                                                                                                          cluster_symbol = "GMM_cluster",
+                                                                                                          raw_count_matrix = .Object@raw_count_matrix,
+                                                                                                          background_image_address = .Object@file_address["background_image_address"],
+                                                                                                          color_set = .Object@color_set,
+                                                                                                          self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
+                                                                                                          giotto_instruction = .Object@giotto_instruction)
+
+              .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
+                                                                                                                   cluster_symbol = "Louvain_cluster_posi",
+                                                                                                                   raw_count_matrix = .Object@raw_count_matrix,
+                                                                                                                   background_image_address = .Object@file_address["background_image_address"],
+                                                                                                                   color_set = .Object@color_set,
+                                                                                                                   self_definition_color = c("1"="#F5D2A8"),
+                                                                                                                   giotto_instruction = .Object@giotto_instruction)
+
+            } else {
+
+              .Object@analysis_symbol = character()
+              .Object@file_address = character()
+              .Object@color_set = character()
+              .Object@tissue_position_matrix = data.table()
+              .Object@raw_count_matrix = Matrix(sparse = TRUE)
+              .Object@original_seu_metadata = data.table()
+              .Object@seu_metadata_with_cluster_symbol = data.table()
+              .Object@spatial_image = list()
+              .Object@identification_symbols = list()
+              .Object@giotto_instruction = list()
+              .Object@filtered_genes = character()
+
+            }
 
             validObject(.Object)
             return(.Object)
@@ -108,9 +127,10 @@ setMethod(f = "initialize",
 #' @param filtered_count_matrix address for filtered count matrix
 #' @param tissue_position_address address for tissue position matrix
 #' @param background_image_address address for background address
+#' @param initialization whether start at beginning
 #' @export
 
-Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder) {
+Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization = TRUE) {
 
   on.exit(gc())
 
@@ -121,7 +141,8 @@ Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_co
                   tissue_position_address = tissue_position_address,
                   background_image_address = background_image_address,
                   giotto_python_path = giotto_python_path,
-                  giotto_results_folder = giotto_results_folder)
+                  giotto_results_folder = giotto_results_folder,
+                  initialization = initialization)
 
   return(Hematoma)
 
@@ -205,7 +226,7 @@ setMethod(f = "identify_hematoma_center_and_edge",
 
             hematoma@identification_symbols$center_symbols <- center_symbols
 
-            Louvain_cluster_filt_gene <- hematoma@seu_metadata_with_cluster_symbol$Louvain_cluster_filt_gene %>%
+            Louvain_cluster_filt_gene <- hematoma@seu_metadata_with_cluster_symbol[,Louvain_cluster_filt_gene] %>%
               unique() %>%
               unlist()
 
@@ -293,10 +314,26 @@ setMethod(f = "save_Hematoma",
 
             on.exit(gc())
 
-            file_name <- paste(hematoma@analysis_symbol,"hematoma",sep = "_") %>%
-              paste("RData",sep = ".")
+            file_path <- paste(saving_path,"DataBase",sep = "/")
 
-            save(hematoma,file = paste(saving_path,file_name,sep = "/"))
+            if(!dir.exists(file_path)) {
+
+              dir.create(file_path)
+
+            }
+
+            slot_na <- slotNames(hematoma)
+
+            for (i in 1:length(slot_na)) {
+
+              slot_da <- slot(hematoma,slot_na[i])
+
+              file_name <- paste(hematoma@analysis_symbol,slot_na[i],sep = "_") %>%
+                paste("RData",sep = ".")
+
+              save(slot_da,file = paste(file_path,file_name,sep = "/"))
+
+            }
 
           })
 ####
