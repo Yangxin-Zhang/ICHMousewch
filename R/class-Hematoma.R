@@ -62,7 +62,8 @@ setMethod(f = "initialize",
 
               # add Giotto instruction
               .Object@giotto_instruction <- ICHMousewch:::.create_giotto_instruction(python_path = giotto_python_path,
-                                                                                     results_folder = giotto_results_folder)
+                                                                                     results_folder = giotto_results_folder) %>%
+                list()
 
               # load tissue position matrix
               .Object@tissue_position_matrix <- ICHMousewch:::.load_tissue_position_matrix(tissue_position_address = tissue_position_address)
@@ -89,7 +90,7 @@ setMethod(f = "initialize",
                                                                                                           background_image_address = .Object@file_address["background_image_address"],
                                                                                                           color_set = .Object@color_set,
                                                                                                           self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                          giotto_instruction = .Object@giotto_instruction)
+                                                                                                          giotto_instruction = .Object@giotto_instruction[[1]])
 
               .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
                                                                                                                    cluster_symbol = "Louvain_cluster_posi",
@@ -97,7 +98,7 @@ setMethod(f = "initialize",
                                                                                                                    background_image_address = .Object@file_address["background_image_address"],
                                                                                                                    color_set = .Object@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                   giotto_instruction = .Object@giotto_instruction)
+                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]])
 
             } else {
 
@@ -340,7 +341,8 @@ setMethod(f = "save_Hematoma",
 
             file_name <- paste("dataset_name","RData",sep = ".")
 
-            save(unlist(file_na_ls),file = paste(file_path,file_name,sep = "/"))
+            file_na_ls <- unlist(file_na_ls)
+            save(file_na_ls,file = paste(file_path,file_name,sep = "/"))
 
           })
 ####
