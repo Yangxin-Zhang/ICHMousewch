@@ -7,7 +7,6 @@
 #' @slot file_address file address of dataset used in analysis
 #' @slot tissue_position_matrix save tissue position matrix of dataset
 #' @slot color_set a set of code for color
-#' @slot barcodes in_tissue or out_tissue barcodes
 #' @slot raw_count_matrix the raw count matrix from dataset
 #' @slot original_seu_metadata the original Seurat Object metadata
 #' @slot seu_metadata_with_cluster_symbol Seurat Object metadata with cluster symbol
@@ -23,10 +22,9 @@ setClass(
     file_address = "character",
     color_set = "character",
     tissue_position_matrix = "data.table",
-    barcodes = "list",
     raw_count_matrix = "dgCMatrix",
     original_seu_metadata = "data.table",
-    seu_metadata_with_cluster_symbol = "data.frame",
+    seu_metadata_with_cluster_symbol = "data.table",
     spatial_image = "list",
     identification_symbols = "list",
     giotto_instruction = "giottoInstructions",
@@ -65,12 +63,6 @@ setMethod(f = "initialize",
 
             # load tissue position matrix
             .Object@tissue_position_matrix <- ICHMousewch:::.load_tissue_position_matrix(tissue_position_address = tissue_position_address)
-
-            # save barcodes
-            .Object@barcodes$in_tissue <- ICHMousewch:::.save_barcodes(tissue_position_matrix = .Object@tissue_position_matrix,
-                                                                      in_tissue = TRUE)
-            .Object@barcodes$out_tissue <- ICHMousewch:::.save_barcodes(tissue_position_matrix = .Object@tissue_position_matrix,
-                                                                      in_tissue = FALSE)
 
             # load raw count matrix
             .Object@raw_count_matrix <- ICHMousewch:::.load_raw_count_matrix(raw_count_matrix_address = raw_count_matrix_address)

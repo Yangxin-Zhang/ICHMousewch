@@ -18,8 +18,6 @@ Hematoma: A class for identify the hematoma from spatial trascriptome dataset
 
 \item{\code{color_set}}{a set of code for color}
 
-\item{\code{barcodes}}{in_tissue or out_tissue barcodes}
-
 \item{\code{raw_count_matrix}}{the raw count matrix from dataset}
 
 \item{\code{original_seu_metadata}}{the original Seurat Object metadata}
