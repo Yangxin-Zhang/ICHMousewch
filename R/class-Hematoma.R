@@ -330,19 +330,23 @@ setMethod(f = "save_Hematoma",
 
               slot_da <- slot(hematoma,slot_na[i])
 
-              file_name <- paste(slot_na[i],"RData",sep = ".")
+              file_name <- paste(slot_na[i],"rds",sep = ".")
 
               file_na_ls <- append(file_na_ls,file_name)
               names(file_na_ls)[i] <- slot_na[i]
 
-              save(slot_da,file = paste(file_path,file_name,sep = "/"))
+              saveRDS(object = slot_da,
+                      file = paste(file_path,file_name,sep = "/"),
+                      compress = FALSE)
 
             }
 
-            file_name <- paste("dataset_name","RData",sep = ".")
+            file_name <- paste("dataset_name","rds",sep = ".")
 
             file_na_ls <- unlist(file_na_ls)
-            save(file_na_ls,file = paste(file_path,file_name,sep = "/"))
+            saveRDS(object = file_na_ls,
+                    file = paste(file_path,file_name,sep = "/"),
+                    compress = FALSE)
 
           })
 ####
@@ -382,12 +386,12 @@ setMethod(f = "load_Hematoma",
                             giotto_results_folder = NULL,
                             initialization = FALSE)
 
-            dataset_name <- local(get(load(file = paste(file_path,"dataset_name.RData",sep = "/"))))
+            dataset_name <- readRDS(file = paste(file_path,"dataset_name.rds",sep = "/"))
 
             dataset_ls <- list()
             for (i in 1:length(dataset_name)) {
 
-              dataset_ls <- append(dataset_ls,local(get(load(file = paste(file_path,dataset_name[i],sep = "/")))))
+              dataset_ls <- append(dataset_ls,readRDS(file = paste(file_path,dataset_name[i],sep = "/")))
               names(dataset_ls)[i] <- names(dataset_name)[i]
 
             }
