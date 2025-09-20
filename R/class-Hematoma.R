@@ -396,17 +396,17 @@ setMethod(f = "load_Hematoma",
 
             }
 
-            hematoma@analysis_symbol <- dataset_ls["analysis_symbol"]
-            hematoma@file_address <- dataset_ls["file_address"]
-            hematoma@color_set <- dataset_ls["color_set"]
-            hematoma@tissue_position_matrix <- dataset_ls["tissue_position_matrix"]
-            hematoma@raw_count_matrix <- dataset_ls["raw_count_matrix"]
-            hematoma@original_seu_metadata <- dataset_ls["original_seu_metadata"]
-            hematoma@seu_metadata_with_cluster_symbol <- dataset_ls["seu_metadata_with_cluster_symbol"]
-            hematoma@spatial_image <- dataset_ls["spatial_image"]
-            hematoma@identification_symbols <- dataset_ls["identification_symbols"]
-            hematoma@giotto_instruction <- dataset_ls["giotto_instruction"]
-            hematoma@filtered_genes <- dataset_ls["filtered_genes"]
+            hematoma@analysis_symbol <- dataset_ls[["analysis_symbol"]]
+            hematoma@file_address <- dataset_ls[["file_address"]]
+            hematoma@color_set <- dataset_ls[["color_set"]]
+            hematoma@tissue_position_matrix <- dataset_ls[["tissue_position_matrix"]]
+            hematoma@raw_count_matrix <- dataset_ls[["raw_count_matrix"]]
+            hematoma@original_seu_metadata <- dataset_ls[["original_seu_metadata"]]
+            hematoma@seu_metadata_with_cluster_symbol <- dataset_ls[["seu_metadata_with_cluster_symbol"]]
+            hematoma@spatial_image <- dataset_ls[["spatial_image"]]
+            hematoma@identification_symbols <- dataset_ls[["identification_symbols"]]
+            hematoma@giotto_instruction <- dataset_ls[["giotto_instruction"]]
+            hematoma@filtered_genes <- dataset_ls[["filtered_genes"]]
 
             return(hematoma)
 
