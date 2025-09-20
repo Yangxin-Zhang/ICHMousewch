@@ -10,6 +10,7 @@
 #' @importFrom Seurat NormalizeData
 #' @importFrom Seurat ScaleData
 #' @importFrom Seurat RunPCA
+#' @importFrom Seurat FindVariableFeatures
 #' @importFrom mclust Mclust
 #' @importFrom mclust mclustBIC
 #' @importFrom Giotto createGiottoInstructions

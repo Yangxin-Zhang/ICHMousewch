@@ -4,9 +4,11 @@
 #' ICH_Mouse a class for analysis ICH_Mouse
 #'
 #' @slot diff_expr_genes the differential expression genes
+#' @slot symbol_genes the symbol genes
 
 setClass(Class = "ICH_Mouse",
-         slots = c(diff_expr_genes = "list"),
+         slots = c(diff_expr_genes = "list",
+                   symbol_genes = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
@@ -19,6 +21,11 @@ setMethod(f = "initialize",
             on.exit(gc())
 
             .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder)
+
+            .Object@symbol_genes$normal_tissue <- ICHMousewch:::.find_symbol_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                     seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+                                                                     filtered_genes = .Object@filtered_genes,
+                                                                     cluster_symbol = 1)
 
             validObject(.Object)
             return(.Object)

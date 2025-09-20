@@ -11,5 +11,7 @@ ICH_Mouse a class for analysis ICH_Mouse
 
 \describe{
 \item{\code{diff_expr_genes}}{the differential expression genes}
+
+\item{\code{symbol_genes}}{the symbol genes}
 }}
 

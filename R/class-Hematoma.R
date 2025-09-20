@@ -325,7 +325,7 @@ setMethod(f = "save_Hematoma",
 
             if(!dir.exists(file_path)) {
 
-              dir.create(file_path)
+              dir.create(file_path,recursive = TRUE)
 
             }
 
