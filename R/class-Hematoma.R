@@ -332,7 +332,7 @@ setMethod(f = "save_Hematoma",
 
               file_name <- paste(slot_na[i],"rds",sep = ".")
 
-              file_na_ls <- append(file_na_ls,file_name)
+              file_na_ls <- append(file_na_ls,list(file_name))
               names(file_na_ls)[i] <- slot_na[i]
 
               saveRDS(object = slot_da,
@@ -391,7 +391,7 @@ setMethod(f = "load_Hematoma",
             dataset_ls <- list()
             for (i in 1:length(dataset_name)) {
 
-              dataset_ls <- append(dataset_ls,readRDS(file = paste(file_path,dataset_name[i],sep = "/")))
+              dataset_ls <- append(dataset_ls,list(readRDS(file = paste(file_path,dataset_name[i],sep = "/"))))
               names(dataset_ls)[i] <- names(dataset_name)[i]
 
             }
