@@ -424,7 +424,6 @@ setGeneric(name = "show_image",
 #' @export
 
 setMethod(f = "show_image",
-          signature = signature(ggplot_image = "list"),
           definition = function(ggplot_image) {
 
             on.exit(gc())
