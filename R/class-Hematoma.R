@@ -186,7 +186,7 @@ setMethod(f = "identify_hematoma",
                                                                                                        background_image_address = hematoma@file_address["background_image_address"],
                                                                                                        color_set = hematoma@color_set,
                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                       giotto_instruction = hematoma@giotto_instruction) %>%
+                                                                                                       giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
 
             hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
@@ -195,7 +195,7 @@ setMethod(f = "identify_hematoma",
                                                                                                                         background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                         color_set = hematoma@color_set,
                                                                                                                         self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                        giotto_instruction = hematoma@giotto_instruction) %>%
+                                                                                                                        giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
 
             return(hematoma)
@@ -245,7 +245,7 @@ setMethod(f = "identify_hematoma_center_and_edge",
                                                                                                                    background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                    color_set = hematoma@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
-                                                                                                                   giotto_instruction = hematoma@giotto_instruction) %>%
+                                                                                                                   giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
 
             return(hematoma)
@@ -288,7 +288,7 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
                                                                                                  background_image_address = hematoma@file_address["background_image_address"],
                                                                                                  color_set = hematoma@color_set,
                                                                                                  self_definition_color = c("1"="#F5D2A8",highlighted_color_set),
-                                                                                                 giotto_instruction = hematoma@giotto_instruction) %>%
+                                                                                                 giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
 
             grid.draw(highlighted_spatial_image)
