@@ -90,7 +90,8 @@ setMethod(f = "initialize",
                                                                                                           background_image_address = .Object@file_address["background_image_address"],
                                                                                                           color_set = .Object@color_set,
                                                                                                           self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                          giotto_instruction = .Object@giotto_instruction[[1]])
+                                                                                                          giotto_instruction = .Object@giotto_instruction[[1]]) %>%
+                ggplotGrob()
 
               .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
                                                                                                                    cluster_symbol = "Louvain_cluster_posi",
@@ -98,7 +99,8 @@ setMethod(f = "initialize",
                                                                                                                    background_image_address = .Object@file_address["background_image_address"],
                                                                                                                    color_set = .Object@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]])
+                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]]) %>%
+                ggplotGrob()
 
             } else {
 
@@ -184,7 +186,8 @@ setMethod(f = "identify_hematoma",
                                                                                                        background_image_address = hematoma@file_address["background_image_address"],
                                                                                                        color_set = hematoma@color_set,
                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                       giotto_instruction = hematoma@giotto_instruction)
+                                                                                                       giotto_instruction = hematoma@giotto_instruction) %>%
+              ggplotGrob()
 
             hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
                                                                                                                         cluster_symbol = "Louvain_cluster_filt_gene",
@@ -192,7 +195,8 @@ setMethod(f = "identify_hematoma",
                                                                                                                         background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                         color_set = hematoma@color_set,
                                                                                                                         self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                        giotto_instruction = hematoma@giotto_instruction)
+                                                                                                                        giotto_instruction = hematoma@giotto_instruction) %>%
+              ggplotGrob()
 
             return(hematoma)
 
@@ -241,7 +245,8 @@ setMethod(f = "identify_hematoma_center_and_edge",
                                                                                                                    background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                    color_set = hematoma@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
-                                                                                                                   giotto_instruction = hematoma@giotto_instruction)
+                                                                                                                   giotto_instruction = hematoma@giotto_instruction) %>%
+              ggplotGrob()
 
             return(hematoma)
 
@@ -283,9 +288,10 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
                                                                                                  background_image_address = hematoma@file_address["background_image_address"],
                                                                                                  color_set = hematoma@color_set,
                                                                                                  self_definition_color = c("1"="#F5D2A8",highlighted_color_set),
-                                                                                                 giotto_instruction = hematoma@giotto_instruction)
+                                                                                                 giotto_instruction = hematoma@giotto_instruction) %>%
+              ggplotGrob()
 
-            show(highlighted_spatial_image)
+            grid.draw(highlighted_spatial_image)
 
           })
 ####
@@ -388,27 +394,42 @@ setMethod(f = "load_Hematoma",
 
             dataset_name <- readRDS(file = paste(file_path,"dataset_name.rds",sep = "/"))
 
-            dataset_ls <- list()
             for (i in 1:length(dataset_name)) {
 
-              dataset_ls <- append(dataset_ls,list(readRDS(file = paste(file_path,dataset_name[i],sep = "/"))))
-              names(dataset_ls)[i] <- names(dataset_name)[i]
+              slot(object = hematoma,name = names(dataset_name)[i]) <- readRDS(file = paste(file_path,dataset_name[i],sep = "/"))
 
             }
-
-            hematoma@analysis_symbol <- dataset_ls[["analysis_symbol"]]
-            hematoma@file_address <- dataset_ls[["file_address"]]
-            hematoma@color_set <- dataset_ls[["color_set"]]
-            hematoma@tissue_position_matrix <- dataset_ls[["tissue_position_matrix"]]
-            hematoma@raw_count_matrix <- dataset_ls[["raw_count_matrix"]]
-            hematoma@original_seu_metadata <- dataset_ls[["original_seu_metadata"]]
-            hematoma@seu_metadata_with_cluster_symbol <- dataset_ls[["seu_metadata_with_cluster_symbol"]]
-            hematoma@spatial_image <- dataset_ls[["spatial_image"]]
-            hematoma@identification_symbols <- dataset_ls[["identification_symbols"]]
-            hematoma@giotto_instruction <- dataset_ls[["giotto_instruction"]]
-            hematoma@filtered_genes <- dataset_ls[["filtered_genes"]]
 
             return(hematoma)
 
             })
+####
+
+####
+
+#' show ggplotGrob image
+#'
+#' @param ggplot_image a ggplot image in the form of gtable
+
+setGeneric(name = "show_image",
+           def = function(ggplot_image) {
+
+             standardGeneric("show_image")
+
+           })
+
+#' show ggplotGrob image
+#'
+#' @param ggplot_image a ggplot image in the form of gtable
+#' @export
+
+setMethod(f = "show_image",
+          signature = signature(ggplot_image = "list"),
+          definition = function(ggplot_image) {
+
+            on.exit(gc())
+
+            grid.draw(ggplot_image)
+
+          })
 ####
