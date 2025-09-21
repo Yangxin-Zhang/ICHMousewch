@@ -137,7 +137,9 @@ setMethod(f = "create_single_gene_spatial_image",
                                                                                                              gene_ls = gene_ls,
                                                                                                              raw_count_matrix = ich_mouse@raw_count_matrix,
                                                                                                              background_image_address = ich_mouse@file_address["background_image_address"],
-                                                                                                             giotto_instruction = ich_mouse@giotto_instruction)
+                                                                                                             giotto_instruction = ich_mouse@giotto_instruction[[1]])
+
+            return(ich_mouse)
 
           })
 ####

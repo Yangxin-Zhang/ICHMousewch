@@ -130,7 +130,7 @@
                                       show_legend = FALSE) %>%
         ggplotGrob()
 
-      spatial_image_ls <- append(spatial_image_ls,spatial_image)
+      spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
       names(spatial_image_ls)[i] <- gene_ls[i]
 
     }
