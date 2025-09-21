@@ -8,24 +8,68 @@
 
 setClass(Class = "ICH_Mouse",
          slots = c(diff_expr_genes = "list",
-                   symbol_genes = "list"),
+                   symbol_genes = "list",
+                   spatial_image_with_single_gene = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
 #'
+#' @param analysis_symbol a symbol of sample
+#' @param raw_count_matrix_address address for raw count matrix
+#' @param filtered_count_matrix address for filtered count matrix
+#' @param tissue_position_address address for tissue position matrix
+#' @param background_image_address address for background address
+#' @param giotto_python_path the path to a python which the Giotto can use
+#' @param giotto_results_folder the folder for Giotto save plots
+#' @param initialization whether start at beginning
+#' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
+#' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 
 setMethod(f = "initialize",
           signature = signature(.Object = "ICH_Mouse"),
-          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder) {
+          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization) {
 
             on.exit(gc())
 
-            .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder)
+            if (initialization) {
 
-            .Object@symbol_genes$normal_tissue <- ICHMousewch:::.find_symbol_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                     seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                     filtered_genes = .Object@filtered_genes,
-                                                                     cluster_symbol = 1)
+              .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization)
+
+              .Object <- ICHMousewch:::identify_hematoma(hematoma = .Object,
+                                                         hematoma_symbols = hematoma_symbols)
+
+              .Object <- ICHMousewch:::identify_hematoma_center_and_edge(hematoma = .Object,
+                                                                         center_symbols = center_symbols)
+
+              .Object@symbol_genes$normal_tissue <- ICHMousewch:::.find_symbol_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                     seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+                                                                                     filtered_genes = .Object@filtered_genes,
+                                                                                     cluster_symbol = 1)
+
+              .Object@diff_expr_genes$edge_normal <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                                       seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+                                                                                                       filtered_genes = .Object@filtered_genes,
+                                                                                                       cluster_symbol = c(2,1))
+
+            } else {
+
+              .Object@analysis_symbol = character()
+              .Object@file_address = character()
+              .Object@color_set = character()
+              .Object@tissue_position_matrix = data.table()
+              .Object@raw_count_matrix = sparseMatrix(i = integer(0),j = integer(0),x = numeric(0))
+              .Object@original_seu_metadata = data.table()
+              .Object@seu_metadata_with_cluster_symbol = data.table()
+              .Object@spatial_image = list()
+              .Object@identification_symbols = list()
+              .Object@giotto_instruction = list()
+              .Object@filtered_genes = character()
+              .Object@diff_expr_genes = list()
+              .Object@symbol_genes = list()
+              .Object@spatial_image_with_single_gene = list()
+
+            }
+
 
             validObject(.Object)
             return(.Object)
@@ -39,9 +83,12 @@ setMethod(f = "initialize",
 #' @param filtered_count_matrix address for filtered count matrix
 #' @param tissue_position_address address for tissue position matrix
 #' @param background_image_address address for background address
+#' @param initialization whether start at beginning
+#' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
+#' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 #' @export
 
-Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder) {
+Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization = TRUE) {
 
   on.exit(gc())
 
@@ -52,17 +99,159 @@ Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_c
                    tissue_position_address = tissue_position_address,
                    background_image_address = background_image_address,
                    giotto_python_path = giotto_python_path,
-                   giotto_results_folder = giotto_results_folder)
+                   giotto_results_folder = giotto_results_folder,
+                   hematoma_symbols = hematoma_symbols,
+                   center_symbols = center_symbols,
+                   initialization = initialization)
 
   return(ICH_Mouse)
 
 }
 
+####
+#' create single gene spatial image
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls the gene list to create spatial image
 
+setGeneric(name = "create_single_gene_spatial_image",
+           def = function(ich_mouse,gene_ls) {
 
+             standardGeneric("create_single_gene_spatial_image")
 
+           })
 
+#' create single gene spatial image
+#'
+#' @param ICH_Mouse the class of ICH_Mouse
+#' @param gene_ls the gene list to create spatial image
+#' @export
 
+setMethod(f = "create_single_gene_spatial_image",
+          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character"),
+          definition = function(ich_mouse,gene_ls) {
+
+            on.exit(gc())
+
+            ich_mouse@spatial_image_with_single_gene <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                                             gene_ls = gene_ls,
+                                                                                                             raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                                             background_image_address = ich_mouse@file_address["background_image_address"],
+                                                                                                             giotto_instruction = ich_mouse@giotto_instruction)
+
+          })
+####
+
+####
+#' save ICH_Mouse class
+#'
+#' @param ich_mouse the ICH_Mouse class
+#' @param saving_path the path to save
+#' @export
+
+setGeneric(name = "save_ICH_Mouse",
+           def = function(ich_mouse,saving_path) {
+
+             standardGeneric("save_ICH_Mouse")
+
+           })
+
+#' save ICH_Mouse class
+#'
+#' @param ich_mouse the ICH_Mouse class
+#' @param saving_path the path to save
+
+setMethod(f = "save_ICH_Mouse",
+          signature = signature(ich_mouse = "ICH_Mouse",saving_path = "character"),
+          definition = function(ich_mouse,saving_path) {
+
+            on.exit(gc())
+
+            file_path <- paste(saving_path,"DataBase",sep = "/")
+
+            if(!dir.exists(file_path)) {
+
+              dir.create(file_path,recursive = TRUE)
+
+            }
+
+            slot_na <- slotNames(ich_mouse)
+
+            file_na_ls <- list()
+            for (i in 1:length(slot_na)) {
+
+              slot_da <- slot(ich_mouse,slot_na[i])
+
+              file_name <- paste(slot_na[i],"rds",sep = ".")
+
+              file_na_ls <- append(file_na_ls,list(file_name))
+              names(file_na_ls)[i] <- slot_na[i]
+
+              saveRDS(object = slot_da,
+                      file = paste(file_path,file_name,sep = "/"),
+                      compress = FALSE)
+
+            }
+
+            file_name <- paste("dataset_name","rds",sep = ".")
+
+            file_na_ls <- unlist(file_na_ls)
+            saveRDS(object = file_na_ls,
+                    file = paste(file_path,file_name,sep = "/"),
+                    compress = FALSE)
+
+          })
+####
+
+####
+#' load ICH_Mouse from local
+#'
+#' @param loading_path the path saving ICH_Mouse
+#' @export
+
+setGeneric(name = "load_ICH_Mouse",
+           def = function(loading_path) {
+
+             standardGeneric("load_ICH_Mouse")
+
+           })
+
+#' load ICH_Mouse from local
+#'
+#' @param loading_path the path saving ICH_Mouse
+
+setMethod(f = "load_ICH_Mouse",
+          signature = signature(loading_path = "character"),
+          definition = function(loading_path) {
+
+            on.exit(gc())
+
+            file_path <- paste(loading_path,"DataBase",sep = "/")
+
+            ich_mouse <- new(Class = "ICH_Mouse",
+                             analysis_symbol = NULL,
+                             raw_count_matrix_address = NULL,
+                             filtered_count_matrix_address = NULL,
+                             tissue_position_address = NULL,
+                             background_image_address = NULL,
+                             giotto_python_path = NULL,
+                             giotto_results_folder = NULL,
+                             hematoma_symbols = NULL,
+                             center_symbols = NULL,
+                             initialization = FALSE)
+
+            dataset_name <- readRDS(file = paste(file_path,"dataset_name.rds",sep = "/"))
+
+            for (i in 1:length(dataset_name)) {
+
+              slot(object = ich_mouse,name = names(dataset_name)[i]) <- readRDS(file = paste(file_path,dataset_name[i],sep = "/"))
+
+            }
+
+            return(ich_mouse)
+
+          })
+####
 
 
 

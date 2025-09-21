@@ -291,7 +291,13 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
                                                                                                  giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
 
-            grid.draw(highlighted_spatial_image)
+            hematoma@spatial_image$highlighted_spatial_image <- list()
+
+            save_name <- paste(cluster_symbol,cluster_ls,sep = "_")
+
+            hematoma@spatial_image$highlighted_spatial_image <- append(hematoma@spatial_image$highlighted_spatial_image,list(save_name = highlighted_spatial_image))
+
+            show(as.ggplot(highlighted_spatial_image))
 
           })
 ####
@@ -428,7 +434,7 @@ setMethod(f = "show_image",
 
             on.exit(gc())
 
-            grid.draw(ggplot_image)
+            show(as.ggplot(ggplot_image))
 
           })
 ####

@@ -12,8 +12,32 @@
   tissue_position_address,
   background_image_address,
   giotto_python_path,
-  giotto_results_folder
+  giotto_results_folder,
+  hematoma_symbols,
+  center_symbols,
+  initialization
 )
+}
+\arguments{
+\item{analysis_symbol}{a symbol of sample}
+
+\item{raw_count_matrix_address}{address for raw count matrix}
+
+\item{tissue_position_address}{address for tissue position matrix}
+
+\item{background_image_address}{address for background address}
+
+\item{giotto_python_path}{the path to a python which the Giotto can use}
+
+\item{giotto_results_folder}{the folder for Giotto save plots}
+
+\item{hematoma_symbols}{the symbols identified by user as the the symbol of hematoma}
+
+\item{center_symbols}{the symbols identified by user as the the symbol of hematoma center}
+
+\item{initialization}{whether start at beginning}
+
+\item{filtered_count_matrix}{address for filtered count matrix}
 }
 \description{
 Initialize class ICH_Mouse

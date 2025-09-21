@@ -11,6 +11,7 @@
 #' @importFrom Seurat ScaleData
 #' @importFrom Seurat RunPCA
 #' @importFrom Seurat FindVariableFeatures
+#' @importFrom Seurat FindMarkers
 #' @importFrom mclust Mclust
 #' @importFrom mclust mclustBIC
 #' @importFrom Giotto createGiottoInstructions
@@ -18,13 +19,15 @@
 #' @importFrom Giotto createGiottoImage
 #' @importFrom Giotto addGiottoImage
 #' @importFrom Giotto spatPlot2D
+#' @importFrom Giotto spatFeatPlot2D
 #' @importFrom ggplot2 ggplotGrob
-#' @importFrom grid grid.draw
+#' @importFrom ggplotify as.ggplot
 #' @importFrom dplyr bind_rows
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix sparseMatrix
 #' @importFrom data.table as.data.table
 #' @importFrom data.table rbindlist
 #' @importFrom data.table data.table
+#' @importFrom data.table setorder
 
 NULL
