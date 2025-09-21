@@ -49,7 +49,17 @@ setMethod(f = "initialize",
               .Object@diff_expr_genes$edge_normal <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
                                                                                                        seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
                                                                                                        filtered_genes = .Object@filtered_genes,
-                                                                                                       cluster_symbol = c(2,1))
+                                                                                                       cluster_symbol = c(3,1))
+
+              .Object@diff_expr_genes$center_edge <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                                       seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+                                                                                                       filtered_genes = .Object@filtered_genes,
+                                                                                                       cluster_symbol = c(2,3))
+
+              .Object@diff_expr_genes$center_normal <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                                         seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+                                                                                                         filtered_genes = .Object@filtered_genes,
+                                                                                                         cluster_symbol = c(2,1))
 
             } else {
 

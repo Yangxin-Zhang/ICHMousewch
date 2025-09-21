@@ -54,4 +54,16 @@
   diff_expr_genes_dt <- as.data.table(diff_expr_genes_dt) %>%
     setorder(-avg_log2FC)
 
+  count_matrix_1 <- raw_count_matrix[diff_expr_genes_dt[,gene_name],seu_metadata_with_cluster_symbol[center_edge_symbol == cluster_symbol[1],barcode]]
+  count_matrix_2 <- raw_count_matrix[diff_expr_genes_dt[,gene_name],seu_metadata_with_cluster_symbol[center_edge_symbol == cluster_symbol[2],barcode]]
+
+  diff_expr_genes_dt[,total.1 := ncol(count_matrix_1)]
+  diff_expr_genes_dt[,total.2 := ncol(count_matrix_2)]
+  diff_expr_genes_dt[,posi.1 := Matrix::rowSums(!count_matrix_1 == 0)]
+  diff_expr_genes_dt[,posi.2 := Matrix::rowSums(!count_matrix_2 == 0)]
+
+  diff_expr_genes_dt <- ICHMousewch:::.conduct_statistic_test_on_rate(sample_dt = diff_expr_genes_dt)
+
+  return(diff_expr_genes_dt)
+
 }

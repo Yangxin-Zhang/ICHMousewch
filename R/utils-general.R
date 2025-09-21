@@ -99,4 +99,33 @@
 
 }
 
+#' conduct statistic test on rate
+#'
+#' @param sample_dt the sample for analysis
+
+.conduct_statistic_test_on_rate <- function(sample_dt) {
+
+  on.exit(gc())
+
+  p_value_ls <- list()
+  conf_up_ls <- list()
+  conf_down_ls <- list()
+  for (i in 1:length(rownames(sample_dt))) {
+
+    test_result <- prop.test(x = sample_dt[i,c(posi.1,posi.2)],
+                             n = sample_dt[i,c(total.1,total.2)])
+
+    p_value_ls <- append(p_value_ls,list(test_result$p.value))
+    conf_up_ls <- append(conf_up_ls,list(test_result$conf.int[1]))
+    conf_down_ls <- append(conf_down_ls,list(test_result$conf.int[2]))
+
+  }
+
+  sample_dt[,p_value_rate := unlist(p_value_ls)]
+  sample_dt[,conf_up_rate := unlist(conf_up_ls)]
+  sample_dt[,conf_down_rate := unlist(conf_down_ls)]
+
+  return(sample_dt)
+
+}
 
