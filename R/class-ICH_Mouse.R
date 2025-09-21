@@ -46,21 +46,6 @@ setMethod(f = "initialize",
                                                                                      filtered_genes = .Object@filtered_genes,
                                                                                      cluster_symbol = 1)
 
-              .Object@diff_expr_genes$edge_normal <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                       seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                       filtered_genes = .Object@filtered_genes,
-                                                                                                       cluster_symbol = c(3,1))
-
-              .Object@diff_expr_genes$center_edge <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                       seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                       filtered_genes = .Object@filtered_genes,
-                                                                                                       cluster_symbol = c(2,3))
-
-              .Object@diff_expr_genes$center_normal <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                         seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                         filtered_genes = .Object@filtered_genes,
-                                                                                                         cluster_symbol = c(2,1))
-
             } else {
 
               .Object@analysis_symbol = character()
@@ -118,6 +103,40 @@ Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_c
 
 }
 
+####
+#' find differential expression genes
+#'
+#' @param ich_mouse the ICH_Mouse class
+#' @param cluster_symbol the cluster to contrast
+
+setGeneric(name = "find_differential_expression_genes",
+           def = function(ich_mouse,cluster_symbol,gene_set_name) {
+
+             standardGeneric("find_differential_expression_genes")
+
+           })
+
+#' find differential expression genes
+#'
+#' @param ich_mouse the ICH_Mouse class
+#' @param cluster_symbol the cluster to contrast
+#' @export
+
+setMethod(f = "find_differential_expression_genes",
+          signature = signature(ich_mouse = "ICH_Mouse",cluster_symbol = "numeric",gene_set_name = "character"),
+          definition = function(ich_mouse,cluster_symbol,gene_set_name) {
+
+            on.exit(gc())
+
+            ich_mouse@diff_expr_genes[gene_set_name] <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                                          seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                                          filtered_genes = ich_mouse@filtered_genes,
+                                                                                                          cluster_symbol = cluster_symbol) %>%
+              list()
+
+            return(ich_mouse)
+
+          })
 ####
 #' create single gene spatial image
 #'
