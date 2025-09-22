@@ -9,7 +9,8 @@
   gene_ls,
   raw_count_matrix,
   background_image_address,
-  giotto_instruction
+  giotto_instruction,
+  show_background_image = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@
 \item{background_image_address}{image for background}
 
 \item{giotto_instruction}{the instruction of Giotto Object}
+
+\item{show_background_image}{whether to show background image}
 }
 \description{
 create spatial image with single gene

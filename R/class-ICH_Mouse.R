@@ -46,23 +46,23 @@ setMethod(f = "initialize",
                                                                                      filtered_genes = .Object@filtered_genes,
                                                                                      cluster_symbol = 1)
 
-              .Object@diff_expr_genes["edge-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                         seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                         filtered_genes = .Object@filtered_genes,
-                                                                                                         cluster_symbol = c(3,1)) %>%
-                list()
-
-              .Object@diff_expr_genes["center-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                           seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                           filtered_genes = .Object@filtered_genes,
-                                                                                                           cluster_symbol = c(2,1)) %>%
-                list()
-
-              .Object@diff_expr_genes["center-edge"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                         seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                         filtered_genes = .Object@filtered_genes,
-                                                                                                         cluster_symbol = c(2,3)) %>%
-                list()
+              # .Object@diff_expr_genes["edge-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+              #                                                                                            seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+              #                                                                                            filtered_genes = .Object@filtered_genes,
+              #                                                                                            cluster_symbol = c(3,1)) %>%
+              #   list()
+              #
+              # .Object@diff_expr_genes["center-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+              #                                                                                              seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+              #                                                                                              filtered_genes = .Object@filtered_genes,
+              #                                                                                              cluster_symbol = c(2,1)) %>%
+              #   list()
+              #
+              # .Object@diff_expr_genes["center-edge"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
+              #                                                                                            seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+              #                                                                                            filtered_genes = .Object@filtered_genes,
+              #                                                                                            cluster_symbol = c(2,3)) %>%
+              #   list()
 
             } else {
 
@@ -162,7 +162,7 @@ setMethod(f = "find_differential_expression_genes",
 #' @param gene_ls the gene list to create spatial image
 
 setGeneric(name = "create_single_gene_spatial_image",
-           def = function(ich_mouse,gene_ls) {
+           def = function(ich_mouse,gene_ls,show_background_image) {
 
              standardGeneric("create_single_gene_spatial_image")
 
@@ -175,8 +175,8 @@ setGeneric(name = "create_single_gene_spatial_image",
 #' @export
 
 setMethod(f = "create_single_gene_spatial_image",
-          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character"),
-          definition = function(ich_mouse,gene_ls) {
+          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",show_background_image = "logical"),
+          definition = function(ich_mouse,gene_ls,show_background_image) {
 
             on.exit(gc())
 
@@ -184,7 +184,8 @@ setMethod(f = "create_single_gene_spatial_image",
                                                                                                              gene_ls = gene_ls,
                                                                                                              raw_count_matrix = ich_mouse@raw_count_matrix,
                                                                                                              background_image_address = ich_mouse@file_address["background_image_address"],
-                                                                                                             giotto_instruction = ich_mouse@giotto_instruction[[1]])
+                                                                                                             giotto_instruction = ich_mouse@giotto_instruction[[1]],
+                                                                                                             show_background_image = show_background_image)
 
             return(ich_mouse)
 

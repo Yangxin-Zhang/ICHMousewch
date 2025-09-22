@@ -4,7 +4,7 @@
 \alias{create_single_gene_spatial_image}
 \title{create single gene spatial image}
 \usage{
-create_single_gene_spatial_image(ich_mouse, gene_ls)
+create_single_gene_spatial_image(ich_mouse, gene_ls, show_background_image)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}

@@ -91,8 +91,9 @@
 #' @param raw_count_matrix the matrix of raw count dataset
 #' @param background_image_address image for background
 #' @param giotto_instruction the instruction of Giotto Object
+#' @param show_background_image whether to show background image
 
-.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction) {
+.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction,show_background_image = TRUE) {
 
   on.exit(gc())
 
@@ -115,27 +116,57 @@
   giotto_object <- addGiottoImage(gobject = giotto_object,images = list(image_obj))
 
   spatial_image_ls <- list()
-  if(length(gene_ls) > 0) {
 
-    for (i in 1:length(gene_ls)) {
+  if(show_background_image) {
 
-      spatial_image <- spatFeatPlot2D(gobject = giotto_object,
-                                      expression_values = "raw",
-                                      feats = gene_ls[i],
-                                      background_color = "white",
-                                      point_size = 0.5,
-                                      point_alpha = 0.2,
-                                      cell_color_gradient = c("#F5D2A8","#D1352B"),
-                                      show_image = TRUE,
-                                      show_legend = FALSE) %>%
-        ggplotGrob()
+    if(length(gene_ls) > 0) {
 
-      spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
-      names(spatial_image_ls)[i] <- gene_ls[i]
+      for (i in 1:length(gene_ls)) {
+
+        spatial_image <- spatFeatPlot2D(gobject = giotto_object,
+                                        expression_values = "raw",
+                                        feats = gene_ls[i],
+                                        background_color = "white",
+                                        point_size = 0.5,
+                                        point_alpha = 0.2,
+                                        cell_color_gradient = c("#F5D2A8","#D1352B"),
+                                        show_image = TRUE,
+                                        show_legend = FALSE) %>%
+          ggplotGrob()
+
+        spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
+        names(spatial_image_ls)[i] <- gene_ls[i]
+
+      }
+
+    }
+
+  } else {
+
+    if(length(gene_ls) > 0) {
+
+      for (i in 1:length(gene_ls)) {
+
+        spatial_image <- spatFeatPlot2D(gobject = giotto_object,
+                                        expression_values = "raw",
+                                        feats = gene_ls[i],
+                                        background_color = "white",
+                                        point_size = 0.5,
+                                        point_alpha = 1,
+                                        cell_color_gradient = c("#F5D2A8","#D1352B"),
+                                        show_image = FALSE,
+                                        show_legend = FALSE) %>%
+          ggplotGrob()
+
+        spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
+        names(spatial_image_ls)[i] <- gene_ls[i]
+
+      }
 
     }
 
   }
+
 
   return(spatial_image_ls)
 
