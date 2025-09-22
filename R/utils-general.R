@@ -129,3 +129,41 @@
 
 }
 
+#' save spatial image with single gene
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param saving_path the path for saving
+#' @param image_set the image set to save
+
+.save_spatial_image_with_single_gene <- function(ich_mouse,saving_path,image_set) {
+
+  on.exit(gc())
+
+  file_path <- paste(saving_path,image_set,sep = "/")
+
+  if(!dir.exists(file_path)) {
+
+    dir.create(file_path,recursive = TRUE)
+
+  }
+
+num_image <- length(ich_mouse@spatial_image_with_single_gene[[image_set]])
+
+  for (i in 1:num_image) {
+
+    file_name <- paste(names(ich_mouse@spatial_image_with_single_gene[[image_set]])[i],"png",sep = ".")
+
+    image_plot <- as.ggplot(ich_mouse@spatial_image_with_single_gene[[image_set]][[i]])
+
+    ggsave(filename = file_name,
+           plot = image_plot,
+           path = file_path,
+           width = 8,
+           height = 8,
+           units = "in",
+           dpi = 300)
+
+  }
+
+}
+

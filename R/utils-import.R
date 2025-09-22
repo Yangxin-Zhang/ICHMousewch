@@ -21,6 +21,7 @@
 #' @importFrom Giotto spatPlot2D
 #' @importFrom Giotto spatFeatPlot2D
 #' @importFrom ggplot2 ggplotGrob
+#' @importFrom ggplot2 ggsave
 #' @importFrom ggplotify as.ggplot
 #' @importFrom dplyr bind_rows
 #' @importFrom Matrix rowSums

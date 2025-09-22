@@ -78,7 +78,9 @@
                               point_alpha = 0.5,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
-                              show_image = TRUE)
+                              show_image = TRUE,
+                              axis_text = FALSE,
+                              axis_title = FALSE)
 
   return(spatial_image)
 
@@ -93,7 +95,7 @@
 #' @param giotto_instruction the instruction of Giotto Object
 #' @param show_background_image whether to show background image
 
-.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction,show_background_image = TRUE) {
+.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction,show_background_image) {
 
   on.exit(gc())
 
@@ -131,7 +133,9 @@
                                         point_alpha = 0.5,
                                         cell_color_gradient = c("#F5D2A8","#D1352B"),
                                         show_image = TRUE,
-                                        show_legend = FALSE) %>%
+                                        show_legend = FALSE,
+                                        axis_text = FALSE,
+                                        axis_title = FALSE) %>%
           ggplotGrob()
 
         spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
@@ -155,7 +159,9 @@
                                         point_alpha = 1,
                                         cell_color_gradient = c("#F5D2A8","#D1352B"),
                                         show_image = FALSE,
-                                        show_legend = FALSE) %>%
+                                        show_legend = FALSE,
+                                        axis_text = FALSE,
+                                        axis_title = FALSE) %>%
           ggplotGrob()
 
         spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
