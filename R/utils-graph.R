@@ -75,7 +75,7 @@
   spatial_image <- spatPlot2D(gobject = giotto_object,
                               cell_color = cluster_symbol,
                               point_size = 0.5,
-                              point_alpha = 0.2,
+                              point_alpha = 0.5,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
                               show_image = TRUE)
@@ -128,7 +128,7 @@
                                         feats = gene_ls[i],
                                         background_color = "white",
                                         point_size = 0.5,
-                                        point_alpha = 0.2,
+                                        point_alpha = 0.5,
                                         cell_color_gradient = c("#F5D2A8","#D1352B"),
                                         show_image = TRUE,
                                         show_legend = FALSE) %>%
