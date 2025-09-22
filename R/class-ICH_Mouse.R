@@ -46,6 +46,24 @@ setMethod(f = "initialize",
                                                                                      filtered_genes = .Object@filtered_genes,
                                                                                      cluster_symbol = 1)
 
+              .Object@diff_expr_genes["edge-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                                         seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                                         filtered_genes = ich_mouse@filtered_genes,
+                                                                                                         cluster_symbol = c(3,1)) %>%
+                list()
+
+              .Object@diff_expr_genes["center-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                                           seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                                           filtered_genes = ich_mouse@filtered_genes,
+                                                                                                           cluster_symbol = c(2,1)) %>%
+                list()
+
+              .Object@diff_expr_genes["center-edge"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                                         seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                                         filtered_genes = ich_mouse@filtered_genes,
+                                                                                                         cluster_symbol = c(2,3)) %>%
+                list()
+
             } else {
 
               .Object@analysis_symbol = character()

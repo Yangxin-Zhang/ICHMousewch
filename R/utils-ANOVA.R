@@ -59,8 +59,33 @@
 
   diff_expr_genes_dt[,total.1 := ncol(count_matrix_1)]
   diff_expr_genes_dt[,total.2 := ncol(count_matrix_2)]
-  diff_expr_genes_dt[,posi.1 := Matrix::rowSums(!count_matrix_1 == 0)]
-  diff_expr_genes_dt[,posi.2 := Matrix::rowSums(!count_matrix_2 == 0)]
+
+  bins <- seq(1,nrow(diff_expr_genes_dt),2000)
+  num_posi.1_ls <- list()
+  num_posi.2_ls <- list()
+  for (i in 1:length(bins)) {
+
+    if (i != length(bins)) {
+
+      num_posi.1 <- Matrix::rowSums(!count_matrix_1[bins[i]:(bins[i]+4999),] == 0)
+      num_posi.2 <- Matrix::rowSums(!count_matrix_2[bins[i]:(bins[i]+4999),] == 0)
+
+    } else {
+
+      num_posi.1 <- Matrix::rowSums(!count_matrix_1[bins[i]:nrow(diff_expr_genes_dt),] == 0)
+      num_posi.2 <- Matrix::rowSums(!count_matrix_2[bins[i]:nrow(diff_expr_genes_dt),] == 0)
+
+    }
+
+    num_posi.1_ls <- append(num_posi.1_ls,list(num_posi.1))
+    num_posi.2_ls <- append(num_posi.2_ls,list(num_posi.2))
+
+    gc()
+
+  }
+
+  diff_expr_genes_dt[,posi.1 := unlist(num_posi.1_ls)]
+  diff_expr_genes_dt[,posi.2 := unlist(num_posi.2_ls)]
 
   diff_expr_genes_dt <- ICHMousewch:::.conduct_statistic_test_on_rate(sample_dt = diff_expr_genes_dt)
 
