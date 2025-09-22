@@ -67,8 +67,8 @@
 
     if (i != length(bins)) {
 
-      num_posi.1 <- Matrix::rowSums(!count_matrix_1[bins[i]:(bins[i]+4999),] == 0)
-      num_posi.2 <- Matrix::rowSums(!count_matrix_2[bins[i]:(bins[i]+4999),] == 0)
+      num_posi.1 <- Matrix::rowSums(!count_matrix_1[bins[i]:(bins[i]+1999),] == 0)
+      num_posi.2 <- Matrix::rowSums(!count_matrix_2[bins[i]:(bins[i]+1999),] == 0)
 
     } else {
 
