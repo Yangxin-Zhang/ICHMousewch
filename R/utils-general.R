@@ -107,6 +107,8 @@
 
   on.exit(gc())
 
+  sample_dt[,log_diff_pct := log2(pct.1/pct.2)]
+
   p_value_ls <- list()
   conf_up_ls <- list()
   conf_down_ls <- list()

@@ -30,5 +30,9 @@
 #' @importFrom data.table rbindlist
 #' @importFrom data.table data.table
 #' @importFrom data.table setorder
+#' @importFrom celldex MouseRNAseqData
+#' @importFrom celldex ImmGenData
+#' @importFrom SummarizedExperiment colData
+#' @importFrom SummarizedExperiment assay
 
 NULL
