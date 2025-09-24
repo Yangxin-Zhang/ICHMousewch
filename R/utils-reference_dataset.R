@@ -132,10 +132,78 @@
 
 }
 
+#' get differential exoression genes from log2FC data.table
+#' @param log2FC_dt the log2FC data.table
+
+.get_de_genes_from_log2FC_datatable <- function(log2FC_dt) {
+
+  on.exit(gc())
+
+  cell_type <- colnames(log2FC_dt)[!(colnames(log2FC_dt) == "gene_name")]
+
+  de_gene_ls <- vector("list",length = length(cell_type))
+  names(de_gene_ls) <- cell_type
+  for (i in 1:length(cell_type)) {
+
+    cell_sym <- cell_type[i]
+    dt_col <- c(cell_sym,"gene_name")
+    dt <- log2FC_dt[,..dt_col]
+
+    utils_col <- dt[,..cell_sym] %>%
+      unlist() %>%
+      as.numeric()
+
+    dt[,utils_col := utils_col]
+
+    setorderv(dt,cols = cell_type[i],order = -1)
+
+    de_gene <- dt[utils_col > 1,gene_name]
+
+    de_gene_ls[cell_type[i]] <- list(de_gene)
+
+  }
+
+  return(de_gene_ls)
+
+}
+
 #' differential exoression genes one type to other type
 
 .diff_expr_genes_one_type_to_other_type <- function() {
 
   on.exit(gc())
 
+  log2FC_dt <- ICHMousewch:::.the_log2FC_one_type_to_other_type()
+
+  results <- ICHMousewch:::.get_de_genes_from_log2FC_datatable(log2FC_dt = log2FC_dt)
+
+  return(results)
+
 }
+
+#' differential exoression genes one type to one type
+
+.diff_expr_genes_one_type_to_one_type <- function() {
+
+  on.exit(gc())
+
+  log2FC_ls <- ICHMousewch:::.the_log2FC_one_type_to_one_type()
+
+  cell_group <- names(log2FC_ls)
+
+  results <- vector("list",length = length(cell_group))
+  names(results) <- cell_group
+  for (i in 1:length(cell_group)) {
+
+    log2FC_dt <- log2FC_ls[[cell_group[i]]]
+
+    de_gene_ls <- ICHMousewch:::.get_de_genes_from_log2FC_datatable(log2FC_dt = log2FC_dt)
+
+    results[cell_group[i]] <- list(de_gene_ls)
+
+  }
+
+  return(results)
+
+}
+

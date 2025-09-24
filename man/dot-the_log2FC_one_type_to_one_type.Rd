@@ -2,10 +2,10 @@
 % Please edit documentation in R/utils-reference_dataset.R
 \name{.the_log2FC_one_type_to_one_type}
 \alias{.the_log2FC_one_type_to_one_type}
-\title{calculate the log2FC one type to onetype}
+\title{calculate the log2FC one type to one type}
 \usage{
 .the_log2FC_one_type_to_one_type()
 }
 \description{
-calculate the log2FC one type to onetype
+calculate the log2FC one type to one type
 }
