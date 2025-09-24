@@ -31,3 +31,111 @@
   return(integrated_expr_matrix)
 
 }
+
+#' transfer reference dataset to matrix
+#'
+#' @param ref_dt the reference dataset in the form of data.table
+
+.transfer_ref_dt_to_mat <- function(ref_dt) {
+
+  on.exit(gc())
+
+  cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
+
+  ref_mat <- as.matrix(ref_dt[,..cell_type])
+  rownames(ref_mat) <- ref_dt[,gene_name]
+
+  return(ref_mat)
+
+}
+
+#' calculate the log2FC one type to other type
+#'
+
+.the_log2FC_one_type_to_other_type <- function() {
+
+  on.exit(gc())
+
+  ref_dt <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
+
+  cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
+
+  result_dt <- data.table()
+  result_dt[,gene_name := ref_dt[,gene_name]]
+  for (i in 1:length(cell_type)) {
+
+    one_type <- cell_type[i]
+    one_type_dt <- ref_dt[,..one_type] %>%
+      unlist() %>%
+      as.numeric()
+
+    other_type <- cell_type[!(cell_type == cell_type[i])]
+    other_type_dt <- ref_dt[,..other_type]
+
+    other_type_dt <- rowMeans(other_type_dt)
+
+    result_dt[,cell_type[i] := log2(one_type_dt/other_type_dt)]
+
+  }
+
+  return(result_dt)
+
+}
+
+#' calculate the log2FC one type to one type
+
+.the_log2FC_one_type_to_one_type <- function() {
+
+  on.exit(gc())
+
+  ref_dt <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
+
+  cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
+
+  result_ls <- vector("list",length = length(cell_type))
+  names(result_ls) <- cell_type
+
+  for (i in 1:length(cell_type)) {
+
+    result_dt <- data.table()
+    result_dt[,gene_name := ref_dt[,gene_name]]
+
+    col_i <- cell_type[i]
+    data_i <- ref_dt[,..col_i] %>%
+      unlist() %>%
+      as.numeric()
+
+    for (j in 1:length(cell_type)) {
+
+      if (cell_type[j] != cell_type[i]) {
+
+        col_j <- cell_type[j]
+        data_j <- ref_dt[,..col_j] %>%
+          unlist() %>%
+          as.numeric()
+
+        result_dt[,paste(cell_type[i],cell_type[j],sep = "-") := log2(data_i/data_j)]
+
+      } else {
+
+        result_dt[,paste(cell_type[i],cell_type[j],sep = "-") := 0]
+
+      }
+
+    }
+
+    result_ls[cell_type[i]] <- list(result_dt)
+
+  }
+
+  return(result_ls)
+
+}
+
+#' differential exoression genes one type to other type
+
+.diff_expr_genes_one_type_to_other_type <- function() {
+
+  on.exit(gc())
+
+}
