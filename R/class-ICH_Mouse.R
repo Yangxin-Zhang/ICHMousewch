@@ -358,11 +358,23 @@ setMethod(f = "annotate_the_cell_type_based_on_single_gene",
 
               }
 
-              annotation_ls[single_gene] <- list(unlist(cell_type_ls))
+              if(length(cell_type_ls) == 0) {
+
+                annotation_ls[single_gene] <- "no value"
+
+              } else {
+
+                annotation_ls[single_gene] <- list(unlist(cell_type_ls))
+
+              }
 
             }
 
-            return(annotation_ls)
+            annotation_dt <- data.table()
+            annotation_dt[,gene_name := names(annotation_ls)]
+            annotation_dt[,cell_type := annotation_ls]
+
+            return(annotation_dt)
 
           })
 ####
