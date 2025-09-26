@@ -146,11 +146,21 @@ setMethod(f = "find_differential_expression_genes",
 
             on.exit(gc())
 
-            ich_mouse@diff_expr_genes[gene_set_name] <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
-                                                                                                          seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
-                                                                                                          filtered_genes = ich_mouse@filtered_genes,
-                                                                                                          cluster_symbol = cluster_symbol) %>%
-              list()
+            diff_expr_gene <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                filtered_genes = ich_mouse@filtered_genes,
+                                                                                cluster_symbol = cluster_symbol)
+
+            annotation_dt <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
+                                                                                        gene_ls = diff_expr_gene[,gene_name])
+
+            gene_order <- match(diff_expr_gene[,gene_name],annotation_dt[,gene_name])
+
+            annotation_dt <- annotation_dt[gene_order]
+
+            diff_expr_gene[,cell_type := annotation_dt[,cell_type]]
+
+            ich_mouse@diff_expr_genes[gene_set_name] <- list(diff_expr_gene)
 
             return(ich_mouse)
 
@@ -310,74 +320,6 @@ setMethod(f = "load_ICH_Mouse",
           })
 ####
 
-####
-#' annotate the cell type based on single gene
-#'
-#' @param ich_mouse the ICH_Mouse class
-#' @param gene_ls the gene ls used to annotate
-
-setGeneric(name = "annotate_the_cell_type_based_on_single_gene",
-           def = function(ich_mouse,gene_ls) {
-
-             standardGeneric("annotate_the_cell_type_based_on_single_gene")
-
-           })
-
-#' annotate the cell type based on single gene
-#'
-#' @param ich_mouse the ICH_Mouse class
-#' @param gene_ls the gene ls used to annotate
-#' @export
-
-setMethod(f = "annotate_the_cell_type_based_on_single_gene",
-          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character"),
-          definition = function(ich_mouse,gene_ls) {
-
-            on.exit(gc())
-
-            ref_ds <- ICHMousewch:::.diff_expr_genes_one_type_to_other_type()
-
-            cell_type <- names(ref_ds)
-
-            annotation_ls <- vector("list",length = length(gene_ls))
-            names(annotation_ls) <- gene_ls
-            for (i in 1:length(gene_ls)) {
-
-              single_gene <- gene_ls[i]
-
-              cell_type_ls <- list()
-              for (j in 1:length(cell_type)) {
-
-                same_gene <- single_gene  %in% ref_ds[[cell_type[j]]]
-
-                if(same_gene) {
-
-                  cell_type_ls <- append(cell_type_ls,cell_type[j])
-
-                }
-
-              }
-
-              if(length(cell_type_ls) == 0) {
-
-                annotation_ls[single_gene] <- "no value"
-
-              } else {
-
-                annotation_ls[single_gene] <- list(unlist(cell_type_ls))
-
-              }
-
-            }
-
-            annotation_dt <- data.table()
-            annotation_dt[,gene_name := names(annotation_ls)]
-            annotation_dt[,cell_type := annotation_ls]
-
-            return(annotation_dt)
-
-          })
-####
 
 
 
