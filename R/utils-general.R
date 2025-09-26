@@ -169,3 +169,19 @@ num_image <- length(ich_mouse@spatial_image_with_single_gene[[image_set]])
 
 }
 
+#' filter differential expression genes
+#'
+#' @param diff_expr_genes the differential expression genes
+
+.filter_diff_expr_genes <- function(diff_expr_genes) {
+
+  on.exit(gc())
+
+  diff_expr_genes <- diff_expr_genes[abs(avg_log2FC) > 2]
+
+  setorder(diff_expr_genes,-log2pct)
+
+  return(diff_expr_genes)
+
+}
+

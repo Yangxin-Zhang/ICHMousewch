@@ -87,7 +87,9 @@
   diff_expr_genes_dt[,posi.1 := unlist(num_posi.1_ls)]
   diff_expr_genes_dt[,posi.2 := unlist(num_posi.2_ls)]
 
-  diff_expr_genes_dt <- ICHMousewch:::.conduct_statistic_test_on_rate(sample_dt = diff_expr_genes_dt)
+  diff_expr_genes_dt[,log2pct := log2(pct.1/pct.2)]
+
+  diff_expr_genes_dt <- ICHMousewch:::.filter_diff_expr_genes(diff_expr_genes = diff_expr_genes_dt)
 
   return(diff_expr_genes_dt)
 
