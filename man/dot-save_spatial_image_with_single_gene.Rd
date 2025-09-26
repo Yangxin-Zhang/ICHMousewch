@@ -4,14 +4,12 @@
 \alias{.save_spatial_image_with_single_gene}
 \title{save spatial image with single gene}
 \usage{
-.save_spatial_image_with_single_gene(ich_mouse, saving_path, image_set)
+.save_spatial_image_with_single_gene(saving_path, spatial_image)
 }
 \arguments{
-\item{ich_mouse}{the class of ICH_Mouse}
-
 \item{saving_path}{the path for saving}
 
-\item{image_set}{the image set to save}
+\item{spatial_image}{the class of Spatial Image}
 }
 \description{
 save spatial image with single gene

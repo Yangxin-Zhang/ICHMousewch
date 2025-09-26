@@ -184,51 +184,20 @@ setMethod(f = "create_single_gene_spatial_image",
 
             on.exit(gc())
 
-            ich_mouse@spatial_image_with_single_gene[image_set_name] <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
-                                                                                                                             gene_ls = gene_ls,
-                                                                                                                             raw_count_matrix = ich_mouse@raw_count_matrix,
-                                                                                                                             background_image_address = ich_mouse@file_address["background_image_address"],
-                                                                                                                             giotto_instruction = ich_mouse@giotto_instruction[[1]],
-                                                                                                                             show_background_image = show_background_image) %>%
-              list()
+            spatial_image_ls <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                     gene_ls = gene_ls,
+                                                                                     raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                     background_image_address = ich_mouse@file_address["background_image_address"],
+                                                                                     giotto_instruction = ich_mouse@giotto_instruction[[1]],
+                                                                                     show_background_image = show_background_image)
 
-            return(ich_mouse)
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = spatial_image_ls)
+
+            return(spatial_image_set)
 
           })
 ####
-
-####
-#' save spatial image with single gene
-#'
-#' @param ich_mouse the class of ICH_Mouse
-#' @param saving_path the path for saving
-#' @param image_set the image set to save
-
-setGeneric(name = "save_spatial_image_with_single_gene",
-           def = function(ich_mouse,saving_path,image_set) {
-
-             standardGeneric("save_spatial_image_with_single_gene")
-
-           })
-
-#' save spatial image with single gene
-#'
-#' @param ich_mouse the class of ICH_Mouse
-#' @param saving_path the path for saving
-#' @param image_set the image set to save
-#' @export
-
-setMethod(f = "save_spatial_image_with_single_gene",
-          signature = signature(ich_mouse = "ICH_Mouse",saving_path = "character",image_set = "character"),
-          definition = function(ich_mouse,saving_path,image_set) {
-
-            on.exit(gc())
-
-            ICHMousewch:::.save_spatial_image_with_single_gene(ich_mouse = ich_mouse,
-                                                               saving_path = saving_path,
-                                                               image_set = image_set)
-
-          })
 
 ####
 #' save ICH_Mouse class

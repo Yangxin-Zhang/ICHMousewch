@@ -411,30 +411,4 @@ setMethod(f = "load_Hematoma",
             })
 ####
 
-####
 
-#' show ggplotGrob image
-#'
-#' @param ggplot_image a ggplot image in the form of gtable
-
-setGeneric(name = "show_image",
-           def = function(ggplot_image) {
-
-             standardGeneric("show_image")
-
-           })
-
-#' show ggplotGrob image
-#'
-#' @param ggplot_image a ggplot image in the form of gtable
-#' @export
-
-setMethod(f = "show_image",
-          definition = function(ggplot_image) {
-
-            on.exit(gc())
-
-            show(as.ggplot(ggplot_image))
-
-          })
-####
