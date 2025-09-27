@@ -241,7 +241,17 @@ num_image <- length(spatial_image@spatial_image)
 
 }
 
+#' refresh internal dataset
+#'
+#' @export
 
+refresh_internal_dataset <- function() {
+
+  on.exit(gc())
+
+  ICHMousewch:::.download_internal_dataset()
+
+}
 
 
 

@@ -37,5 +37,8 @@
 #' @importFrom celldex ImmGenData
 #' @importFrom SummarizedExperiment colData
 #' @importFrom SummarizedExperiment assay
+#' @importFrom biomaRt useEnsembl
+#' @importFrom biomaRt getBM
+#' @importFrom usethis use_data
 
 NULL

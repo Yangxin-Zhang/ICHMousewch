@@ -207,3 +207,24 @@
 
 }
 
+#' download internal dataset
+
+.download_internal_dataset <- function() {
+
+  on.exit(gc())
+
+  ensembl_mouse <- useEnsembl(biomart = "genes", dataset = "mmusculus_gene_ensembl")
+
+  mouse_genes <- celldex::MouseRNAseqData()@NAMES
+
+  gene_id_information <- getBM(attributes = c("mgi_symbol", "ensembl_gene_id","external_gene_name","gene_biotype","entrezgene_id"),
+                               filters = "mgi_symbol",
+                               values = mouse_genes,
+                               mart = ensembl_mouse)
+
+  usethis::use_data(gene_id_information,
+                    overwrite = TRUE,
+                    internal = FALSE)
+
+}
+

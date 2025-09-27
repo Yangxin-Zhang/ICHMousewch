@@ -17,3 +17,6 @@ Imports:
     Seurat
 URL: https://github.com/Yangxin-Zhang/ICHMousewch
 BugReports: https://github.com/Yangxin-Zhang/ICHMousewch/issues
+Depends: 
+    R (>= 3.5)
+LazyData: true
