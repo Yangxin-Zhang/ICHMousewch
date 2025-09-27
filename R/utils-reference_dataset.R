@@ -96,12 +96,13 @@
 
 #' calculate the log2FC one type to other type
 #'
+#' @param reference_dataset the reference dataset
 
-.the_log2FC_one_type_to_other_type <- function() {
+.the_log2FC_one_type_to_other_type <- function(reference_dataset) {
 
   on.exit(gc())
 
-  ref_dt <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
+  ref_dt <- reference_dataset
 
   cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
 
@@ -128,12 +129,14 @@
 }
 
 #' calculate the log2FC one type to one type
+#'
+#' @param reference_dataset the reference dataset
 
-.the_log2FC_one_type_to_one_type <- function() {
+.the_log2FC_one_type_to_one_type <- function(reference_dataset) {
 
   on.exit(gc())
 
-  ref_dt <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
+  ref_dt <- reference_dataset
 
   cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
 
@@ -212,13 +215,31 @@
 
 }
 
-#' differential exoression genes one type to other type
+#' differential exoression genes one type to other type according to mouse RNA seq
 
-.diff_expr_genes_one_type_to_other_type <- function() {
+.diff_expr_genes_cell_type_one_to_other <- function() {
 
   on.exit(gc())
 
-  log2FC_dt <- ICHMousewch:::.the_log2FC_one_type_to_other_type()
+  mouse_RNA_seq_dataset <- ICHMousewch::integrated_mouse_RNA_seq_dataset
+
+  log2FC_dt <- ICHMousewch:::.the_log2FC_one_type_to_other_type(reference_dataset = mouse_RNA_seq_dataset)
+
+  results <- ICHMousewch:::.get_de_genes_from_log2FC_datatable(log2FC_dt = log2FC_dt)
+
+  return(results)
+
+}
+
+#' differential exoression genes one type to other type according to immune mouse RNA seq
+
+.diff_expr_genes_immune_cell_type_one_to_other <- function() {
+
+  on.exit(gc())
+
+  mouse_RNA_seq_dataset <- ICHMousewch::integrated_immune_mouse_RNA_seq_dataset
+
+  log2FC_dt <- ICHMousewch:::.the_log2FC_one_type_to_other_type(reference_dataset = mouse_RNA_seq_dataset)
 
   results <- ICHMousewch:::.get_de_genes_from_log2FC_datatable(log2FC_dt = log2FC_dt)
 
@@ -281,6 +302,9 @@
   gene_id_information <- ICHMousewch:::.download_gene_id_information()
   integrated_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
   integrated_immune_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_immune_mouse_RNA_seq_dataset()
+
+  de_genes_cell_type_one_to_other <- ICHMousewch:::.diff_expr_genes_cell_type_one_to_other()
+  de_genes_immune_cell_type_one_to_other <- ICHMousewch:::.diff_expr_genes_immune_cell_type_one_to_other()
 
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,

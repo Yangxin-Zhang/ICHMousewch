@@ -4,7 +4,10 @@
 \alias{.the_log2FC_one_type_to_one_type}
 \title{calculate the log2FC one type to one type}
 \usage{
-.the_log2FC_one_type_to_one_type()
+.the_log2FC_one_type_to_one_type(reference_dataset)
+}
+\arguments{
+\item{reference_dataset}{the reference dataset}
 }
 \description{
 calculate the log2FC one type to one type
