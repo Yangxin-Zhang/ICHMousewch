@@ -131,12 +131,12 @@
 
 }
 
-#' save spatial image with single gene
+#' save spatial image
 #'
 #' @param saving_path the path for saving
 #' @param spatial_image the class of Spatial Image
 
-.save_spatial_image_with_single_gene <- function(saving_path,spatial_image) {
+.save_spatial_image <- function(saving_path,spatial_image,width,height) {
 
   on.exit(gc())
 
@@ -164,8 +164,8 @@ num_image <- length(spatial_image@spatial_image)
     ggsave(filename = file_name,
            plot = image_plot,
            path = file_path,
-           width = 8,
-           height = 8,
+           width = width,
+           height = height,
            units = "in",
            dpi = 300)
 

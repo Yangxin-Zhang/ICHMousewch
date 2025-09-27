@@ -50,32 +50,34 @@ setMethod(f = "initialize",
 }
 
 ####
-#' save spatial image with single gene
+#' save spatial image
 #'
 #' @param saving_path the path for saving
 #' @param spatial_image the class of Spatial Image
 
-setGeneric(name = "save_spatial_image_with_single_gene",
-           def = function(spatial_image,saving_path) {
+setGeneric(name = "save_spatial_image",
+           def = function(spatial_image,saving_path,height,width) {
 
-             standardGeneric("save_spatial_image_with_single_gene")
+             standardGeneric("save_spatial_image")
 
            })
 
-#' save spatial image with single gene
+#' save spatial image
 #'
 #' @param saving_path the path for saving
 #' @param spatial_image the class of Spatial Image
 #' @export
 
-setMethod(f = "save_spatial_image_with_single_gene",
+setMethod(f = "save_spatial_image",
           signature = signature(spatial_image = "Spatial_Image",saving_path = "character"),
-          definition = function(spatial_image,saving_path) {
+          definition = function(spatial_image,saving_path,height = 8,width = 8) {
 
             on.exit(gc())
 
-            ICHMousewch:::.save_spatial_image_with_single_gene(spatial_image = spatial_image,
-                                                               saving_path = saving_path)
+            ICHMousewch:::.save_spatial_image(spatial_image = spatial_image,
+                                              saving_path = saving_path,
+                                              width = width,
+                                              height = height)
 
           })
 ####
@@ -148,6 +150,70 @@ setMethod(f = "show_image",
             on.exit(gc())
 
             show(as.ggplot(ggplot_image))
+
+          })
+####
+
+####
+#' create single gene contrasting spatial image
+#'
+#' @param ich_mouse1 the class of ICH_Mouse
+#' @param ich_mouse2 the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param show_background_image whether to show background image
+#' @param image_set_name the name of the image set
+
+setGeneric(name = "create_single_gene_contrasting_spatial_image",
+           def = function(ich_mouse1,ich_mouse2,gene_ls,image_set_name,show_background_image = TRUE) {
+
+             standardGeneric("create_single_gene_contrasting_spatial_image")
+
+           })
+
+#' create single contrasting gene spatial image
+#'
+#' @param ich_mouse1 the class of ICH_Mouse
+#' @param ich_mouse2 the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param show_background_image whether to show background image
+#' @param image_set_name the name of the image set
+#' @export
+
+setMethod(f = "create_single_gene_contrasting_spatial_image",
+          signature = signature(ich_mouse1 = "ICH_Mouse",ich_mouse2 = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
+          definition = function(ich_mouse1,ich_mouse2,gene_ls,image_set_name,show_background_image = TRUE) {
+
+            on.exit(gc())
+
+            spatial_image_ls1 <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse1@seu_metadata_with_cluster_symbol,
+                                                                                      gene_ls = gene_ls,
+                                                                                      raw_count_matrix = ich_mouse1@raw_count_matrix,
+                                                                                      background_image_address = ich_mouse1@file_address["background_image_address"],
+                                                                                      giotto_instruction = ich_mouse1@giotto_instruction[[1]],
+                                                                                      show_background_image = show_background_image)
+
+            spatial_image_ls2 <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse2@seu_metadata_with_cluster_symbol,
+                                                                                      gene_ls = gene_ls,
+                                                                                      raw_count_matrix = ich_mouse2@raw_count_matrix,
+                                                                                      background_image_address = ich_mouse2@file_address["background_image_address"],
+                                                                                      giotto_instruction = ich_mouse2@giotto_instruction[[1]],
+                                                                                      show_background_image = show_background_image)
+
+            spatial_image_ls <- vector("list",length = length(gene_ls))
+            names(spatial_image_ls) <- gene_ls
+            for (i in 1:length(gene_ls)) {
+
+              spatial_image <- wrap_plots(as.ggplot(spatial_image_ls1[[gene_ls[i]]]),as.ggplot(spatial_image_ls2[[gene_ls[i]]])) %>%
+                patchworkGrob()
+
+              spatial_image_ls[gene_ls[i]] <- list(spatial_image)
+
+            }
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = spatial_image_ls)
+
+            return(spatial_image_set)
 
           })
 ####
