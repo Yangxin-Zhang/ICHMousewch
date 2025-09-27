@@ -77,6 +77,83 @@
 
 }
 
+#' find housekeeping gene
+#' @param reference_dataset the reference dataset
+
+.housekeeping_genes <- function(reference_dataset) {
+
+  on.exit(gc())
+
+  cell_type <- colnames(reference_dataset)[!colnames(reference_dataset) %in% "gene_name"]
+
+  var_gene_ls <- vector("list",length = length(cell_type))
+  names(var_gene_ls) <- cell_type
+  for (i in 1:length(cell_type)) {
+
+    contrasting_cell_type <- cell_type[!cell_type %in% cell_type[i]]
+
+    gene_ls <- vector("list",length = length(contrasting_cell_type))
+    names(gene_ls) <- contrasting_cell_type
+    for (j in 1:length(contrasting_cell_type)) {
+
+      aimming_cell_type <- c(cell_type[i],contrasting_cell_type[j],"gene_name")
+      ref_dt <- reference_dataset[,..aimming_cell_type]
+
+      cell_type1 <- cell_type[i]
+      cell_type1 <- ref_dt[,..cell_type1] %>%
+        unlist() %>%
+        as.numeric()
+
+      cell_type2 <- contrasting_cell_type[j]
+      cell_type2 <- ref_dt[,..cell_type2] %>%
+        unlist() %>%
+        as.numeric()
+
+      ref_dt[,cell_type1 := cell_type1]
+      ref_dt[,cell_type2 := cell_type2]
+
+      ref_dt[,avglogFC := cell_type1 - cell_type2]
+
+      var_genes <- ref_dt[abs(avglogFC) > 2,gene_name]
+      gene_ls[contrasting_cell_type[j]] <- list(var_genes)
+
+    }
+
+    var_gene_ls[cell_type[i]] <- list(gene_ls)
+
+  }
+
+  symbol_genes <- vector("list",length = length(cell_type))
+  names(symbol_genes) <- cell_type
+  for (i in 1:length(cell_type)) {
+
+    genes <- Reduce(union,var_gene_ls[[cell_type[i]]])
+    totoal_gene <- unlist(var_gene_ls[[cell_type[i]]])
+
+    rate_ls <- vector("list",length = length(genes))
+    names(rate_ls) <- genes
+    for (j in 1:length(genes)) {
+
+      num <- sum(totoal_gene == genes[j])
+      rate <- num/length(var_gene_ls[[cell_type[i]]])
+      rate_ls[genes[j]] <- list(rate)
+
+    }
+
+
+    results <- data.table(present_rate = unlist(rate_ls),
+                          gene_name = names(rate_ls))
+    setorder(results,-present_rate)
+    results <- results[present_rate > 0.8,gene_name]
+
+    symbol_genes[cell_type[i]] <- list(results)
+
+  }
+
+  return(symbol_genes)
+
+}
+
 #' transfer reference dataset to matrix
 #'
 #' @param ref_dt the reference dataset in the form of data.table
@@ -102,9 +179,20 @@
 
   on.exit(gc())
 
-  ref_dt <- reference_dataset
+  gene_ls <- reference_dataset[,gene_name]
+  contrasting_genes <- gene_ls[gene_ls %in% ICHMousewch::integrated_mouse_RNA_seq_dataset[,gene_name]]
+
+  ref_dt <- reference_dataset[gene_name %in% contrasting_genes]
 
   cell_type <- colnames(ref_dt)[!(colnames(ref_dt) == "gene_name")]
+
+  other_type_dt <- ICHMousewch::integrated_mouse_RNA_seq_dataset
+  other_type <- colnames(other_type_dt)
+  other_type <- other_type[!other_type %in% "gene_name"]
+
+  other_type_dt <- other_type_dt[gene_name %in% contrasting_genes,..other_type]
+
+  other_type_dt <- rowMeans(other_type_dt)
 
   result_dt <- data.table()
   result_dt[,gene_name := ref_dt[,gene_name]]
@@ -114,11 +202,6 @@
     one_type_dt <- ref_dt[,..one_type] %>%
       unlist() %>%
       as.numeric()
-
-    other_type <- cell_type[!(cell_type == cell_type[i])]
-    other_type_dt <- ref_dt[,..other_type]
-
-    other_type_dt <- rowMeans(other_type_dt)
 
     result_dt[,cell_type[i] := log2(one_type_dt/other_type_dt)]
 
