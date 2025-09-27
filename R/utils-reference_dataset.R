@@ -309,6 +309,8 @@
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,
                     integrated_immune_mouse_RNA_seq_dataset,
+                    de_genes_cell_type_one_to_other,
+                    de_genes_immune_cell_type_one_to_other,
                     overwrite = TRUE,
                     internal = FALSE)
 
