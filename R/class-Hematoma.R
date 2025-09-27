@@ -333,6 +333,11 @@ setMethod(f = "save_Hematoma",
 
               dir.create(file_path,recursive = TRUE)
 
+            } else {
+
+              unlink(file_path,recursive = TRUE)
+              dir.create(file_path,recursive = TRUE)
+
             }
 
             slot_na <- slotNames(hematoma)

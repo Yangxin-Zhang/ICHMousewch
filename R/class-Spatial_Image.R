@@ -81,6 +81,50 @@ setMethod(f = "save_spatial_image_with_single_gene",
 ####
 
 ####
+#' create single gene spatial image
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param show_background_image whether to show background image
+#' @param image_set_name the name of the image set
+
+setGeneric(name = "create_single_gene_spatial_image",
+           def = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE) {
+
+             standardGeneric("create_single_gene_spatial_image")
+
+           })
+
+#' create single gene spatial image
+#'
+#' @param ICH_Mouse the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param show_background_image whether to show background image
+#' @param image_set_name the name of the image set
+#' @export
+
+setMethod(f = "create_single_gene_spatial_image",
+          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
+          definition = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE) {
+
+            on.exit(gc())
+
+            spatial_image_ls <- ICHMousewch:::.create_spatial_image_with_single_gene(seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                     gene_ls = gene_ls,
+                                                                                     raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                     background_image_address = ich_mouse@file_address["background_image_address"],
+                                                                                     giotto_instruction = ich_mouse@giotto_instruction[[1]],
+                                                                                     show_background_image = show_background_image)
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = spatial_image_ls)
+
+            return(spatial_image_set)
+
+          })
+####
+
+####
 
 #' show ggplotGrob image
 #'
