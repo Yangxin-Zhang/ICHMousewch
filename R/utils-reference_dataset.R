@@ -77,10 +77,10 @@
 
 }
 
-#' find housekeeping gene
+#' find variable gene
 #' @param reference_dataset the reference dataset
 
-.housekeeping_genes <- function(reference_dataset) {
+.variable_genes <- function(reference_dataset) {
 
   on.exit(gc())
 
