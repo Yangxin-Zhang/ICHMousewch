@@ -22,10 +22,55 @@
 
     ass_lb <- anno_data[label.fine == cell_type[i],assay_label]
 
-    expr_matrix <- rowMeans(assay(ref_da)[,ass_lb])
+    if (length(ass_lb) == 1) {
 
-    integrated_expr_matrix[,cell_type[i] := expr_matrix]
+      integrated_expr_matrix[,cell_type[i] := assay(ref_da)[,ass_lb]]
 
+    } else {
+
+      expr_matrix <- rowMeans(assay(ref_da)[,ass_lb])
+
+      integrated_expr_matrix[,cell_type[i] := expr_matrix]
+
+    }
+  }
+
+  return(integrated_expr_matrix)
+
+}
+
+#' integrate immune mouse RNA seq dataset based on cell type
+#'
+
+.integrate_immune_mouse_RNA_seq_dataset <- function() {
+
+  on.exit(gc())
+
+  ref_da <- celldex::ImmGenData()
+
+  anno_data <- as.data.table(colData(ref_da))
+  anno_data[,assay_label := colData(ref_da)@rownames]
+
+  cell_type <- anno_data[,label.fine] %>%
+    unique()
+
+  integrated_expr_matrix <- data.table()
+  integrated_expr_matrix[,gene_name := rownames(assay(ref_da))]
+  for (i in 1:length(cell_type)) {
+
+    ass_lb <- anno_data[label.fine == cell_type[i],assay_label]
+
+    if (length(ass_lb) == 1) {
+
+      integrated_expr_matrix[,cell_type[i] := assay(ref_da)[,ass_lb]]
+
+    } else {
+
+      expr_matrix <- rowMeans(assay(ref_da)[,ass_lb])
+
+      integrated_expr_matrix[,cell_type[i] := expr_matrix]
+
+    }
   }
 
   return(integrated_expr_matrix)
@@ -207,22 +252,39 @@
 
 }
 
-#' download internal dataset
+#' download gene id information
 
-.download_internal_dataset <- function() {
+.download_gene_id_information <- function() {
 
   on.exit(gc())
 
   ensembl_mouse <- useEnsembl(biomart = "genes", dataset = "mmusculus_gene_ensembl")
 
-  mouse_genes <- celldex::MouseRNAseqData()@NAMES
+  mouse_genes <- union(celldex::MouseRNAseqData()@NAMES,celldex::ImmGenData()@NAMES)
 
   gene_id_information <- getBM(attributes = c("mgi_symbol", "ensembl_gene_id","external_gene_name","gene_biotype","entrezgene_id"),
                                filters = "mgi_symbol",
                                values = mouse_genes,
                                mart = ensembl_mouse)
 
+  gene_id_information <- as.data.table(gene_id_information)
+
+  return(gene_id_information)
+
+}
+#' download internal dataset
+
+.download_internal_dataset <- function() {
+
+  on.exit(gc())
+
+  gene_id_information <- ICHMousewch:::.download_gene_id_information()
+  integrated_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
+  integrated_immune_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_immune_mouse_RNA_seq_dataset()
+
   usethis::use_data(gene_id_information,
+                    integrated_mouse_RNA_seq_dataset,
+                    integrated_immune_mouse_RNA_seq_dataset,
                     overwrite = TRUE,
                     internal = FALSE)
 
