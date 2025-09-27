@@ -56,7 +56,7 @@ setMethod(f = "initialize",
 #' @param spatial_image the class of Spatial Image
 
 setGeneric(name = "save_spatial_image",
-           def = function(spatial_image,saving_path,height,width) {
+           def = function(spatial_image,saving_path,height = 8,width = 8) {
 
              standardGeneric("save_spatial_image")
 
@@ -70,7 +70,7 @@ setGeneric(name = "save_spatial_image",
 
 setMethod(f = "save_spatial_image",
           signature = signature(spatial_image = "Spatial_Image",saving_path = "character"),
-          definition = function(spatial_image,saving_path,height = 8,width = 8) {
+          definition = function(spatial_image,saving_path,height,width) {
 
             on.exit(gc())
 

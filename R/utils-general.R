@@ -198,7 +198,7 @@ num_image <- length(spatial_image@spatial_image)
 
   on.exit(gc())
 
-  ref_ds <- ICHMousewch::de_genes_cell_type_one_to_other
+  ref_ds <- ICHMousewch::mouse_cell_variable_genes
 
   cell_type <- names(ref_ds)
 

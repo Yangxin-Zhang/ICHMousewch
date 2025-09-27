@@ -134,7 +134,7 @@
     names(rate_ls) <- genes
     for (j in 1:length(genes)) {
 
-      num <- sum(totoal_gene == genes[j])
+      num <- sum(totoal_gene %in% genes[j])
       rate <- num/length(var_gene_ls[[cell_type[i]]])
       rate_ls[genes[j]] <- list(rate)
 
@@ -386,14 +386,14 @@
   integrated_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_mouse_RNA_seq_dataset()
   integrated_immune_mouse_RNA_seq_dataset <- ICHMousewch:::.integrate_immune_mouse_RNA_seq_dataset()
 
-  de_genes_cell_type_one_to_other <- ICHMousewch:::.diff_expr_genes_cell_type_one_to_other()
-  de_genes_immune_cell_type_one_to_other <- ICHMousewch:::.diff_expr_genes_immune_cell_type_one_to_other()
+  mouse_cell_variable_genes <- ICHMousewch:::.variable_genes(reference_dataset = integrated_mouse_RNA_seq_dataset)
+  mouse_immune_cell_variable_genes <- ICHMousewch:::.variable_genes(reference_dataset = integrated_immune_mouse_RNA_seq_dataset)
 
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,
                     integrated_immune_mouse_RNA_seq_dataset,
-                    de_genes_cell_type_one_to_other,
-                    de_genes_immune_cell_type_one_to_other,
+                    mouse_cell_variable_genes,
+                    mouse_immune_cell_variable_genes,
                     overwrite = TRUE,
                     internal = FALSE)
 

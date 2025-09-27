@@ -4,7 +4,7 @@
 \alias{save_spatial_image}
 \title{save spatial image}
 \usage{
-save_spatial_image(spatial_image, saving_path, height, width)
+save_spatial_image(spatial_image, saving_path, height = 8, width = 8)
 }
 \arguments{
 \item{spatial_image}{the class of Spatial Image}
