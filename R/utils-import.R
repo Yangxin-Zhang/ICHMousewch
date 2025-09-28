@@ -1,6 +1,7 @@
 
 # R/utils-import.R
 
+#' @import org.Mm.eg.db
 #' @importFrom Seurat Read10X_Coordinates
 #' @importFrom Seurat Read10X_h5
 #' @importFrom Seurat CreateSeuratObject

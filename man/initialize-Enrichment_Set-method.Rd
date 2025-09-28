@@ -4,10 +4,10 @@
 \alias{initialize,Enrichment_Set-method}
 \title{initialize Enrichment_Set}
 \usage{
-\S4method{initialize}{Enrichment_Set}(.Object, gene_list, ich_mouse)
+\S4method{initialize}{Enrichment_Set}(.Object, gene_list_symbol, ich_mouse)
 }
 \arguments{
-\item{gene_list}{the gene list to conduct enrichment analysis}
+\item{gene_list_symbol}{the gene list to conduct enrichment analysis}
 
 \item{ich_mouse}{the ICH_Mouse class}
 }

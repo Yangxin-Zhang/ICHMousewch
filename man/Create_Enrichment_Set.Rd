@@ -4,10 +4,10 @@
 \alias{Create_Enrichment_Set}
 \title{constructor of Enrichment_Set}
 \usage{
-Create_Enrichment_Set(gene_list, ich_mouse)
+Create_Enrichment_Set(gene_list_symbol, ich_mouse)
 }
 \arguments{
-\item{gene_list}{the gene list to conduct enrichment analysis}
+\item{gene_list_symbol}{the gene list to conduct enrichment analysis}
 
 \item{ich_mouse}{the ICH_Mouse class}
 }
