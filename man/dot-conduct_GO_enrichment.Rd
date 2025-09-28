@@ -4,10 +4,12 @@
 \alias{.conduct_GO_enrichment}
 \title{conduct GO enrichment}
 \usage{
-.conduct_GO_enrichment(gene_ls)
+.conduct_GO_enrichment(gene_ls, filtered_genes)
 }
 \arguments{
 \item{gene_ls}{a gene list}
+
+\item{filtered_genes}{the filtered genes}
 }
 \description{
 conduct GO enrichment
