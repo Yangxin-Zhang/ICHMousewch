@@ -13,14 +13,15 @@
   gene_id <- ICHMousewch::gene_id_information[mgi_symbol %in% gene_ls]
   universe_id <- ICHMousewch::gene_id_information[mgi_symbol %in% filtered_genes]
 
-  GO_results <- enrichGO(gene = gene_id[,entrezgene_id],
-                         universe = universe_id[,entrezgene_id],
+  GO_results <- enrichGO(gene = as.character(gene_id[,entrezgene_id]),
+                         universe = as.character(universe_id[,entrezgene_id]),
                          OrgDb = org.Mm.eg.db,
                          readable = TRUE,
                          ont = "ALL",
                          pvalueCutoff = 0.05)
 
-  GO_results <- as.data.table(GO_results@results)
+  GO_results <- as.data.table(GO_results@result)
+  setorder(GO_results,-FoldEnrichment)
 
   return(GO_results)
 
@@ -36,10 +37,14 @@
 
   gene_id <- ICHMousewch::gene_id_information[mgi_symbol %in% gene_ls]
 
-  KEGG_results <- enrichKEGG(gene = gene_id[,entrezgene_id],
+  KEGG_results <- enrichKEGG(gene = as.character(gene_id[,entrezgene_id]),
+                             universe = as.character(universe_id[,entrezgene_id]),
                              organism = "mmu",
                              keyType = "kegg",
                              pvalueCutoff = 0.05)
+
+  KEGG_results <- as.data.table(KEGG_results@result)
+  setorder(KEGG_results,-FoldEnrichment)
 
   return(KEGG_results)
 
