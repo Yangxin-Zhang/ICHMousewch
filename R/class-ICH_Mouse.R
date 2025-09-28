@@ -152,7 +152,8 @@ setMethod(f = "find_differential_expression_genes",
                                                                                 cluster_symbol = cluster_symbol)
 
             annotation_dt <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
-                                                                                        gene_ls = diff_expr_gene[,gene_name])
+                                                                                        gene_ls = diff_expr_gene[,gene_name],
+                                                                                        reference_dataset = ICHMousewch::mouse_cell_variable_genes)
 
             gene_order <- match(diff_expr_gene[,gene_name],annotation_dt[,gene_name])
 

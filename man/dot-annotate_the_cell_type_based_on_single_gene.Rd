@@ -4,12 +4,18 @@
 \alias{.annotate_the_cell_type_based_on_single_gene}
 \title{annotate the cell type based on single gene}
 \usage{
-.annotate_the_cell_type_based_on_single_gene(ich_mouse, gene_ls)
+.annotate_the_cell_type_based_on_single_gene(
+  ich_mouse,
+  gene_ls,
+  reference_dataset
+)
 }
 \arguments{
 \item{ich_mouse}{the ICH_Mouse class}
 
 \item{gene_ls}{the gene ls used to annotate}
+
+\item{reference_dataset}{the reference_dataset for annotation}
 }
 \description{
 annotate the cell type based on single gene

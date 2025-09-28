@@ -42,5 +42,8 @@
 #' @importFrom biomaRt useEnsembl
 #' @importFrom biomaRt getBM
 #' @importFrom usethis use_data
+#' @importFrom clusterProfiler enrichGO
+#' @importFrom clusterProfiler gseKEGG
+#' @importFrom clusterProfiler enrichKEGG
 
 NULL

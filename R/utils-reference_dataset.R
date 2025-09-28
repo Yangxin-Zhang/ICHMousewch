@@ -86,69 +86,190 @@
 
   cell_type <- colnames(reference_dataset)[!colnames(reference_dataset) %in% "gene_name"]
 
-  var_gene_ls <- vector("list",length = length(cell_type))
-  names(var_gene_ls) <- cell_type
-  for (i in 1:length(cell_type)) {
+  working_path <- "/home/youngxin/Desktop/saving_directory"
 
-    contrasting_cell_type <- cell_type[!cell_type %in% cell_type[i]]
+  if(!dir.exists(working_path)) {
 
-    gene_ls <- vector("list",length = length(contrasting_cell_type))
-    names(gene_ls) <- contrasting_cell_type
-    for (j in 1:length(contrasting_cell_type)) {
-
-      aimming_cell_type <- c(cell_type[i],contrasting_cell_type[j],"gene_name")
-      ref_dt <- reference_dataset[,..aimming_cell_type]
-
-      cell_type1 <- cell_type[i]
-      cell_type1 <- ref_dt[,..cell_type1] %>%
-        unlist() %>%
-        as.numeric()
-
-      cell_type2 <- contrasting_cell_type[j]
-      cell_type2 <- ref_dt[,..cell_type2] %>%
-        unlist() %>%
-        as.numeric()
-
-      ref_dt[,cell_type1 := cell_type1]
-      ref_dt[,cell_type2 := cell_type2]
-
-      ref_dt[,avglogFC := cell_type1 - cell_type2]
-
-      var_genes <- ref_dt[abs(avglogFC) > 2,gene_name]
-      gene_ls[contrasting_cell_type[j]] <- list(var_genes)
-
-    }
-
-    var_gene_ls[cell_type[i]] <- list(gene_ls)
+    dir.create(working_path,recursive = TRUE)
 
   }
 
-  symbol_genes <- vector("list",length = length(cell_type))
-  names(symbol_genes) <- cell_type
-  for (i in 1:length(cell_type)) {
+##
+  file_name <- paste(working_path,"var_gene_ls.rds",sep = "/")
+  if (file.exists(file_name)) {
 
-    genes <- Reduce(union,var_gene_ls[[cell_type[i]]])
-    totoal_gene <- unlist(var_gene_ls[[cell_type[i]]])
+    var_gene_ls <- readRDS(file = file_name)
 
-    rate_ls <- vector("list",length = length(genes))
-    names(rate_ls) <- genes
-    for (j in 1:length(genes)) {
+    sub_cell_type <- list()
+    for (i in 1:length(var_gene_ls)) {
 
-      num <- sum(totoal_gene %in% genes[j])
-      rate <- num/length(var_gene_ls[[cell_type[i]]])
-      rate_ls[genes[j]] <- list(rate)
+      if (is.null(var_gene_ls[[i]])) {
+
+        sub_cell_type <- append(sub_cell_type,list(names(var_gene_ls)[i]))
+
+      }
 
     }
 
+    sub_cell_type <- unlist(sub_cell_type)
 
-    results <- data.table(present_rate = unlist(rate_ls),
-                          gene_name = names(rate_ls))
-    setorder(results,-present_rate)
-    results <- results[present_rate > 0.8,gene_name]
+    for (i in 1:length(sub_cell_type)) {
 
-    symbol_genes[cell_type[i]] <- list(results)
+      contrasting_cell_type <- sub_cell_type[!sub_cell_type %in% sub_cell_type[i]]
+
+      gene_ls <- vector("list",length = length(contrasting_cell_type))
+      names(gene_ls) <- contrasting_cell_type
+      for (j in 1:length(contrasting_cell_type)) {
+
+        aimming_cell_type <- c(sub_cell_type[i],contrasting_cell_type[j],"gene_name")
+        ref_dt <- reference_dataset[,..aimming_cell_type]
+
+        cell_type1 <- sub_cell_type[i]
+        cell_type1 <- ref_dt[,..cell_type1] %>%
+          unlist() %>%
+          as.numeric()
+
+        cell_type2 <- contrasting_cell_type[j]
+        cell_type2 <- ref_dt[,..cell_type2] %>%
+          unlist() %>%
+          as.numeric()
+
+        ref_dt[,cell_type1 := cell_type1]
+        ref_dt[,cell_type2 := cell_type2]
+
+        ref_dt[,avglogFC := cell_type1 - cell_type2]
+
+        var_genes <- ref_dt[abs(avglogFC) > 2,gene_name]
+        gene_ls[contrasting_cell_type[j]] <- list(var_genes)
+
+      }
+
+      var_gene_ls[sub_cell_type[i]] <- list(gene_ls)
+
+      saveRDS(var_gene_ls,file = file_name)
+
+    }
+
+  } else {
+
+    var_gene_ls <- vector("list",length = length(cell_type))
+    names(var_gene_ls) <- cell_type
+    for (i in 1:length(cell_type)) {
+
+      contrasting_cell_type <- cell_type[!cell_type %in% cell_type[i]]
+
+      gene_ls <- vector("list",length = length(contrasting_cell_type))
+      names(gene_ls) <- contrasting_cell_type
+      for (j in 1:length(contrasting_cell_type)) {
+
+        aimming_cell_type <- c(cell_type[i],contrasting_cell_type[j],"gene_name")
+        ref_dt <- reference_dataset[,..aimming_cell_type]
+
+        cell_type1 <- cell_type[i]
+        cell_type1 <- ref_dt[,..cell_type1] %>%
+          unlist() %>%
+          as.numeric()
+
+        cell_type2 <- contrasting_cell_type[j]
+        cell_type2 <- ref_dt[,..cell_type2] %>%
+          unlist() %>%
+          as.numeric()
+
+        ref_dt[,cell_type1 := cell_type1]
+        ref_dt[,cell_type2 := cell_type2]
+
+        ref_dt[,avglogFC := cell_type1 - cell_type2]
+
+        var_genes <- ref_dt[abs(avglogFC) > 2,gene_name]
+        gene_ls[contrasting_cell_type[j]] <- list(var_genes)
+
+      }
+
+      var_gene_ls[cell_type[i]] <- list(gene_ls)
+
+      saveRDS(var_gene_ls,file = file_name)
+
+    }
 
   }
+##
+
+##
+  file_name <- paste(working_path,"symbol_genes.rds",sep = "/")
+  if (file.exists(file_name)) {
+
+    symbol_genes <- readRDS(file = file_name)
+
+    sub_cell_type <- list()
+    for (i in 1:length(symbol_genes)) {
+
+      if (is.null(symbol_genes[[i]])) {
+
+        sub_cell_type <- append(sub_cell_type,list(names(symbol_genes)[i]))
+
+      }
+
+    }
+
+    sub_cell_type <- unlist(sub_cell_type)
+
+    for (i in 1:length(sub_cell_type)) {
+
+      genes <- Reduce(union,var_gene_ls[[sub_cell_type[i]]])
+      totoal_gene <- unlist(var_gene_ls[[sub_cell_type[i]]])
+
+      rate_ls <- vector("list",length = length(genes))
+      names(rate_ls) <- genes
+      for (j in 1:length(genes)) {
+
+        num <- sum(totoal_gene %in% genes[j])
+        rate <- num/length(var_gene_ls[[sub_cell_type[i]]])
+        rate_ls[genes[j]] <- list(rate)
+
+      }
+
+
+      results <- data.table(present_rate = unlist(rate_ls),
+                            gene_name = names(rate_ls))
+      setorder(results,-present_rate)
+      results <- results[present_rate > 0.8,gene_name]
+
+      symbol_genes[sub_cell_type[i]] <- list(results)
+
+      saveRDS(symbol_genes,file = file_name,compress = FALSE)
+
+    }
+
+  } else {
+
+    symbol_genes <- vector("list",length = length(cell_type))
+    names(symbol_genes) <- cell_type
+    for (i in 1:length(cell_type)) {
+
+      genes <- Reduce(union,var_gene_ls[[cell_type[i]]])
+      totoal_gene <- unlist(var_gene_ls[[cell_type[i]]])
+
+      rate_ls <- vector("list",length = length(genes))
+      names(rate_ls) <- genes
+      for (j in 1:length(genes)) {
+
+        num <- sum(totoal_gene %in% genes[j])
+        rate <- num/length(var_gene_ls[[cell_type[i]]])
+        rate_ls[genes[j]] <- list(rate)
+        }
+
+      results <- data.table(present_rate = unlist(rate_ls),
+                            gene_name = names(rate_ls))
+      setorder(results,-present_rate)
+      results <- results[present_rate > 0.8,gene_name]
+
+      symbol_genes[cell_type[i]] <- list(results)
+
+      saveRDS(symbol_genes,file = file_name,compress = FALSE)
+      }
+
+  }
+##
 
   return(symbol_genes)
 

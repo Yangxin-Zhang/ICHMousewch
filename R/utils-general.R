@@ -181,7 +181,7 @@ num_image <- length(spatial_image@spatial_image)
 
   on.exit(gc())
 
-  diff_expr_genes <- diff_expr_genes[abs(avg_log2FC) > 2]
+  diff_expr_genes <- diff_expr_genes[abs(avg_log2FC) > 1]
 
   setorder(diff_expr_genes,-log2pct)
 
@@ -193,12 +193,13 @@ num_image <- length(spatial_image@spatial_image)
 #'
 #' @param ich_mouse the ICH_Mouse class
 #' @param gene_ls the gene ls used to annotate
+#' @param reference_dataset the reference_dataset for annotation
 
-.annotate_the_cell_type_based_on_single_gene <- function(ich_mouse,gene_ls) {
+.annotate_the_cell_type_based_on_single_gene <- function(ich_mouse,gene_ls,reference_dataset) {
 
   on.exit(gc())
 
-  ref_ds <- ICHMousewch::mouse_cell_variable_genes
+  ref_ds <- reference_dataset
 
   cell_type <- names(ref_ds)
 
