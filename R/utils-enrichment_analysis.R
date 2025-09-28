@@ -27,15 +27,17 @@
 
 }
 
-#' conduct KEEG enrichment
+#' conduct KEGG enrichment
 #'
 #' @param gene_ls a gene list
-
-.conduct_KEEG_enrichment <- function(gene_ls) {
+#' @param filtered_genes the filtered genes
+#'
+.conduct_KEGG_enrichment <- function(gene_ls,filtered_genes) {
 
   on.exit(gc())
 
   gene_id <- ICHMousewch::gene_id_information[mgi_symbol %in% gene_ls]
+  universe_id <- ICHMousewch::gene_id_information[mgi_symbol %in% filtered_genes]
 
   KEGG_results <- enrichKEGG(gene = as.character(gene_id[,entrezgene_id]),
                              universe = as.character(universe_id[,entrezgene_id]),
