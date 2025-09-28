@@ -43,7 +43,8 @@
                              universe = as.character(universe_id[,entrezgene_id]),
                              organism = "mmu",
                              keyType = "kegg",
-                             pvalueCutoff = 0.05)
+                             pvalueCutoff = 0.05,
+                             use_internal_data = TRUE)
 
   KEGG_results <- as.data.table(KEGG_results@result)
   setorder(KEGG_results,-FoldEnrichment)
