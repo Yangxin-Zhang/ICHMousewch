@@ -44,7 +44,7 @@
                              organism = "mmu",
                              keyType = "kegg",
                              pvalueCutoff = 0.05,
-                             use_internal_data = TRUE)
+                             use_internal_data = FALSE)
 
   KEGG_results <- as.data.table(KEGG_results@result)
   setorder(KEGG_results,-FoldEnrichment)
