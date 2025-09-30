@@ -47,5 +47,6 @@
 #' @importFrom clusterProfiler gseKEGG
 #' @importFrom clusterProfiler enrichKEGG
 #' @importFrom clusterProfiler simplify
+#' @importFrom simplifyEnrichment GO_similarity
 
 NULL

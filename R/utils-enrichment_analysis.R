@@ -29,6 +29,103 @@
 
 }
 
+#' cluster the GO term by dynamicTreeCut
+#'
+#' @param GO_results the results of GO enrichment
+
+.cluster_GO_terms <- function(GO_results) {
+
+  on.exit(gc())
+
+  similarity_matrix <- GO_similarity(go_id = GO_results[,ID],
+                                     ont = "BP",
+                                     db = "org.Mm.eg.db",
+                                     measure = "Sim_Resnik_1999")
+
+  simplify_result <- simplifyGO(mat = similarity_matrix,
+                                method = "dynamicTreeCut",
+                                draw_word_cloud = FALSE,
+                                plot = TRUE,
+                                control = list(minClusterSize =3)) %>%
+    as.data.table()
+
+  cluster_symbol <- unique(simplify_result[,cluster])
+
+  avg_similarity <- data.table(cluster = cluster_symbol,
+                               avg_similarity = numeric(length(cluster_symbol)),
+                               GO_num = numeric(length(cluster_symbol)))
+  for (i in 1:length(cluster_symbol)) {
+
+    GO_id <- simplify_result[cluster == cluster_symbol[i],id]
+    sub_sim_mat <- similarity_matrix[GO_id,GO_id]
+
+    avg_similarity[cluster == cluster_symbol[i],avg_similarity := mean(rowMeans(sub_sim_mat))]
+    avg_similarity[cluster == cluster_symbol[i],GO_num := length(GO_id)]
+
+  }
+
+  filtered_cluster <- avg_similarity[avg_similarity > 0.5 & GO_num <= 5,cluster]
+  unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
+
+  if (length(filtered_cluster) != 0) {
+
+    clustered_GO_results <- vector("list",length = length(filtered_cluster))
+    for (i in 1:length(filtered_cluster)) {
+
+      clustered_GO_results[i] <- list(GO_results[ID %in% simplify_result[cluster == filtered_cluster[i],id],])
+
+    }
+
+  } else {
+
+    filtered_cluster <- avg_similarity[avg_similarity == max(avg_similarity),cluster]
+    unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
+
+    clustered_GO_results <- vector("list",length = length(filtered_cluster))
+    for (i in 1:length(filtered_cluster)) {
+
+      clustered_GO_results[i] <- list(GO_results[ID %in% simplify_result[cluster == filtered_cluster[i],id],])
+
+    }
+
+  }
+
+  clustered_GO_results["unclustered"] <- list(GO_results[ID %in% simplify_result[cluster %in% unfiltered_cluster,id],])
+
+  return(clustered_GO_results)
+
+}
+
+#' conduct iteration cluster on GO terms
+#'
+#' @param GO_results the results of GO enrichment
+
+.conduct_iteration_cluster_on_GO_terms <- function(GO_results) {
+
+  on.exit(gc())
+
+  GO_results <- list(unclustered = GO_results)
+
+  condition <- TRUE
+  while (condition) {
+
+    clustered_GO_term <- ICHMousewch:::.cluster_GO_terms(GO_results = GO_results[["unclustered"]])
+
+    GO_results <- c(GO_results,clustered_GO_term[!names(clustered_GO_term) %in% "unclustered"])
+    GO_results["unclustered"] <- clustered_GO_term["unclustered"]
+
+    if (length(GO_results[["unclustered"]][,ID]) <= 5) {
+
+      condition <- FALSE
+
+    }
+
+  }
+
+  return(GO_results)
+
+}
+
 #' conduct KEGG enrichment
 #'
 #' @param gene_ls a gene list
