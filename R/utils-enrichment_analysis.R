@@ -187,13 +187,18 @@
 
     }
 
-    avg_sim_ls <- unlist(avg_sim_ls) - avg_sim_ls[[cluster_na[i]]] + 1
-
     avg_similarity_matrix[cluster_na[i]] <- list(unlist(avg_sim_ls))
 
   }
 
-  avg_similarity_matrix <- as.data.table(avg_similarity_matrix)
+  avg_similarity_matrix <- as.data.frame(avg_similarity_matrix)
+  rownames(avg_similarity_matrix) <- colnames(avg_similarity_matrix)
+  avg_similarity_matrix <- as.matrix(avg_similarity_matrix)
+  max_similarity <- max(diag(avg_similarity_matrix))
+
+  avg_similarity_matrix <- avg_similarity_matrix - max_similarity + 1
+
+  return(avg_similarity_matrix)
 
 }
 
