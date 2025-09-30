@@ -18,7 +18,9 @@
                          OrgDb = org.Mm.eg.db,
                          readable = TRUE,
                          ont = "ALL",
-                         pvalueCutoff = 0.05)
+                         pvalueCutoff = 0.01) %>%
+    simplify(cutoff = 0.7,
+             measure = "Wang")
 
   GO_results <- as.data.table(GO_results@result)
   setorder(GO_results,-FoldEnrichment)

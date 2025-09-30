@@ -46,5 +46,6 @@
 #' @importFrom clusterProfiler enrichGO
 #' @importFrom clusterProfiler gseKEGG
 #' @importFrom clusterProfiler enrichKEGG
+#' @importFrom clusterProfiler simplify
 
 NULL

@@ -4,7 +4,7 @@
 \alias{initialize,Plotting_Dataset-method}
 \title{initialize Plotting_Dataset}
 \usage{
-\S4method{initialize}{Plotting_Dataset}(.Object, ich_mouse, diff_expr_gene_symbol)
+\S4method{initialize}{Plotting_Dataset}(.Object, ich_mouse, diff_expr_gene_symbol, initialization)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}
