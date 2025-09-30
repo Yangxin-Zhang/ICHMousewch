@@ -14,6 +14,8 @@ the class for Plotting
 
 \item{\code{differential_expression_genes_dataset}}{the differential expression genes dataset}
 
+\item{\code{GO_enrichment_dataset}}{the dataset of GO enrichment}
+
 \item{\code{plots}}{the plots created from dataset}
 }}
 
