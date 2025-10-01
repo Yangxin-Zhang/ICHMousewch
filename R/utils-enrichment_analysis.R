@@ -198,7 +198,94 @@
 
   avg_similarity_matrix <- avg_similarity_matrix - max_similarity + 1
 
-  return(avg_similarity_matrix)
+  diag_similarity <- diag(avg_similarity_matrix)
+  diag_similarity <- data.table(similarity = diag_similarity,
+                                cluster = names(diag_similarity))
+
+  inte_cluster <- diag_similarity[similarity >= 0.8,cluster]
+
+  diff_matrix <- vector("list",length = length(inte_cluster))
+  names(diff_matrix) <- inte_cluster
+  for (i in 1:length(inte_cluster)) {
+
+    test_cluster <- diag_similarity[!cluster %in% inte_cluster[i],cluster]
+
+    diff_ls <- vector("list",length = length(test_cluster))
+    names(diff_ls) <- test_cluster
+    for (j in 1:length(test_cluster)) {
+
+      po_diff <- avg_similarity_matrix[inte_cluster[i],inte_cluster[i]] - avg_similarity_matrix[inte_cluster[i],test_cluster[j]]
+      ne_diff <- avg_similarity_matrix[test_cluster[j],test_cluster[j]] - avg_similarity_matrix[inte_cluster[i],test_cluster[j]]
+
+      if (po_diff >= ne_diff) {
+
+        diff_va <- po_diff*avg_similarity_matrix[inte_cluster[i],inte_cluster[i]]
+
+      } else {
+
+        diff_va <- ne_diff*avg_similarity_matrix[inte_cluster[i],inte_cluster[i]]
+
+      }
+
+      diff_ls[test_cluster[j]] <- list(diff_va)
+
+    }
+
+    diff_matrix[inte_cluster[i]] <- list(unlist(diff_ls))
+
+  }
+
+  inte_na_ls <- list()
+  for (i in 1:length(inte_cluster)) {
+
+    diff_va <- diff_matrix[[inte_cluster[i]]]
+    inte_na <- names(diff_va)[diff_va <= 0.1]
+
+    if (length(inte_na) > 0) {
+
+      for (j in length(inte_na)) {
+
+        num_i <- strsplit(inte_cluster[i],"\\.")[[1]][[2]] %>%
+          as.numeric()
+
+
+        num_j <- strsplit(inte_na[j],split = "\\.")[[1]][[2]] %>%
+          as.numeric()
+
+
+        if (num_i <= num_j) {
+
+          inte_na_ls <- append(inte_na_ls,list(c(inte_cluster[i],inte_na[j])))
+
+        } else {
+
+          inte_na_ls <- append(inte_na_ls,list(c(inte_na[j],inte_cluster[i])))
+
+        }
+
+      }
+
+    }
+
+  }
+
+  inte_na_ls <- unique(inte_na_ls)
+
+  for (i in 1:length(inte_na_ls)) {
+
+    inte_GO <- iteration_cluster_results[cluster_na %in% inte_na_ls[[i]]]
+
+    cluster_new <- rbindlist(inte_GO)
+
+    GO_results <- c(iteration_cluster_results[!cluster_na %in% inte_na_ls[[i]]],list(cluster_new))
+
+  }
+
+  GO_na <- paste("cluster",c(1:length(GO_results)),sep = ".")
+
+  names(GO_results) <- GO_na
+
+  return(GO_results)
 
 }
 
