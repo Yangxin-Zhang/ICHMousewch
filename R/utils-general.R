@@ -254,7 +254,56 @@ refresh_internal_dataset <- function() {
 
 }
 
+#' export data.table as excel
+#'
+#' @param data.table_obj a data.table object or list
+#' @param saving_path the saving path
+#' @param file_name the workbook name
+#' @export
 
+export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
+
+  on.exit(gc())
+
+  wb <- createWorkbook()
+
+  if (is.list(data.table_obj)) {
+
+    sheet_na <- names(data.table_obj)
+
+    for (i in 1:length(sheet_na)) {
+
+      addWorksheet(wb = wb,
+                   sheetName = sheet_na[i])
+
+      writeData(wb = wb,
+                sheet = sheet_na[i],
+                x = data.table_obj[[sheet_na[i]]])
+
+    }
+
+  }
+
+  if (is.data.frame(data.table_obj)) {
+
+    sheet_na <- file_name
+
+    addWorksheet(wb = wb,
+                 sheetName = sheet_na)
+
+    writeData(wb = wb,
+              sheet = sheet_na,
+              x = data.table_obj)
+
+  }
+
+  saving_name <- paste(file_name,"xlsx",sep = ".")
+  file_path <- paste(saving_path,saving_name,sep = "/")
+  saveWorkbook(wb = wb,
+               file = file_path,
+               overwrite = TRUE)
+
+}
 
 
 

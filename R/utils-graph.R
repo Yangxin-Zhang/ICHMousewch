@@ -178,3 +178,55 @@
 
 }
 
+#' create Categorical Network Plot of GO term
+#'
+#' @param GO_results the results of GO enrichment
+
+.create_categorical_network_plot <- function(GO_results) {
+
+  on.exit(gc())
+
+  GO_terms <- GO_results[,Description]
+
+  cnet_ls <- vector("list",length = length(GO_terms))
+  names(cnet_ls) <- GO_terms
+  for (i in 1:length(GO_terms)) {
+
+    gene_na <- GO_results[Description == GO_terms[i],geneID] %>%
+      strsplit(split = "/") %>%
+      unlist()
+
+    cnet_ls[GO_terms[i]] <- list(gene_na)
+
+  }
+
+  cnet_plot <- cnetplot(cnet_ls,
+                        showCategory = 10) %>%
+    ggplotGrob()
+
+  return(cnet_plot)
+
+}
+
+#' plotting cnetplot
+#'
+#' @param GO_results the results of GO enrichment
+
+.plotting_cnetplot <- function(GO_results) {
+
+  on.exit(gc())
+
+  cluster_na <- names(GO_results)
+
+  cnet_plot_ls <- vector("list",length = length(GO_results))
+  names(cnet_plot_ls) <- cluster_na
+  for (i in 1:length(cluster_na)) {
+
+    cnet_plot <- ICHMousewch:::.create_categorical_network_plot(GO_results = GO_results[[i]])
+    cnet_plot_ls[cluster_na[i]] <- list(cnet_plot)
+
+  }
+
+  return(cnet_plot_ls)
+
+}

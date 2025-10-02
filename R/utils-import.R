@@ -49,5 +49,10 @@
 #' @importFrom clusterProfiler simplify
 #' @importFrom simplifyEnrichment GO_similarity
 #' @importFrom simplifyEnrichment simplifyGO
+#' @importFrom enrichplot cnetplot
+#' @importFrom openxlsx createWorkbook
+#' @importFrom openxlsx addWorksheet
+#' @importFrom openxlsx writeData
+#' @importFrom openxlsx saveWorkbook
 
 NULL

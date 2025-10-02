@@ -334,7 +334,32 @@
 
 }
 
+#' combine GO cluster based on cluster annotation
+#'
+#' @param GO_results GO enrichment results
+#' @param cluster_annotation the cluster annotation
 
+.combine_GO_cluster_based_on_cluster_annotation <- function(GO_results,cluster_annotation) {
+
+  on.exit(gc())
+
+  cluster_na <- names(GO_results)
+
+  annotation_na <- unique(cluster_annotation)
+
+  inte_GO_results <- vector("list", length = length(annotation_na))
+  names(inte_GO_results) <- annotation_na
+  for (i in 1:length(annotation_na)) {
+
+    inte_cluster <- names(cluster_annotation)[cluster_annotation %in% annotation_na[i]]
+
+    inte_GO_results[annotation_na[i]] <- list(rbindlist(GO_results[inte_cluster]))
+
+  }
+
+  return(inte_GO_results)
+
+}
 
 
 
