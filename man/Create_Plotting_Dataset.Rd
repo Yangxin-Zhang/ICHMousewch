@@ -4,16 +4,10 @@
 \alias{Create_Plotting_Dataset}
 \title{constructor of Plotting_Dataset}
 \usage{
-Create_Plotting_Dataset(
-  ich_mouse,
-  diff_expr_gene_symbol = "edge-normal",
-  initialization = TRUE
-)
+Create_Plotting_Dataset(ich_mouse, initialization = TRUE)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}
-
-\item{diff_expr_gene_symbol}{the differential expression genes symbol}
 }
 \description{
 constructor of Plotting_Dataset

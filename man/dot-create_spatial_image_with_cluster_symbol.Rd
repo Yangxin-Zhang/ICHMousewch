@@ -11,7 +11,8 @@
   background_image_address,
   color_set,
   self_definition_color,
-  giotto_instruction
+  giotto_instruction,
+  theme_param = list()
 )
 }
 \arguments{

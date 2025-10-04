@@ -10,12 +10,8 @@ the class for Plotting
 \section{Slots}{
 
 \describe{
-\item{\code{seurat_metadata_dataset}}{the Seurat Object metadata dataset for plotting}
+\item{\code{spatial_image}}{the spatial image}
 
-\item{\code{differential_expression_genes_dataset}}{the differential expression genes dataset}
-
-\item{\code{GO_enrichment_dataset}}{the dataset of GO enrichment}
-
-\item{\code{plots}}{the plots created from dataset}
+\item{\code{spatial_single_gene_image}}{the spatial single gene image}
 }}
 

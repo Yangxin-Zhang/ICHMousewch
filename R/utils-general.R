@@ -305,6 +305,60 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
 }
 
+#' plotting spatial image
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+.plotting_spatial_image <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  GMM_cluster <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                         cluster_symbol = "GMM_cluster",
+                                                                         raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                         background_image_address = ich_mouse@file_address["background_image_address"],
+                                                                         color_set = ich_mouse@color_set,
+                                                                         self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
+                                                                         giotto_instruction = ich_mouse@giotto_instruction[[1]]) %>%
+    ggplotGrob()
+
+  Louvain_cluster_posi <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                  cluster_symbol = "Louvain_cluster_posi",
+                                                                                  raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                  background_image_address = ich_mouse@file_address["background_image_address"],
+                                                                                  color_set = ich_mouse@color_set,
+                                                                                  self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
+                                                                                  giotto_instruction = ich_mouse@giotto_instruction[[1]]) %>%
+    ggplotGrob()
+
+  plotting_list <- list("GMM_cluster" = GMM_cluster,
+                        "Louvain_cluster_posi" = Louvain_cluster_posi)
+
+  return(plotting_list)
+
+}
+
+#' get another dataset for plotting
+#'
+#' @param ich_mouse the class of ich_mouse
+
+.get_another_dataset_for_plotting <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  another_dataset_na <- c("raw_count_matrix","background_image_address","color_set","giotto_instruction")
+
+  another_dataset <- vector("list",length = length(another_dataset_na))
+
+  another_dataset["raw_count_matrix"] <- list(ich_mouse@raw_count_matrix)
+  another_dataset["background_image_address"] <- list(ich_mouse@file_address$background_image_address)
+  another_dataset["color_set"] <- list(ich_mouse@color_set)
+  another_dataset["giotto_instruction"] <- list(ich_mouse@giotto_instruction)
+
+  return(another_dataset)
+
+}
+
 
 
 

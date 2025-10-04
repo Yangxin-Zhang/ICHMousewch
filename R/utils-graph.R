@@ -29,7 +29,7 @@
 #' @param self_definition_color a set of color defined by user
 #' @param giotto_instruction the instruction of Giotto Object
 
-.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,color_set,self_definition_color,giotto_instruction) {
+.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,color_set,self_definition_color,giotto_instruction,theme_param = list()) {
 
   on.exit(gc())
 
@@ -75,12 +75,15 @@
   spatial_image <- spatPlot2D(gobject = giotto_object,
                               cell_color = cluster_symbol,
                               point_size = 0.5,
+                              point_shape = "border",
                               point_alpha = 0.5,
+                              point_border_stroke = 0,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
                               show_image = TRUE,
                               axis_text = FALSE,
-                              axis_title = FALSE)
+                              axis_title = FALSE,
+                              theme_param = c(theme_param,list(plot.margin = margin(t = 2.5, r = 0.5, b = 1.5, l = 0.5, "cm"),plot.background = element_rect(fill = "white", color = NA),plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 3,margin = margin(b = 20)),legend.position = "none",axis.ticks = element_blank())))
 
   return(spatial_image)
 
@@ -228,5 +231,27 @@
   }
 
   return(cnet_plot_ls)
+
+}
+
+#' save gtable plot
+#'
+#' @param gtable_plot a plot in the form of gtable
+#' @param saving_path the path for saving plot
+#' @param file_name the file name
+#' @export
+
+save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
+
+  on.exit(gc())
+
+  file_name <- paste(file_name,"png",sep = ".")
+
+  ggsave(filename = paste(saving_path,file_name,sep = "/"),
+         plot = as.ggplot(gtable_plot),
+         dpi = 600,
+         width = 297,height = 210,
+         units = "mm",
+         device = "png")
 
 }
