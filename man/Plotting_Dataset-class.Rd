@@ -13,5 +13,9 @@ the class for Plotting
 \item{\code{spatial_image}}{the spatial image}
 
 \item{\code{spatial_single_gene_image}}{the spatial single gene image}
+
+\item{\code{violin_plot}}{the violin plot}
+
+\item{\code{volcano_plot}}{the volcano plot}
 }}
 

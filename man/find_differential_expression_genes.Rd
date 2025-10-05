@@ -4,12 +4,18 @@
 \alias{find_differential_expression_genes}
 \title{find differential expression genes}
 \usage{
-find_differential_expression_genes(ich_mouse, cluster_symbol, gene_set_name)
+find_differential_expression_genes(
+  ich_mouse,
+  cluster_symbol = c(3, 1),
+  gene_set_name = "edge-normal"
+)
 }
 \arguments{
 \item{ich_mouse}{the ICH_Mouse class}
 
 \item{cluster_symbol}{the cluster to contrast}
+
+\item{gene_set_name}{the gene set to find expression genes}
 }
 \description{
 find differential expression genes

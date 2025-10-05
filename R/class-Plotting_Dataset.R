@@ -5,10 +5,14 @@
 #'
 #' @slot spatial_image the spatial image
 #' @slot spatial_single_gene_image the spatial single gene image
+#' @slot violin_plot the violin plot
+#' @slot volcano_plot the volcano plot
 
 setClass(Class = "Plotting_Dataset",
          slots = c(spatial_image = "list",
-                   spatial_single_gene_image = "list"))
+                   spatial_single_gene_image = "list",
+                   violin_plot = "list",
+                   volcano_plot = "list"))
 
 #' initialize Plotting_Dataset
 #'
@@ -28,10 +32,15 @@ setMethod(f = "initialize",
             # create spatial image
               .Object@spatial_image <- ICHMousewch:::.plotting_spatial_image(ich_mouse = ich_mouse)
 
+            # create volcano plot
+              .Object@volcano_plot <- ICHMousewch:::.plotting_volcano_plot(ich_mouse = ich_mouse)
+
             } else {
 
               .Object@spatial_image <- list()
               .Object@spatial_single_gene_image <- list()
+              .Object@violin_plot <- list()
+              .Object@volcano_plot <- list()
 
             }
 

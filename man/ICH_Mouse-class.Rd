@@ -13,5 +13,7 @@ ICH_Mouse a class for analysis ICH_Mouse
 \item{\code{diff_expr_genes}}{the differential expression genes}
 
 \item{\code{symbol_genes}}{the symbol genes}
+
+\item{\code{GO_enrichment}}{the result of GO_enrichment}
 }}
 

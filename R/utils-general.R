@@ -386,6 +386,57 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
 }
 
+#' plotting volcano plot
+#'
+#' @param ich_mouse the ICH_Mouse class
+
+.plotting_volcano_plot <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  diff_expr_mat <- ich_mouse@diff_expr_genes$`edge-normal`
+
+  diff_expr_mat[,Threshold := rep("No",nrow(diff_expr_mat))]
+
+  diff_expr_mat[avg_log2FC >= 1 & p_val_adj < 0.01,Threshold := "Up"]
+
+  diff_expr_mat[,log10p_val_adj := -log10(p_val_adj)]
+
+  diff_expr_mat[log10p_val_adj > 300,log10p_val_adj := 300]
+  diff_expr_mat[avg_log2FC > 10, avg_log2FC := 10]
+  diff_expr_mat[avg_log2FC < -10, avg_log2FC := -10]
+
+  volcano_plot <- ggplot(data = diff_expr_mat,mapping = aes(x = avg_log2FC, y = log10p_val_adj, color = Threshold)) +
+    labs(title = "Volcano_Plot") +
+    geom_point(size = 1,alpha = 0.7) +
+    coord_cartesian(xlim = c(-10, 10), ylim = c(-1, 300)) +
+    scale_x_continuous(breaks = c(-10,-5,-1,0,1,5,10)) +
+    scale_y_continuous(breaks = c(0,100,200,300)) +
+    scale_color_manual(values = c("No" = "#999999", "Up" = "#E41A1C")) +
+    geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black") +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
+    theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
+          axis.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
+          axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
+          axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
+          legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
+          legend.title = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10)),
+          legend.background = element_rect(fill = "white", color = NA),
+          legend.key = element_rect(fill = "white", color = NA),
+          legend.position = "right",
+          panel.background = element_rect(fill = "white", color = "black"),
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+          panel.grid.minor = element_blank()) +
+    guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
+                                override.aes = list(size = 3,alpha = 1)))
+
+  volcano_plot_ls <- list("diff_expr_gene" = volcano_plot)
+
+  return(volcano_plot_ls)
+
+}
+
 
 
 

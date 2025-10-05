@@ -5,11 +5,12 @@
 #'
 #' @slot diff_expr_genes the differential expression genes
 #' @slot symbol_genes the symbol genes
+#' @slot GO_enrichment the result of GO_enrichment
 
 setClass(Class = "ICH_Mouse",
          slots = c(diff_expr_genes = "list",
                    symbol_genes = "list",
-                   spatial_image_with_single_gene = "list"),
+                   GO_enrichment = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
@@ -46,23 +47,11 @@ setMethod(f = "initialize",
                                                                                      filtered_genes = .Object@filtered_genes,
                                                                                      cluster_symbol = 1)
 
-              # .Object@diff_expr_genes["edge-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-              #                                                                                            seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-              #                                                                                            filtered_genes = .Object@filtered_genes,
-              #                                                                                            cluster_symbol = c(3,1)) %>%
-              #   list()
-              #
-              # .Object@diff_expr_genes["center-normal"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-              #                                                                                              seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-              #                                                                                              filtered_genes = .Object@filtered_genes,
-              #                                                                                              cluster_symbol = c(2,1)) %>%
-              #   list()
-              #
-              # .Object@diff_expr_genes["center-edge"]<- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = .Object@raw_count_matrix,
-              #                                                                                            seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-              #                                                                                            filtered_genes = .Object@filtered_genes,
-              #                                                                                            cluster_symbol = c(2,3)) %>%
-              #   list()
+              .Object@diff_expr_genes <- vector("list",length = 3)
+              names(.Object@diff_expr_genes) <- c("edge-normal","center-edge","center-normal")
+
+              .Object@GO_enrichment <- vector("list",length = 3)
+              names(.Object@GO_enrichment) <- c("edge-normal","center-edge","center-normal")
 
             } else {
 
@@ -79,7 +68,6 @@ setMethod(f = "initialize",
               .Object@filtered_genes = character()
               .Object@diff_expr_genes = list()
               .Object@symbol_genes = list()
-              .Object@spatial_image_with_single_gene = list()
 
             }
 
@@ -126,9 +114,10 @@ Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_c
 #'
 #' @param ich_mouse the ICH_Mouse class
 #' @param cluster_symbol the cluster to contrast
+#' @param gene_set_name the gene set to find expression genes
 
 setGeneric(name = "find_differential_expression_genes",
-           def = function(ich_mouse,cluster_symbol,gene_set_name) {
+           def = function(ich_mouse,cluster_symbol = c(3,1),gene_set_name = "edge-normal") {
 
              standardGeneric("find_differential_expression_genes")
 
@@ -138,6 +127,7 @@ setGeneric(name = "find_differential_expression_genes",
 #'
 #' @param ich_mouse the ICH_Mouse class
 #' @param cluster_symbol the cluster to contrast
+#' @param gene_set_name the gene set to find expression genes
 #' @export
 
 setMethod(f = "find_differential_expression_genes",
@@ -146,29 +136,69 @@ setMethod(f = "find_differential_expression_genes",
 
             on.exit(gc())
 
-            diff_expr_gene <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
-                                                                                seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
-                                                                                filtered_genes = ich_mouse@filtered_genes,
-                                                                                cluster_symbol = cluster_symbol)
+            if (gene_set_name %in% names(ich_mouse@diff_expr_genes)) {
 
-            annotation_dt_cell_type <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
-                                                                                                  gene_ls = diff_expr_gene[,gene_name],
-                                                                                                  reference_dataset = ICHMousewch::mouse_cell_variable_genes)
+              diff_expr_gene <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                                  seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                                  filtered_genes = ich_mouse@filtered_genes,
+                                                                                  cluster_symbol = cluster_symbol)
 
-            annotation_dt_immune_cell_type <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
-                                                                                                         gene_ls = diff_expr_gene[,gene_name],
-                                                                                                         reference_dataset = ICHMousewch::mouse_immune_cell_variable_genes)
+              annotation_dt_cell_type <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
+                                                                                                    gene_ls = diff_expr_gene[,gene_name],
+                                                                                                    reference_dataset = ICHMousewch::mouse_cell_variable_genes)
 
-            gene_order_cell_type <- match(diff_expr_gene[,gene_name],annotation_dt_cell_type[,gene_name])
-            annotation_dt_cell_type <- annotation_dt_cell_type[gene_order_cell_type]
+              annotation_dt_immune_cell_type <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
+                                                                                                           gene_ls = diff_expr_gene[,gene_name],
+                                                                                                           reference_dataset = ICHMousewch::mouse_immune_cell_variable_genes)
 
-            gene_order_immune_cell_type <- match(diff_expr_gene[,gene_name],annotation_dt_immune_cell_type[,gene_name])
-            annotation_dt_immune_cell_type <- annotation_dt_immune_cell_type[gene_order_immune_cell_type]
+              gene_order_cell_type <- match(diff_expr_gene[,gene_name],annotation_dt_cell_type[,gene_name])
+              annotation_dt_cell_type <- annotation_dt_cell_type[gene_order_cell_type]
 
-            diff_expr_gene[,cell_type := annotation_dt_cell_type[,cell_type]]
-            diff_expr_gene[,immune_cell_type := annotation_dt_immune_cell_type[,cell_type]]
+              gene_order_immune_cell_type <- match(diff_expr_gene[,gene_name],annotation_dt_immune_cell_type[,gene_name])
+              annotation_dt_immune_cell_type <- annotation_dt_immune_cell_type[gene_order_immune_cell_type]
 
-            ich_mouse@diff_expr_genes[gene_set_name] <- list(diff_expr_gene)
+              diff_expr_gene[,cell_type := annotation_dt_cell_type[,cell_type]]
+              diff_expr_gene[,immune_cell_type := annotation_dt_immune_cell_type[,cell_type]]
+
+              ich_mouse@diff_expr_genes[gene_set_name] <- list(diff_expr_gene)
+
+            }
+
+            return(ich_mouse)
+
+          })
+####
+
+####
+#' conduct GO enrichment and cluster GO term
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_set_name the gene set to find expression genes
+
+setGeneric(name = "conduct_GO_enrichment",
+           def = function(ich_mouse,gene_set_name = "edge-normal") {
+
+             standardGeneric("conduct_GO_enrichment")
+
+           })
+
+#' conduct GO enrichment and cluster GO term
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_set_name the gene set to find expression genes
+#' @export
+
+setMethod(f = "conduct_GO_enrichment",
+          signature = signature(ich_mouse = "ICH_Mouse"),
+          definition = function(ich_mouse,gene_set_name) {
+
+            on.exit(gc())
+
+            gene_ls <- ich_mouse@diff_expr_genes[[gene_set_name]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name]
+            go_enrichment <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_ls,
+                                                                  filtered_genes = ich_mouse@filtered_genes)
+
+            ich_mouse@GO_enrichment[gene_set_name] <- list(go_enrichment)
 
             return(ich_mouse)
 
