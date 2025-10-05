@@ -431,7 +431,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
                                 override.aes = list(size = 3,alpha = 1)))
 
-  volcano_plot_ls <- list("diff_expr_gene" = volcano_plot)
+  volcano_plot_ls <- list("diff_expr_gene" = ggplotGrob(volcano_plot))
 
   return(volcano_plot_ls)
 
