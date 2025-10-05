@@ -319,7 +319,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
                                                                          background_image_address = ich_mouse@file_address["background_image_address"],
                                                                          color_set = ich_mouse@color_set,
                                                                          self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                         giotto_instruction = ich_mouse@giotto_instruction[[1]]) %>%
+                                                                         giotto_instruction = ich_mouse@giotto_instruction[[1]],
+                                                                         plot_title = "GMM_Cluster") %>%
     ggplotGrob()
 
   Louvain_cluster_posi <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = ich_mouse@seu_metadata_with_cluster_symbol,
@@ -327,8 +328,9 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
                                                                                   raw_count_matrix = ich_mouse@raw_count_matrix,
                                                                                   background_image_address = ich_mouse@file_address["background_image_address"],
                                                                                   color_set = ich_mouse@color_set,
-                                                                                  self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                  giotto_instruction = ich_mouse@giotto_instruction[[1]]) %>%
+                                                                                  self_definition_color = c("1"="#F5D2A8"),
+                                                                                  giotto_instruction = ich_mouse@giotto_instruction[[1]],
+                                                                                  plot_title = "Louvain_Cluster_Posi") %>%
     ggplotGrob()
 
   plotting_list <- list("GMM_cluster" = GMM_cluster,

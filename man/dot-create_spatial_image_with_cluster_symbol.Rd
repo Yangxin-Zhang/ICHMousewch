@@ -9,10 +9,12 @@
   cluster_symbol,
   raw_count_matrix,
   background_image_address,
-  color_set,
-  self_definition_color,
   giotto_instruction,
-  theme_param = list()
+  self_definition_color = character(),
+  theme_param = list(),
+  plot_title = character(),
+  legend_lable = character(),
+  show_image = TRUE
 )
 }
 \arguments{
@@ -24,11 +26,9 @@
 
 \item{background_image_address}{image for background}
 
-\item{color_set}{a set of color}
+\item{giotto_instruction}{the instruction of Giotto Object}
 
 \item{self_definition_color}{a set of color defined by user}
-
-\item{giotto_instruction}{the instruction of Giotto Object}
 }
 \description{
 create spatial image with cluster symbol

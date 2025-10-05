@@ -25,15 +25,57 @@
 #' @param cluster_symbol the cluster for spatial image
 #' @param raw_count_matrix the matrix of raw count dataset
 #' @param background_image_address image for background
-#' @param color_set a set of color
 #' @param self_definition_color a set of color defined by user
 #' @param giotto_instruction the instruction of Giotto Object
 
-.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,color_set,self_definition_color,giotto_instruction,theme_param = list()) {
+.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,giotto_instruction,self_definition_color = character(),theme_param = list(),plot_title = character(),legend_lable = character(),show_image = TRUE) {
 
   on.exit(gc())
 
   in_tissue_metadata[,cell_ID := barcode]
+
+  if (length(plot_title) != 0) {
+
+    aim_col <- in_tissue_metadata[,..cluster_symbol]
+
+    in_tissue_metadata[,(plot_title) := aim_col]
+
+    cluster_symbol <- plot_title
+
+  }
+
+  if (length(legend_lable) != 0) {
+
+    ori_lable <- names(legend_lable)
+
+    for (i in 1:length(ori_lable)) {
+
+      filter_condition <- as.character(in_tissue_metadata[,..cluster_symbol]) %in% ori_lable[i]
+
+      in_tissue_metadata[filter_condition,..cluster_symbol := legend_lable[ori_lable[i]]]
+
+    }
+
+    if (length(self_definition_color) != 0) {
+
+      for (i in 1:length(legend_lable)) {
+
+        new_self_def_col <- vector("character",length = length(ori_lable))
+        names(new_self_def_col) <- legend_lable
+
+        new_self_def_col[legend_lable[i]] <- self_definition_color[names(legend_lable[i])]
+
+      }
+
+      self_definition_color <- new_self_def_col
+
+    }
+
+  } else {
+
+    theme_param <- c(theme_param,list(legend.position = "none"))
+
+  }
 
   in_tissue_count_matrix <- raw_count_matrix[,in_tissue_metadata[,barcode]]
 
@@ -55,6 +97,7 @@
     unlist() %>%
     as.character()
 
+  color_set <- viridis::plasma(length(color_symbols))
 
   random_color_symbols <- color_symbols[!color_symbols %in% names(self_definition_color)]
 
@@ -80,10 +123,10 @@
                               point_border_stroke = 0,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
-                              show_image = TRUE,
+                              show_image = show_image,
                               axis_text = FALSE,
                               axis_title = FALSE,
-                              theme_param = c(theme_param,list(plot.margin = margin(t = 2.5, r = 0.5, b = 1.5, l = 0.5, "cm"),plot.background = element_rect(fill = "white", color = NA),plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 3,margin = margin(b = 20)),legend.position = "none",axis.ticks = element_blank())))
+                              theme_param = c(theme_param,list(plot.margin = margin(t = 2.5, r = 0.5, b = 1.5, l = 0.5, "cm"),plot.background = element_rect(fill = "white", color = NA),plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 3,margin = margin(b = 10)),axis.ticks = element_blank())))
 
   return(spatial_image)
 

@@ -23,6 +23,10 @@
 #' @importFrom Giotto spatFeatPlot2D
 #' @importFrom ggplot2 ggplotGrob
 #' @importFrom ggplot2 ggsave
+#' @importFrom ggplot2 margin
+#' @importFrom ggplot2 element_rect
+#' @importFrom ggplot2 element_text
+#' @importFrom ggplot2 element_blank
 #' @importFrom ggplotify as.ggplot
 #' @importFrom patchwork patchworkGrob
 #' @importFrom patchwork wrap_plots
@@ -54,5 +58,6 @@
 #' @importFrom openxlsx addWorksheet
 #' @importFrom openxlsx writeData
 #' @importFrom openxlsx saveWorkbook
+#' @importFrom viridis plasma
 
 NULL
