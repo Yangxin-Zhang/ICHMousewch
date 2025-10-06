@@ -345,7 +345,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     theme(axis.text = element_blank(),
           axis.ticks = element_blank())
 
-  heatmap_ls <- list("GO_heatmap" = sim_heatmap)
+  heatmap_ls <- list("GO_heatmap" = ggplotGrob(sim_heatmap))
 
   return(heatmap_ls)
 

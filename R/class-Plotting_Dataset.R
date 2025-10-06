@@ -56,6 +56,7 @@ setMethod(f = "initialize",
 #' constructor of Plotting_Dataset
 #'
 #' @param ich_mouse the class of ICH_Mouse
+#' @export
 
 Create_Plotting_Dataset <- function(ich_mouse,initialization = TRUE) {
 
