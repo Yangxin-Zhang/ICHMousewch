@@ -88,7 +88,6 @@ setMethod(f = "initialize",
                                                                                                           cluster_symbol = "GMM_cluster",
                                                                                                           raw_count_matrix = .Object@raw_count_matrix,
                                                                                                           background_image_address = .Object@file_address["background_image_address"],
-                                                                                                          color_set = .Object@color_set,
                                                                                                           self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
                                                                                                           giotto_instruction = .Object@giotto_instruction[[1]]) %>%
                 ggplotGrob()
@@ -97,7 +96,6 @@ setMethod(f = "initialize",
                                                                                                                    cluster_symbol = "Louvain_cluster_posi",
                                                                                                                    raw_count_matrix = .Object@raw_count_matrix,
                                                                                                                    background_image_address = .Object@file_address["background_image_address"],
-                                                                                                                   color_set = .Object@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8"),
                                                                                                                    giotto_instruction = .Object@giotto_instruction[[1]]) %>%
                 ggplotGrob()
@@ -184,7 +182,6 @@ setMethod(f = "identify_hematoma",
                                                                                                        cluster_symbol = "hematoma_symbol",
                                                                                                        raw_count_matrix = hematoma@raw_count_matrix,
                                                                                                        background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                       color_set = hematoma@color_set,
                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
                                                                                                        giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
@@ -193,7 +190,6 @@ setMethod(f = "identify_hematoma",
                                                                                                                         cluster_symbol = "Louvain_cluster_filt_gene",
                                                                                                                         raw_count_matrix = hematoma@raw_count_matrix,
                                                                                                                         background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                                        color_set = hematoma@color_set,
                                                                                                                         self_definition_color = c("1"="#F5D2A8"),
                                                                                                                         giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
@@ -243,7 +239,6 @@ setMethod(f = "identify_hematoma_center_and_edge",
                                                                                                                    cluster_symbol = "center_edge_symbol",
                                                                                                                    raw_count_matrix = hematoma@raw_count_matrix,
                                                                                                                    background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                                   color_set = hematoma@color_set,
                                                                                                                    self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
                                                                                                                    giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()
@@ -286,7 +281,6 @@ setMethod(f = "create_spatial_image_with_highlighted_clusters",
                                                                                                  cluster_symbol = cluster_symbol,
                                                                                                  raw_count_matrix = hematoma@raw_count_matrix,
                                                                                                  background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                 color_set = hematoma@color_set,
                                                                                                  self_definition_color = c("1"="#F5D2A8",highlighted_color_set),
                                                                                                  giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
               ggplotGrob()

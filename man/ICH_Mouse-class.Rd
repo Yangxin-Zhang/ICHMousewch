@@ -15,5 +15,7 @@ ICH_Mouse a class for analysis ICH_Mouse
 \item{\code{symbol_genes}}{the symbol genes}
 
 \item{\code{GO_enrichment}}{the result of GO_enrichment}
+
+\item{\code{GO_cluster}}{the cluster of GO term}
 }}
 

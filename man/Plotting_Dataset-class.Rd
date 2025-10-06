@@ -17,5 +17,7 @@ the class for Plotting
 \item{\code{violin_plot}}{the violin plot}
 
 \item{\code{volcano_plot}}{the volcano plot}
+
+\item{\code{heatmap}}{the heatmap}
 }}
 

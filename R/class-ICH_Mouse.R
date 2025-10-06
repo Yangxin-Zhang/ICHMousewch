@@ -6,11 +6,13 @@
 #' @slot diff_expr_genes the differential expression genes
 #' @slot symbol_genes the symbol genes
 #' @slot GO_enrichment the result of GO_enrichment
+#' @slot GO_cluster the cluster of GO term
 
 setClass(Class = "ICH_Mouse",
          slots = c(diff_expr_genes = "list",
                    symbol_genes = "list",
-                   GO_enrichment = "list"),
+                   GO_enrichment = "list",
+                   GO_cluster = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
@@ -53,6 +55,9 @@ setMethod(f = "initialize",
               .Object@GO_enrichment <- vector("list",length = 3)
               names(.Object@GO_enrichment) <- c("edge-normal","center-edge","center-normal")
 
+              .Object@GO_cluster <- vector("list", length = 3)
+              names(.Object@GO_cluster) <- c("edge-normal","center-edge","center-normal")
+
             } else {
 
               .Object@analysis_symbol = character()
@@ -67,6 +72,8 @@ setMethod(f = "initialize",
               .Object@giotto_instruction = list()
               .Object@filtered_genes = character()
               .Object@diff_expr_genes = list()
+              .Object@GO_enrichment = list()
+              .Object@GO_cluster = list()
               .Object@symbol_genes = list()
 
             }
@@ -198,7 +205,10 @@ setMethod(f = "conduct_GO_enrichment",
             go_enrichment <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_ls,
                                                                   filtered_genes = ich_mouse@filtered_genes)
 
+            GO_cluster <- ICHMousewch:::.adjust_iteration_cluster_results(GO_results = go_enrichment)
+
             ich_mouse@GO_enrichment[gene_set_name] <- list(go_enrichment)
+            ich_mouse@GO_cluster[gene_set_name] <- list(GO_cluster)
 
             return(ich_mouse)
 

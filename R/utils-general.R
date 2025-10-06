@@ -437,8 +437,42 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
 }
 
+#' construct GO similarity heatmap dataset
+#'
+#' @param GO_results the GO enrichment result
 
+.construct_GO_similarity_heatmap_dataset <- function(GO_results) {
 
+  on.exit(gc())
+
+  cluster_na <- names(GO_results)
+  bind_GO_results <- rbindlist(GO_results)
+
+  bind_sim_mat <- GO_similarity(go_id = bind_GO_results[,ID],
+                                ont = "BP",
+                                db = "org.Mm.eg.db",
+                                measure = "Sim_Resnik_1999")
+
+  GO_id_ls <- character()
+  for (i in 1:length(cluster_na)) {
+
+    sim_mat <- GO_similarity(go_id = GO_results[[cluster_na[i]]][,ID],
+                             ont = "BP",
+                             db = "org.Mm.eg.db",
+                             measure = "Sim_Resnik_1999")
+
+    GO_id_ls <- c(GO_id_ls,colnames(sim_mat))
+
+  }
+
+  GO_id_order <- match(GO_id_ls,colnames(bind_sim_mat))
+
+  bind_sim_mat <- bind_sim_mat[GO_id_order,]
+  bind_sim_mat <- bind_sim_mat[,GO_id_order]
+
+  return()
+
+}
 
 
 

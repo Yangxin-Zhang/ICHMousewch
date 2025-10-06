@@ -298,3 +298,55 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
          device = "png")
 
 }
+
+#' plotting GO term similarity heatmap
+#'
+#' @param ich_mouse the ICH_Mouse class
+
+.plotting_GO_term_similarity_heatmap <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  GO_results <- rbindlist(ich_mouse@GO_cluster$`edge-normal`)
+
+  sim_mat <- GO_similarity(go_id = GO_results[,ID],
+                           ont = "BP",
+                           db = "org.Mm.eg.db",
+                           measure = "Sim_Resnik_1999")
+
+  GO_id <- colnames(sim_mat)
+  GO_id_x <- rep(colnames(sim_mat),each = ncol(sim_mat))
+  GO_id_y <- rep(rownames(sim_mat),times = nrow(sim_mat))
+
+  sim_dt <- data.table(similarity = numeric(ncol(sim_mat)*nrow(sim_mat)),
+                       GO_id_x = GO_id_x,
+                       GO_id_y = GO_id_y)
+
+  sim_data <- c()
+  for(i in 1:length(GO_id)) {
+
+    sim_data <- c(sim_data,sim_mat[,GO_id[i]])
+
+  }
+
+  sim_dt[,similarity := sim_data]
+  sim_dt[similarity < 0.2,similarity := 0]
+  sim_dt[similarity > 0.8,similarity := 1]
+
+  sim_dt <- as.data.frame(sim_dt) %>%
+    mutate(GO_id_x = factor(GO_id_x,levels = colnames(sim_mat)),
+           GO_id_y = factor(GO_id_y,levels = rownames(sim_mat)))
+
+  sim_heatmap <- ggplot(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
+                         values = c(0,0.75,1),
+                         limits = c(0,1)) +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank())
+
+  heatmap_ls <- list("GO_heatmap" = sim_heatmap)
+
+  return(heatmap_ls)
+
+}

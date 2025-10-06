@@ -38,6 +38,8 @@
 #' @importFrom ggplot2 labs
 #' @importFrom ggplot2 guides
 #' @importFrom ggplot2 guide_legend
+#' @importFrom ggplot2 geom_tile
+#' @importFrom ggplot2 scale_fill_gradientn
 #' @importFrom ggplotify as.ggplot
 #' @importFrom patchwork patchworkGrob
 #' @importFrom patchwork wrap_plots
@@ -70,5 +72,6 @@
 #' @importFrom openxlsx writeData
 #' @importFrom openxlsx saveWorkbook
 #' @importFrom viridis plasma
+#' @importFrom utils combn
 
 NULL

@@ -7,12 +7,14 @@
 #' @slot spatial_single_gene_image the spatial single gene image
 #' @slot violin_plot the violin plot
 #' @slot volcano_plot the volcano plot
+#' @slot heatmap the heatmap
 
 setClass(Class = "Plotting_Dataset",
          slots = c(spatial_image = "list",
                    spatial_single_gene_image = "list",
                    violin_plot = "list",
-                   volcano_plot = "list"))
+                   volcano_plot = "list",
+                   heatmap = "list"))
 
 #' initialize Plotting_Dataset
 #'
@@ -26,14 +28,14 @@ setMethod(f = "initialize",
 
             if (initialization) {
 
-              # .Object@GO_enrichment_dataset <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = ich_mouse@diff_expr_genes[["edge-normal"]][avg_log2FC > 1,gene_name],
-              #                                                                       filtered_genes = ich_mouse@filtered_genes)
-
             # create spatial image
               .Object@spatial_image <- ICHMousewch:::.plotting_spatial_image(ich_mouse = ich_mouse)
 
             # create volcano plot
               .Object@volcano_plot <- ICHMousewch:::.plotting_volcano_plot(ich_mouse = ich_mouse)
+
+            # create heatmap
+              .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ich_mouse)
 
             } else {
 
