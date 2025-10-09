@@ -19,5 +19,7 @@ the class for Plotting
 \item{\code{volcano_plot}}{the volcano plot}
 
 \item{\code{heatmap}}{the heatmap}
+
+\item{\code{bubble_chart}}{the bubble chart}
 }}
 
