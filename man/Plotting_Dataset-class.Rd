@@ -21,5 +21,7 @@ the class for Plotting
 \item{\code{heatmap}}{the heatmap}
 
 \item{\code{bubble_chart}}{the bubble chart}
+
+\item{\code{barchart}}{the bar chart}
 }}
 

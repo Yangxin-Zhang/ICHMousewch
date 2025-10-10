@@ -9,6 +9,7 @@
 #' @slot volcano_plot the volcano plot
 #' @slot heatmap the heatmap
 #' @slot bubble_chart the bubble chart
+#' @slot barchart the bar chart
 
 setClass(Class = "Plotting_Dataset",
          slots = c(spatial_image = "list",
@@ -16,7 +17,8 @@ setClass(Class = "Plotting_Dataset",
                    violin_plot = "list",
                    volcano_plot = "list",
                    heatmap = "list",
-                   bubble_chart = "list"))
+                   bubble_chart = "list",
+                   barchart = "list"))
 
 #' initialize Plotting_Dataset
 #'
@@ -39,6 +41,9 @@ setMethod(f = "initialize",
             # create heatmap
               .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ich_mouse)
 
+            # create barchart
+              .Object@barchart <- ICHMousewch:::.plotting_GMM_barchart(ich_mouse = ich_mouse)
+
             } else {
 
               .Object@spatial_image <- list()
@@ -47,6 +52,7 @@ setMethod(f = "initialize",
               .Object@volcano_plot <- list()
               .Object@heatmap <- list()
               .Object@bubble_chart <- list()
+              .Object@barchart <- list()
 
             }
 

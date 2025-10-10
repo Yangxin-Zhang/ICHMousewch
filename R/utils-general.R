@@ -418,19 +418,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     scale_color_manual(values = c("No" = "#999999", "Up" = "#E41A1C")) +
     geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black") +
     geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
-    theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
-          axis.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
-          axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
-          axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
-          legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
-          legend.title = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10)),
-          legend.background = element_rect(fill = "white", color = NA),
-          legend.key = element_rect(fill = "white", color = NA),
-          legend.position = "right",
-          panel.background = element_rect(fill = "white", color = "black"),
-          plot.background = element_rect(fill = "white", color = NA),
-          panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
-          panel.grid.minor = element_blank()) +
+    ICHMousewch:::.plotting_theme() +
     guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
                                 override.aes = list(size = 3,alpha = 1)))
 
@@ -466,8 +454,165 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
 }
 
+#' plotting GMM barchart
+#'
+#' @slot ich_mouse the class of ICH_Mouse
+
+.plotting_GMM_barchart <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  seu_metadata <- ich_mouse@seu_metadata_with_cluster_symbol
+  seu_metadata_normal <- ich_mouse@seu_metadata_with_cluster_symbol[hematoma_symbol == 1]
+  seu_metadata_hematoma <- ich_mouse@seu_metadata_with_cluster_symbol[hematoma_symbol == 2]
+
+  barchart_ori <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata,
+                                                                  plotting_title = "nCount-nFeature-Origin")
+
+  barchart_normal <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_normal,
+                                                                     plotting_title = "nCount-nFeature-Normal")
+  barchart_hematoma <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_hematoma,
+                                                                       plotting_title = "nCount-nFeature-Hematoma")
+
+  barchart <- list("barchart_ori" = barchart_ori,
+                   "barchart_normal" = barchart_normal,
+                   "barchart_hematoma" = barchart_hematoma)
+
+  return(barchart)
+
+}
+
+#' choose bins for histogram
+#'
+#' @param his_dataset histogram dataset
+
+.choose_bins_for_histogram <- function(his_dataset,reso = 0.05,bins = 0) {
+
+  on.exit(gc())
+
+  his_dataset <- data.table(his_data = his_dataset)
+
+  if (bins == 0) {
+
+    bins <- (length(unique(his_dataset[,his_data]))*reso) %>%
+      round()
+
+  }
+
+  count_da <- ggplot_build(ggplot(his_dataset,mapping = aes(x=his_data)) +
+                             geom_histogram(bins = bins))
+  count_da <- count_da$data[[1]] %>%
+    as.data.table()
+
+  count_max <- max(count_da[,y])
+
+  high <- count_max %>%
+    as.character() %>%
+    strsplit(split = "")
+  high <- high[[1]]
+
+  high_two <- as.integer(high[2])
+
+  if (length(high) < 3) {
+    if (length(high) == 1) {
+
+      high = 10
+
+    } else {
+
+      high_one <- (as.integer(high[1]) + 1) %>%
+        as.character()
+      high[1] <- high_one
+      high[2:length(high)] <- rep("0",times = (length(high)-1))
+
+    }
+
+  } else {
+
+    if (high_two == 9) {
+
+      high_one <- (as.integer(high[1]) + 1) %>%
+        as.character()
+      high[1] <- high_one
+      high[2:length(high)] <- rep("0",times = (length(high)-1))
+
+      high <- paste(high,collapse = "") %>%
+        as.integer()
+
+    } else {
+
+      if (high_two == 5) {
+
+        high_two <- high_two + 2
+        high[2] <- high_two
+        high[3:length(high)] <- rep("0",times = (length(high)-2))
+
+        high <- paste(high,collapse = "") %>%
+          as.integer()
+
+      } else {
+
+        high_two <- high_two + 1
+        high[2] <- high_two
+        high[3:length(high)] <- rep("0",times = (length(high)-2))
+
+        high <- paste(high,collapse = "") %>%
+          as.integer()
+
+      }
 
 
 
+    }
+
+  }
+
+  y_tick <- high %>%
+    as.character() %>%
+    strsplit(split = "")
+
+  y_tick <- y_tick[[1]]
+
+  inter <- character(length(y_tick)-1)
+  inter[1] <- "5"
+  inter[2:length(inter)] <- "0"
+  inter <- paste(inter,collapse = "") %>%
+    as.integer()
+
+  y_tick <- seq(from = 0,to = high,by = inter)
+
+  if (y_tick[length(y_tick)] != high) {
+
+    y_tick <- c(y_tick,high)
+
+  }
+
+  setorder(count_da,x)
+  mo_avg <- stats::filter(count_da[,y],rep(1/3,3),sides = 2) %>%
+    as.numeric()
+  mo_avg[is.na(mo_avg)] <- 0
+  sel_y <- mo_avg  == 0
+  count_zero <- count_da[sel_y]
+  x_count_max <- count_da[y == count_max,x]
+
+  x_min <- max(count_zero[xmax < x_count_max,xmax]) %>%
+    floor()
+
+  x_max <- min(count_zero[xmin > x_count_max,xmin]) %>%
+    ceiling()
+
+  x_tick <- seq(from = x_min,to = x_max, length.out = 5)
+
+  x_width <- c(x_min,x_max)
+
+  results <- list("bins" = bins,
+                  "y_high" = c(0,high),
+                  "y_tick" = y_tick,
+                  "x_width" = c(x_min,x_max),
+                  "x_tick" = x_tick)
+
+  return(results)
+
+}
 
 

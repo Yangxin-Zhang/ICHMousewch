@@ -350,3 +350,65 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   return(heatmap_ls)
 
 }
+
+#' create ncount and nfeature histogram
+#'
+#' @param seu_metadata the Seurat Object metadata
+#' @param plotting_title the title of plotting
+
+.create_ncount_nfeature_histogram <- function(seu_metadata,plotting_title) {
+
+  on.exit(gc())
+
+  para_ncount <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nCount_log2])
+  barchart_ncount <- ggplot(data = seu_metadata,mapping = aes(x = nCount_log2)) +
+    geom_histogram(bins = para_ncount[["bins"]],
+                   linewidth = 0.9,
+                   fill = viridis::plasma(1),
+                   color = "white") +
+    scale_y_continuous(breaks = para_ncount[["y_tick"]]) +
+    scale_x_continuous(breaks = para_ncount[["x_tick"]]) +
+    coord_cartesian(xlim = para_ncount[["x_width"]],
+                    ylim = para_ncount[["y_high"]]) +
+    ICHMousewch:::.plotting_theme()
+
+  para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2])
+  barchart_nfeature <- ggplot(data = seu_metadata,mapping = aes(x = nFeature_log2))+
+    geom_histogram(bins = para_nfeature[["bins"]],
+                   linewidth = 0.9,
+                   fill = viridis::plasma(1),
+                   color = "white") +
+    scale_y_continuous(breaks = para_nfeature[["y_tick"]]) +
+    scale_x_continuous(breaks = para_nfeature[["x_tick"]]) +
+    coord_cartesian(xlim = para_nfeature[["x_width"]],
+                    ylim = para_nfeature[["y_high"]]) +
+    ICHMousewch:::.plotting_theme()
+
+  barchart <- barchart_ncount + barchart_nfeature +
+    plot_layout(ncol = 2) +
+    plot_annotation(title = plotting_title,
+                    theme = ICHMousewch:::.plotting_theme())
+
+  return(patchworkGrob(barchart))
+
+}
+
+#' plotting theme
+
+.plotting_theme <- function() {
+
+  theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
+        axis.text = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
+        axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
+        axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
+        legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
+        legend.title = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10)),
+        legend.background = element_rect(fill = "white", color = NA),
+        legend.key = element_rect(fill = "white", color = NA),
+        legend.position = "right",
+        panel.background = element_rect(fill = "white", color = "black"),
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+        panel.grid.minor = element_blank())
+
+}

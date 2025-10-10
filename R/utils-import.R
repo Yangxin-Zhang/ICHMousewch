@@ -33,6 +33,7 @@
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 geom_hline
 #' @importFrom ggplot2 geom_vline
+#' @importFrom ggplot2 geom_histogram
 #' @importFrom ggplot2 coord_cartesian
 #' @importFrom ggplot2 scale_x_continuous
 #' @importFrom ggplot2 scale_y_continuous
@@ -44,9 +45,12 @@
 #' @importFrom ggplot2 scale_color_manual
 #' @importFrom ggplot2 theme
 #' @importFrom ggplot2 unit
+#' @importFrom ggplot2 ggplot_build
 #' @importFrom ggplotify as.ggplot
 #' @importFrom patchwork patchworkGrob
 #' @importFrom patchwork wrap_plots
+#' @importFrom patchwork plot_layout
+#' @importFrom patchwork plot_annotation
 #' @importFrom dplyr bind_rows
 #' @importFrom dplyr union
 #' @importFrom dplyr intersect
@@ -78,5 +82,6 @@
 #' @importFrom openxlsx saveWorkbook
 #' @importFrom viridis plasma
 #' @importFrom utils combn
+#' @importFrom stats filter
 
 NULL
