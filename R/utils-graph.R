@@ -42,6 +42,12 @@
 
     cluster_symbol <- plot_title
 
+    theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",size = 16,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10))))
+
+  } else {
+
+    theme_param <- c(theme_param,list(plot.title = element_blank()))
+
   }
 
   if (length(legend_lable) != 0) {
@@ -126,7 +132,7 @@
                               show_image = show_image,
                               axis_text = FALSE,
                               axis_title = FALSE,
-                              theme_param = c(theme_param,list(plot.margin = margin(t = 2.5, r = 0.5, b = 1.5, l = 0.5, "cm"),plot.background = element_rect(fill = "white", color = NA),plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 3,margin = margin(b = 10)),axis.ticks = element_blank())))
+                              theme_param = c(theme_param,list(plot.background = element_rect(fill = "white", color = NA),axis.ticks = element_blank())))
 
   return(spatial_image)
 
@@ -372,7 +378,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                     ylim = para_ncount[["y_high"]]) +
     ICHMousewch:::.plotting_theme()
 
-  para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2])
+  para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2],bins = para_ncount[["bins"]])
   barchart_nfeature <- ggplot(data = seu_metadata,mapping = aes(x = nFeature_log2))+
     geom_histogram(bins = para_nfeature[["bins"]],
                    linewidth = 0.9,
