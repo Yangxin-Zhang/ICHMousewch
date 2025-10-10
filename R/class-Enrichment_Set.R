@@ -3,30 +3,38 @@
 
 #' a class for storing enrichment result
 #'
+#' @slot GO_set the GO term set for analysis
 #' @slot GO_enrich the result of GO enrich
 #' @slot KEGG_enrich the result of KEGG enrich
+#' @slot gene_information the gene information
 
 setClass(Class = "Enrichment_Set",
-         slots = c(GO_enrich = "data.table",
-                   KEGG_enrich = "data.table"))
+         slots = c(GO_set = "list",
+                   KEGG_enrich = "list",
+                   GO_enrich = "list",
+                   gene_information = "data.table"))
 
 #' initialize Enrichment_Set
 #'
-#' @param gene_list_symbol the gene list to conduct enrichment analysis
 #' @param ich_mouse the ICH_Mouse class
 
 setMethod(f = "initialize",
           signature = signature(.Object = "Enrichment_Set"),
-          definition = function(.Object,gene_list_symbol,ich_mouse) {
+          definition = function(.Object,ich_mouse,initialization) {
 
-            gene_list <- ich_mouse@diff_expr_genes[[gene_list_symbol]]
-            gene_list <- gene_list[avg_log2FC > 1,gene_name]
+            if (initialization) {
 
-            .Object@GO_enrich <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_list,
-                                                                      filtered_genes = ich_mouse@filtered_genes)
+              .Object@GO_enrich <- ich_mouse@GO_enrichment
+              .Object@gene_information <- data.table()
 
-            .Object@KEGG_enrich <- ICHMousewch:::.conduct_KEGG_enrichment(gene_ls = gene_list,
-                                                                          filtered_genes = ich_mouse@filtered_genes)
+            } else {
+
+              .Object@GO_set <- list()
+              .Object@GO_enrich <- list()
+              .Object@KEGG_enrich <- list()
+              .Object@gene_information <- data.table()
+
+            }
 
             validObject(.Object)
             return(.Object)
@@ -35,21 +43,94 @@ setMethod(f = "initialize",
 
 #' constructor of Enrichment_Set
 #'
-#' @param gene_list_symbol the gene list to conduct enrichment analysis
 #' @param ich_mouse the ICH_Mouse class
 #' @export
 
-Create_Enrichment_Set <- function(gene_list_symbol,ich_mouse) {
+Create_Enrichment_Set <- function(ich_mouse,initialization = TRUE) {
 
   on.exit(gc())
 
   enrichment_set <- new(Class = "Enrichment_Set",
-                        gene_list_symbol = gene_list_symbol,
+                        initialization = initialization,
                         ich_mouse = ich_mouse)
 
 }
 
+####
+#' add GO term set
+#'
+#' @param enrichment_set the class of Enrichment_Set
+#' @param GO_term_set the set of GO ID
+#' @param GO_set_name the name of the GO set
+#' @param ich_mouse the class of ICH_Mouse
 
+setGeneric(name = "add_GO_term_set",
+           def = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse) {
+
+             standardGeneric("add_GO_term_set")
+
+           })
+
+#' add GO term set
+#'
+#' @param enrichment_set the class of Enrichment_Set
+#' @param GO_term_set the set of GO ID
+#' @param GO_set_name the name of the GO set
+#' @param ich_mouse the class of ICH_Mouse
+#' @export
+
+setMethod(f = "add_GO_term_set",
+          signature = signature(enrichment_set = "Enrichment_Set",GO_term_set = "character",GO_set_name = "character"),
+          definition = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse) {
+
+            on.exit(gc())
+
+            GO_results <- enrichment_set@GO_enrich[["edge-normal"]]
+
+            sub_GO_results <- GO_results[ID %in% GO_term_set]
+            sub_GO_results[,gene := vector("list",length = length(GO_term_set))]
+
+            gene_set <- character()
+            for (i in 1:length(GO_term_set)) {
+
+              genes <- sub_GO_results[ID %in% GO_term_set[i],geneID] %>%
+                strsplit(split = "/")
+
+              genes <- genes[[1]]
+
+              gene_set <- c(gene_set,genes)
+
+              sub_GO_results[ID %in% GO_term_set[i],gene := list(genes)]
+
+            }
+
+            enrichment_set@GO_set[GO_set_name] <- list(sub_GO_results)
+
+            gene_information <- data.table(gene_name = gene_set,
+                                           nbarcodes = integer(length = length(gene_set)),
+                                           avg_expr = numeric(length = length(gene_set)))
+
+            sub_count_mat <- ich_mouse@raw_count_matrix[ich_mouse@filtered_genes,ich_mouse@filtered_barcodes]
+
+            gene_information[,nbarcodes := Matrix::rowSums(sub_count_mat[gene_set,] != 0)]
+
+            au_seu_obj <- CreateSeuratObject(counts = sub_count_mat) %>%
+              NormalizeData(normalization.method = "LogNormalize",
+                            scale.factor = 1e6)
+
+            cpm_count_mat <- au_seu_obj@assays$RNA$data[gene_set,]
+
+            avg_cpm_expr <- Matrix::rowMeans(cpm_count_mat[gene_set,])
+
+            gene_information[,avg_expr := avg_cpm_expr]
+
+            enrichment_set@gene_information <- gene_information
+
+            return(enrichment_set)
+
+          })
+
+####
 
 
 

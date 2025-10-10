@@ -148,7 +148,8 @@ setMethod(f = "find_differential_expression_genes",
               diff_expr_gene <- ICHMousewch:::.find_differential_expression_genes(raw_count_matrix = ich_mouse@raw_count_matrix,
                                                                                   seu_metadata_with_cluster_symbol = ich_mouse@seu_metadata_with_cluster_symbol,
                                                                                   filtered_genes = ich_mouse@filtered_genes,
-                                                                                  cluster_symbol = cluster_symbol)
+                                                                                  cluster_symbol = cluster_symbol,
+                                                                                  filtered_barcodes = ich_mouse@filtered_barcodes)
 
               annotation_dt_cell_type <- ICHMousewch:::.annotate_the_cell_type_based_on_single_gene(ich_mouse = ich_mouse,
                                                                                                     gene_ls = diff_expr_gene[,gene_name],
@@ -205,10 +206,10 @@ setMethod(f = "conduct_GO_enrichment",
             go_enrichment <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_ls,
                                                                   filtered_genes = ich_mouse@filtered_genes)
 
-            GO_cluster <- ICHMousewch:::.adjust_iteration_cluster_results(GO_results = go_enrichment)
+            # GO_cluster <- ICHMousewch:::.adjust_iteration_cluster_results(GO_results = go_enrichment)
 
             ich_mouse@GO_enrichment[gene_set_name] <- list(go_enrichment)
-            ich_mouse@GO_cluster[gene_set_name] <- list(GO_cluster)
+            # ich_mouse@GO_cluster[gene_set_name] <- list(GO_cluster)
 
             return(ich_mouse)
 

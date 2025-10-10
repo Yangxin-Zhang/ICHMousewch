@@ -8,6 +8,7 @@
   raw_count_matrix,
   seu_metadata_with_cluster_symbol,
   filtered_genes,
+  filtered_barcodes,
   cluster_symbol
 )
 }
@@ -17,6 +18,8 @@
 \item{seu_metadata_with_cluster_symbol}{the Seurat Object metadata with cluster symbol}
 
 \item{filtered_genes}{the gene that been filtered}
+
+\item{filtered_barcodes}{the filtered barcodes}
 
 \item{cluster_symbol}{the symbol of cluster}
 }

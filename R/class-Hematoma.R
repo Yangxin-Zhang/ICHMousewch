@@ -14,6 +14,7 @@
 #' @slot identification_symbols the symbols identified by user as the the symbol of hematoma
 #' @slot giotto_instruction the instruction of Giotto Object
 #' @slot filtered_genes the genes that been filtered
+#' @slot filtered_barcodes the filtered barcodes
 
 setClass(
   Class = "Hematoma",
@@ -28,7 +29,8 @@ setClass(
     spatial_image = "list",
     identification_symbols = "list",
     giotto_instruction = "list",
-    filtered_genes = "character")
+    filtered_genes = "character",
+    filtered_barcodes = "character")
 )
 
 #' Initialize class Hematoma
@@ -75,9 +77,12 @@ setMethod(f = "initialize",
               .Object@original_seu_metadata <- ICHMousewch:::.generate_original_seu_metadata(raw_count_matrix = .Object@raw_count_matrix,
                                                                                              tissue_position_matrix = .Object@tissue_position_matrix)
 
-              # filter genes
+              # filter genes/barcodes
               .Object@filtered_genes <- ICHMousewch:::.find_filtered_genes(raw_count_matrix = .Object@raw_count_matrix,
                                                                            original_seu_metadata = .Object@original_seu_metadata)
+
+              .Object@filtered_barcodes <- ICHMousewch:::.find_filtered_barcodes(raw_count_matrix = .Object@raw_count_matrix,
+                                                                                 original_seu_metadata = .Object@original_seu_metadata)
 
               # generate Seurat Object with cluster symbol
               .Object@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_cluster_symbol(original_seu_metadata = .Object@original_seu_metadata,
@@ -113,6 +118,7 @@ setMethod(f = "initialize",
               .Object@identification_symbols = list()
               .Object@giotto_instruction = list()
               .Object@filtered_genes = character()
+              .Object@filtered_barcodes = character()
 
             }
 

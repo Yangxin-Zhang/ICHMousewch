@@ -31,11 +31,14 @@
 #' @param raw_count_matrix the matrix of raw count dataset
 #' @param seu_metadata_with_cluster_symbol the Seurat Object metadata with cluster symbol
 #' @param filtered_genes the gene that been filtered
+#' @param filtered_barcodes the filtered barcodes
 #' @param cluster_symbol the symbol of cluster
 
-.find_differential_expression_genes <- function(raw_count_matrix,seu_metadata_with_cluster_symbol,filtered_genes,cluster_symbol) {
+.find_differential_expression_genes <- function(raw_count_matrix,seu_metadata_with_cluster_symbol,filtered_genes,filtered_barcodes,cluster_symbol) {
 
   on.exit(gc())
+
+  seu_metadata_with_cluster_symbol <- seu_metadata_with_cluster_symbol[barcode %in% filtered_barcodes]
 
   seu_obj <- CreateSeuratObject(raw_count_matrix[filtered_genes,seu_metadata_with_cluster_symbol[,barcode]]) %>%
     NormalizeData(scale.factor = 1000000)

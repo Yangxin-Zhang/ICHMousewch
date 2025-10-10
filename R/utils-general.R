@@ -52,6 +52,34 @@
 
 }
 
+#' find filtered barcodes
+#'
+#' @param raw_count_matrix the matrix of raw count dataset
+#' @param original_seu_metadata the original Seurat Object metadata
+
+.find_filtered_barcodes <- function(raw_count_matrix,original_seu_metadata) {
+
+  on.exit(gc())
+
+  up_nCount <- quantile(original_seu_metadata[tissue == 1,nCount_RNA],probs = 0.99)
+  down_nCount <- 0
+  up_nFeature <- quantile(original_seu_metadata[tissue == 1,nFeature_RNA],probs = 0.99)
+  down_nFeature <- 0
+  up_per.mt <- quantile(original_seu_metadata[tissue == 1,percent.mt],probs = 0.99,na.rm = TRUE)
+  down_per.mt <- 0
+
+  filtered_barcodes <- original_seu_metadata[tissue == 1 &
+                                               nCount_RNA > down_nCount &
+                                               nCount_RNA <= up_nCount &
+                                               nFeature_RNA > down_nFeature &
+                                               nFeature_RNA <= up_nFeature &
+                                               percent.mt >= down_per.mt &
+                                               percent.mt <= up_per.mt,barcode]
+
+  return(filtered_barcodes)
+
+}
+
 #' find filtered genes
 #'
 #' @param raw_count_matrix the matrix of raw count dataset
@@ -61,7 +89,10 @@
 
   on.exit(gc())
 
-  filtered_count_matrix <- raw_count_matrix[,original_seu_metadata[tissue == 1,barcode]]
+  filtered_barcodes <- ICHMousewch:::.find_filtered_barcodes(raw_count_matrix = raw_count_matrix,
+                                                             original_seu_metadata = original_seu_metadata)
+
+  filtered_count_matrix <- raw_count_matrix[,filtered_barcodes]
 
   num_gene <- rownames(filtered_count_matrix) %>%
     length()

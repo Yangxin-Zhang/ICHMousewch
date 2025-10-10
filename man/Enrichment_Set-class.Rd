@@ -10,8 +10,12 @@ a class for storing enrichment result
 \section{Slots}{
 
 \describe{
+\item{\code{GO_set}}{the GO term set for analysis}
+
 \item{\code{GO_enrich}}{the result of GO enrich}
 
 \item{\code{KEGG_enrich}}{the result of KEGG enrich}
+
+\item{\code{gene_information}}{the gene information}
 }}
 

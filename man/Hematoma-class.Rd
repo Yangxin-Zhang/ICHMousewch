@@ -31,5 +31,7 @@ Hematoma: A class for identify the hematoma from spatial trascriptome dataset
 \item{\code{giotto_instruction}}{the instruction of Giotto Object}
 
 \item{\code{filtered_genes}}{the genes that been filtered}
+
+\item{\code{filtered_barcodes}}{the filtered barcodes}
 }}
 
