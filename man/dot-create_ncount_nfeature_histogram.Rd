@@ -4,7 +4,7 @@
 \alias{.create_ncount_nfeature_histogram}
 \title{create ncount and nfeature histogram}
 \usage{
-.create_ncount_nfeature_histogram(seu_metadata, plotting_title)
+.create_ncount_nfeature_histogram(seu_metadata, plotting_title, reso = 0.05)
 }
 \arguments{
 \item{seu_metadata}{the Seurat Object metadata}

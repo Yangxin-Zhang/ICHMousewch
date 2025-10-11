@@ -39,10 +39,13 @@ setMethod(f = "initialize",
               .Object@volcano_plot <- ICHMousewch:::.plotting_volcano_plot(ich_mouse = ich_mouse)
 
             # create heatmap
-              .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ich_mouse)
+              # .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ich_mouse)
 
             # create barchart
               .Object@barchart <- ICHMousewch:::.plotting_GMM_barchart(ich_mouse = ich_mouse)
+
+            # create violin plot
+              .Object@violin_plot <- ICHMousewch:::.plotting_violin_plot(ich_mouse =ich_mouse)
 
             } else {
 

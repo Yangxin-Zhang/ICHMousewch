@@ -362,11 +362,11 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param seu_metadata the Seurat Object metadata
 #' @param plotting_title the title of plotting
 
-.create_ncount_nfeature_histogram <- function(seu_metadata,plotting_title) {
+.create_ncount_nfeature_histogram <- function(seu_metadata,plotting_title,reso = 0.05) {
 
   on.exit(gc())
 
-  para_ncount <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nCount_log2])
+  para_ncount <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nCount_log2],reso = reso)
   barchart_ncount <- ggplot(data = seu_metadata,mapping = aes(x = nCount_log2)) +
     geom_histogram(bins = para_ncount[["bins"]],
                    linewidth = 0.9,
@@ -378,7 +378,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                     ylim = para_ncount[["y_high"]]) +
     ICHMousewch:::.plotting_theme()
 
-  para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2],bins = para_ncount[["bins"]])
+  para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2],bins = para_ncount[["bins"]],reso = reso)
   barchart_nfeature <- ggplot(data = seu_metadata,mapping = aes(x = nFeature_log2))+
     geom_histogram(bins = para_nfeature[["bins"]],
                    linewidth = 0.9,
@@ -404,7 +404,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 .plotting_theme <- function() {
 
   theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
-        axis.text = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
+        axis.text.x = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
+        axis.text.y = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
         axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
         axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
         legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
@@ -418,3 +419,106 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
         panel.grid.minor = element_blank())
 
 }
+
+#' create violin plot of quality control
+#'
+#' @param seu_metadata the Seurat Object metadata
+#' @param filtered_barcodes the filtered barcodes
+#' @param plotting_var the variable for plotting
+
+.create_violin_plot_of_quality_control <- function(seu_metadata,filtered_barcodes,plotting_var) {
+
+  on.exit(gc())
+
+  unfiltered_seu_metadata <- seu_metadata[tissue == 1]
+  filtered_seu_metadata <- seu_metadata[barcode %in% filtered_barcodes & tissue == 1]
+
+  unfiltered_violin_da <- unfiltered_seu_metadata[,..plotting_var]
+  unfiltered_seu_metadata[,violin_var := unfiltered_violin_da]
+
+  filtered_violin_da <- filtered_seu_metadata[,..plotting_var]
+  filtered_seu_metadata[,violin_var := filtered_violin_da]
+
+  unfiltered_violin <- ggplot(data = unfiltered_seu_metadata,mapping = aes(x = orig.ident, y = violin_var)) +
+    geom_jitter(alpha = 0.3,size = 0.5,color = "#35B779",width = 0.5) +
+    geom_violin(alpha = 0,width = 1) +
+    scale_x_discrete(expand = expansion(0)) +
+    scale_y_continuous(expand = expansion(0)) +
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.text.x = element_blank())
+
+  filtered_violin <- ggplot(data = filtered_seu_metadata,mapping = aes(x = orig.ident, y = violin_var)) +
+    geom_jitter(alpha = 0.3,size = 0.5,color = "#35B779",width = 0.5) +
+    geom_violin(alpha = 0,width = 1) +
+    scale_x_discrete(expand = expansion(0)) +
+    scale_y_continuous(expand = expansion(0)) +
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.text.x = element_blank())
+
+  co_violin <- unfiltered_violin + filtered_violin +
+    plot_layout(ncol = 2) +
+    plot_annotation(title = plotting_var,
+                    theme = ICHMousewch:::.plotting_theme())
+
+  return(patchworkGrob(co_violin))
+
+}
+
+#' generate bubble dataset
+#'
+#' @param gene_info the gene information
+#' @param GO_info the GO term information
+
+.generate_bubble_dataset <- function(gene_info,GO_info,gene_num) {
+
+  on.exit(gc())
+
+  GO_results <- rbindlist(GO_info)
+
+  gene_ls <- gene_info[c(1:10),gene_name]
+
+  diff_da <- gene_info[gene_name %in% gene_ls]
+
+  diff_order <- match(gene_ls,diff_da[,gene_name])
+
+  diff_da <- diff_da[diff_order,avg_log2FC]
+
+  GO_num <- 0
+  GO_id <- character()
+  for (i in 1:length(GO_info)) {
+
+    GO_num <- GO_num + nrow(GO_info[[i]])
+
+    GO_id <- c(GO_id,GO_info[[i]][,ID])
+
+  }
+
+  posi_y_da <- data.table(GO_ID = GO_id,
+                          GO_group = character(GO_num),
+                          bubble_y = integer(GO_num),
+                          y_symbol = rep("posi_y",times = GO_num),
+                          avg_log2FC = rep(NA,times = GO_num),
+                          gene_name = rep(NA,times = GO_num))
+  negt_y_da <- data.table(GO_ID = rep(GO_id,times = gene_num),
+                          GO_group = character(GO_num*gene_num),
+                          bubble_y = rep(seq(from = -5, to = -max(GO_results[,Count]), length.out = gene_num),each = GO_num),
+                          y_symbol = rep("negt_y",times = GO_num),
+                          avg_log2FC = rep(diff_da,each = GO_num),
+                          gene_name = rep(gene_ls,each = GO_num))
+
+  GO_order <- match(GO_id,GO_results[,ID])
+
+  posi_y_da[,bubble_y := GO_results[GO_order,Count]]
+
+  bubble_dataset <- rbindlist(list(posi_y_da,negt_y_da))
+
+  return(bubble_dataset)
+
+}
+

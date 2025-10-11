@@ -4,7 +4,13 @@
 \alias{add_GO_term_set}
 \title{add GO term set}
 \usage{
-add_GO_term_set(enrichment_set, GO_term_set, GO_set_name, ich_mouse)
+add_GO_term_set(
+  enrichment_set,
+  GO_term_set,
+  GO_set_name,
+  ich_mouse,
+  diff_symbol = "edge-normal"
+)
 }
 \arguments{
 \item{enrichment_set}{the class of Enrichment_Set}

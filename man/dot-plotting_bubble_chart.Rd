@@ -4,12 +4,10 @@
 \alias{.plotting_bubble_chart}
 \title{plotting bubble chart}
 \usage{
-.plotting_bubble_chart(ich_mouse, GO_ID_ls)
+.plotting_bubble_chart(ich_mouse, gene_num = 10)
 }
 \arguments{
 \item{ich_mouse}{the ICH_Mouse class}
-
-\item{GO_ID_ls}{a list of GO ID for plotting}
 }
 \description{
 plotting bubble chart

@@ -4,7 +4,13 @@
 \alias{add_GO_term_set,Enrichment_Set,character,character-method}
 \title{add GO term set}
 \usage{
-\S4method{add_GO_term_set}{Enrichment_Set,character,character}(enrichment_set, GO_term_set, GO_set_name, ich_mouse)
+\S4method{add_GO_term_set}{Enrichment_Set,character,character}(
+  enrichment_set,
+  GO_term_set,
+  GO_set_name,
+  ich_mouse,
+  diff_symbol = "edge-normal"
+)
 }
 \arguments{
 \item{enrichment_set}{the class of Enrichment_Set}

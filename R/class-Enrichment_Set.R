@@ -65,7 +65,7 @@ Create_Enrichment_Set <- function(ich_mouse,initialization = TRUE) {
 #' @param ich_mouse the class of ICH_Mouse
 
 setGeneric(name = "add_GO_term_set",
-           def = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse) {
+           def = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse,diff_symbol = "edge-normal") {
 
              standardGeneric("add_GO_term_set")
 
@@ -81,11 +81,11 @@ setGeneric(name = "add_GO_term_set",
 
 setMethod(f = "add_GO_term_set",
           signature = signature(enrichment_set = "Enrichment_Set",GO_term_set = "character",GO_set_name = "character"),
-          definition = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse) {
+          definition = function(enrichment_set,GO_term_set,GO_set_name,ich_mouse,diff_symbol) {
 
             on.exit(gc())
 
-            GO_results <- enrichment_set@GO_enrich[["edge-normal"]]
+            GO_results <- enrichment_set@GO_enrich[[diff_symbol]]
 
             sub_GO_results <- GO_results[ID %in% GO_term_set]
             sub_GO_results[,gene := vector("list",length = length(GO_term_set))]
@@ -108,11 +108,16 @@ setMethod(f = "add_GO_term_set",
 
             gene_information <- data.table(gene_name = gene_set,
                                            nbarcodes = integer(length = length(gene_set)),
-                                           avg_expr = numeric(length = length(gene_set)))
+                                           avg_expr = numeric(length = length(gene_set)),
+                                           avg_log2FC = numeric(length = length(gene_set)))
 
             sub_count_mat <- ich_mouse@raw_count_matrix[ich_mouse@filtered_genes,ich_mouse@filtered_barcodes]
 
-            gene_information[,nbarcodes := Matrix::rowSums(sub_count_mat[gene_set,] != 0)]
+            sub_count_mat_gene_set <- sub_count_mat[gene_set,]
+
+            sub_count_mat_order <- match(gene_set,rownames(sub_count_mat_gene_set))
+
+            gene_information[,nbarcodes := Matrix::rowSums(sub_count_mat_gene_set[sub_count_mat_order,] != 0)]
 
             au_seu_obj <- CreateSeuratObject(counts = sub_count_mat) %>%
               NormalizeData(normalization.method = "LogNormalize",
@@ -120,9 +125,17 @@ setMethod(f = "add_GO_term_set",
 
             cpm_count_mat <- au_seu_obj@assays$RNA$data[gene_set,]
 
-            avg_cpm_expr <- Matrix::rowMeans(cpm_count_mat[gene_set,])
+            cpm_count_mat_order <- match(gene_set,rownames(cpm_count_mat))
+
+            avg_cpm_expr <- Matrix::rowMeans(cpm_count_mat[cpm_count_mat_order,])
 
             gene_information[,avg_expr := avg_cpm_expr]
+
+            diff_expr <- ich_mouse@diff_expr_genes[[diff_symbol]][gene_name %in% gene_set]
+
+            diff_order <- match(gene_set,diff_expr[,gene_name])
+
+            gene_information[,avg_log2FC := diff_expr[diff_order,avg_log2FC]]
 
             enrichment_set@gene_information <- gene_information
 

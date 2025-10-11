@@ -465,25 +465,54 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 #' plotting bubble chart
 #'
 #' @param ich_mouse the ICH_Mouse class
-#' @param GO_ID_ls a list of GO ID for plotting
 
-.plotting_bubble_chart <- function(ich_mouse,GO_ID_ls) {
+.plotting_bubble_chart <- function(ich_mouse,gene_num = 10) {
 
   on.exit(gc())
 
-  GO_results <- ich_mouse@GO_enrichment$`edge-normal`
-  sub_GO_results <- GO_results[ID %in% GO_ID_ls,]
+  enri_set <- ICHMousewch::Create_Enrichment_Set(ich_mouse = ich_mouse)
+  enri_set <- ICHMousewch::add_GO_term_set(enrichment_set = enri_set,
+                                           GO_term_set = c("GO:0097707","GO:0043524","GO:0043068","GO:0043523"),
+                                           GO_set_name = "cell_death",
+                                           ich_mouse = ich_mouse)
 
-  gene_ls <- character()
-  for (i in 1:length(GO_ID_ls)) {
+  gene_info <- enri_set@gene_information
+  GO_info <- enri_set@GO_set
 
-    genes <- sub_GO_results[ID %in% GO_ID_ls[i],geneID]
-    genes <- strsplit(genes,split = "/")[[1]]
+  gene_ls <- gene_info[c(1:10),gene_name]
 
-    gene_ls <- c(gene_ls,genes)
+  plotting_dataset <- ICHMousewch:::.generate_bubble_dataset(gene_info = gene_info,
+                                                             GO_info = GO_info,
+                                                             gene_num = gene_num)
 
-  }
+  negt_y_tick <- plotting_dataset[y_symbol == "negt_y",bubble_y] %>%
+    unique()
+  names(negt_y_tick) <- gene_ls
 
+  max_count <- max(plotting_dataset[y_symbol == "posi_y",bubble_y])
+
+  tick_step <- strsplit(max_count)[[1]]
+
+  posi_y_tick <- seq(from = 0 ,to = max_count, by = 5)
+  names(posi_y_tick) <- as.character(posi_y_tick)
+
+  y_tick <- c(posi_y_tick,negt_y_tick)
+
+  bubble_chart <- ggplot() +
+    geom_point(data = plotting_dataset[y_symbol == "negt_y"],
+               mapping = aes(x = GO_ID, y = bubble_y),
+               size = plotting_dataset[y_symbol == "negt_y",avg_log2FC]*2,
+               color = "#BBDD78",
+               alpha = 0.3) +
+    geom_bar(data = plotting_dataset[y_symbol == "posi_y"],
+             mapping = aes(x = GO_ID, y = bubble_y),
+             stat = "identity",
+             width = 0.1) +
+    scale_y_continuous(breaks = y_tick,
+                       labels = names(y_tick)) +
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank())
   return()
 
 }
@@ -506,7 +535,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   barchart_normal <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_normal,
                                                                      plotting_title = "nCount-nFeature-Normal")
   barchart_hematoma <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_hematoma,
-                                                                       plotting_title = "nCount-nFeature-Hematoma")
+                                                                       plotting_title = "nCount-nFeature-Hematoma",
+                                                                       reso = 0.1)
 
   barchart <- list("barchart_ori" = barchart_ori,
                    "barchart_normal" = barchart_normal,
@@ -646,6 +676,32 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
                   "x_tick" = x_tick)
 
   return(results)
+
+}
+
+#' plotting violin plot
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+.plotting_violin_plot <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  ncount_violin <- ICHMousewch:::.create_violin_plot_of_quality_control(seu_metadata = ich_mouse@original_seu_metadata,
+                                                                        filtered_barcodes = ich_mouse@filtered_barcodes,
+                                                                        plotting_var = "nCount_RNA")
+  nfeature_violin <- ICHMousewch:::.create_violin_plot_of_quality_control(seu_metadata = ich_mouse@original_seu_metadata,
+                                                                          filtered_barcodes = ich_mouse@filtered_barcodes,
+                                                                          plotting_var = "nFeature_RNA")
+  percent.mt_violin <- ICHMousewch:::.create_violin_plot_of_quality_control(seu_metadata = ich_mouse@original_seu_metadata,
+                                                                        filtered_barcodes = ich_mouse@filtered_barcodes,
+                                                                        plotting_var = "percent.mt")
+
+  violin_ls <- list("ncount_violin" = ncount_violin,
+                    "nfeature_violin" = nfeature_violin,
+                    "percent.mt_violin" = percent.mt_violin)
+
+  return(violin_ls)
 
 }
 
