@@ -206,10 +206,10 @@ setMethod(f = "conduct_GO_enrichment",
             go_enrichment <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_ls,
                                                                   filtered_genes = ich_mouse@filtered_genes)
 
-            # GO_cluster <- ICHMousewch:::.adjust_iteration_cluster_results(GO_results = go_enrichment)
+            GO_cluster <- ICHMousewch:::.adjust_iteration_cluster_results(GO_results = go_enrichment)
 
             ich_mouse@GO_enrichment[gene_set_name] <- list(go_enrichment)
-            # ich_mouse@GO_cluster[gene_set_name] <- list(GO_cluster)
+            ich_mouse@GO_cluster[gene_set_name] <- list(GO_cluster)
 
             return(ich_mouse)
 

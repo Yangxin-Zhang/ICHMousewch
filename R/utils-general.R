@@ -465,55 +465,70 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 #' plotting bubble chart
 #'
 #' @param ich_mouse the ICH_Mouse class
+#' @param GO_term_set_ls the GO term set ls
 
-.plotting_bubble_chart <- function(ich_mouse,gene_num = 10) {
+.plotting_bubble_chart <- function(ich_mouse,GO_term_set_ls,gene_num = 10) {
 
   on.exit(gc())
 
   enri_set <- ICHMousewch::Create_Enrichment_Set(ich_mouse = ich_mouse)
   enri_set <- ICHMousewch::add_GO_term_set(enrichment_set = enri_set,
-                                           GO_term_set = c("GO:0097707","GO:0043524","GO:0043068","GO:0043523"),
-                                           GO_set_name = "cell_death",
+                                           GO_term_set_ls = GO_term_set_ls,
                                            ich_mouse = ich_mouse)
 
   gene_info <- enri_set@gene_information
   GO_info <- enri_set@GO_set
 
-  gene_ls <- gene_info[c(1:10),gene_name]
-
   plotting_dataset <- ICHMousewch:::.generate_bubble_dataset(gene_info = gene_info,
                                                              GO_info = GO_info,
                                                              gene_num = gene_num)
 
-  negt_y_tick <- plotting_dataset[y_symbol == "negt_y",bubble_y] %>%
+  posi_y_da <- plotting_dataset[y_symbol == "posi_y"] %>%
+    as.data.frame() %>%
+    mutate( GO_ID = factor(GO_ID,levels = unique(plotting_dataset[,GO_ID])),
+            GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])),
+            text_y = rep(0,times = length(plotting_dataset[y_symbol == "posi_y",gene_name])))
+
+  negt_y_da <- plotting_dataset[y_symbol == "negt_y"] %>%
+    as.data.frame() %>%
+    mutate(GO_ID = factor(GO_ID,levels = unique(plotting_dataset[,GO_ID])),
+           GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])))
+
+  y_tick <- ICHMousewch:::.generate_bubble_chart_y_tick(plotting_dataset = plotting_dataset)
+
+  bubble_color <- plotting_dataset[y_symbol == "negt_y",bubble_color] %>%
     unique()
-  names(negt_y_tick) <- gene_ls
+  names(bubble_color) <- bubble_color
 
-  max_count <- max(plotting_dataset[y_symbol == "posi_y",bubble_y])
-
-  tick_step <- strsplit(max_count)[[1]]
-
-  posi_y_tick <- seq(from = 0 ,to = max_count, by = 5)
-  names(posi_y_tick) <- as.character(posi_y_tick)
-
-  y_tick <- c(posi_y_tick,negt_y_tick)
-
-  bubble_chart <- ggplot() +
-    geom_point(data = plotting_dataset[y_symbol == "negt_y"],
-               mapping = aes(x = GO_ID, y = bubble_y),
-               size = plotting_dataset[y_symbol == "negt_y",avg_log2FC]*2,
-               color = "#BBDD78",
-               alpha = 0.3) +
-    geom_bar(data = plotting_dataset[y_symbol == "posi_y"],
-             mapping = aes(x = GO_ID, y = bubble_y),
+  bubble_chart <- ggplot(data = plotting_dataset) +
+    geom_point(data = negt_y_da,
+               mapping = aes(x = GO_ID, y = bubble_y,color = bubble_color),
+               size = negt_y_da$avg_log2FC,
+               alpha = 0.5) +
+    scale_color_manual(values = bubble_color) +
+    geom_bar(data = posi_y_da,
+             mapping = aes(x = GO_ID, y = bubble_y,fill = GO_group),
              stat = "identity",
-             width = 0.1) +
+             width = 0.5) +
+    geom_hline(yintercept = 0,
+               color = "#000000FF",
+               linewidth = 0.5) +
+    geom_text(data = posi_y_da,
+              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
+              vjust = 1.5,
+              size = 0,
+              size.unit = "pt",
+              family = "Arial") +
     scale_y_continuous(breaks = y_tick,
                        labels = names(y_tick)) +
     ICHMousewch:::.plotting_theme() +
     theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank())
-  return()
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.text.x = element_blank(),
+          legend.position = "none")
+
+  return(bubble_chart)
 
 }
 

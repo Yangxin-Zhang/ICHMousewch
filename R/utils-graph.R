@@ -348,8 +348,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
                          values = c(0,0.75,1),
                          limits = c(0,1)) +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank())
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "none")
 
   heatmap_ls <- list("GO_heatmap" = ggplotGrob(sim_heatmap))
 
@@ -479,9 +485,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   on.exit(gc())
 
+  for (i in 1:length(GO_info)) {
+
+    setorder(GO_info[[i]],-Count)
+
+  }
+
   GO_results <- rbindlist(GO_info)
 
-  gene_ls <- gene_info[c(1:10),gene_name]
+  setorder(gene_info,-GO_term_Count)
+  gene_ls <- gene_info[c(1:gene_num),gene_name]
 
   diff_da <- gene_info[gene_name %in% gene_ls]
 
@@ -489,36 +502,95 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   diff_da <- diff_da[diff_order,avg_log2FC]
 
-  GO_num <- 0
-  GO_id <- character()
-  for (i in 1:length(GO_info)) {
-
-    GO_num <- GO_num + nrow(GO_info[[i]])
-
-    GO_id <- c(GO_id,GO_info[[i]][,ID])
-
-  }
+  GO_id <- GO_results[,ID]
+  GO_num <- length(GO_id)
 
   posi_y_da <- data.table(GO_ID = GO_id,
                           GO_group = character(GO_num),
                           bubble_y = integer(GO_num),
                           y_symbol = rep("posi_y",times = GO_num),
                           avg_log2FC = rep(NA,times = GO_num),
-                          gene_name = rep(NA,times = GO_num))
+                          gene_name = rep(NA,times = GO_num),
+                          bubble_color = rep(NA,times = GO_num))
+  GO_order <- match(GO_id,GO_results[,ID])
+  posi_y_da[,bubble_y := GO_results[GO_order,Count]]
+
   negt_y_da <- data.table(GO_ID = rep(GO_id,times = gene_num),
                           GO_group = character(GO_num*gene_num),
                           bubble_y = rep(seq(from = -5, to = -max(GO_results[,Count]), length.out = gene_num),each = GO_num),
-                          y_symbol = rep("negt_y",times = GO_num),
+                          y_symbol = rep("negt_y",times = GO_num*gene_num),
                           avg_log2FC = rep(diff_da,each = GO_num),
-                          gene_name = rep(gene_ls,each = GO_num))
-
-  GO_order <- match(GO_id,GO_results[,ID])
-
-  posi_y_da[,bubble_y := GO_results[GO_order,Count]]
+                          gene_name = rep(gene_ls,each = GO_num),
+                          bubble_color = character(GO_num))
 
   bubble_dataset <- rbindlist(list(posi_y_da,negt_y_da))
 
+  group_na <- names(GO_info)
+
+  k <- 0
+  for (i in 1:length(group_na)) {
+
+    group_GO_id <- GO_info[[group_na[i]]][,ID]
+
+    for (j in 1:length(group_GO_id)) {
+
+      k <- k+1
+
+      gene_na_ls <- GO_info[[group_na[i]]][ID %in% group_GO_id[j],gene][[1]]
+
+      bubble_dataset[GO_ID %in% group_GO_id[j],GO_group := group_na[i]]
+
+      selected_gene_na <- bubble_dataset[!is.na(gene_name) & gene_name %in% gene_na_ls,gene_name]
+      unselected_gene_na <- bubble_dataset[!gene_name %in% selected_gene_na,gene_name]
+
+      bubble_dataset[GO_ID %in% group_GO_id[j] & !is.na(gene_name) & gene_name %in% selected_gene_na,bubble_color := viridis::plasma(length(GO_id))[k]]
+      bubble_dataset[GO_ID %in% group_GO_id[j] & !is.na(gene_name) & gene_name %in% unselected_gene_na,bubble_color := "#000000FF"]
+
+    }
+
+  }
+
   return(bubble_dataset)
+
+}
+
+#' generate bubble chart y tick
+#'
+#' @param plotting_dataset the plotting dataset
+
+.generate_bubble_chart_y_tick <- function(plotting_dataset) {
+
+  on.exit(gc())
+
+  gene_ls <- plotting_dataset[!is.na(gene_name),gene_name] %>%
+    unique()
+
+  negt_y_tick <- plotting_dataset[y_symbol == "negt_y",bubble_y] %>%
+    unique()
+  names(negt_y_tick) <- gene_ls
+
+  max_count <- max(plotting_dataset[y_symbol == "posi_y",bubble_y]) %>%
+    as.character()
+
+  max_count_dig <- strsplit(max_count,split = "")[[1]]
+
+  if (length(max_count_dig) >= 2) {
+
+    tick_step <- rep("0",times = length(max_count_dig)-1)
+
+    tick_step[1] <- "5"
+
+    tick_step <- paste(tick_step,collapse = "") %>%
+      as.numeric()
+
+  }
+
+  posi_y_tick <- seq(from = 0 ,to = max_count, by = tick_step)
+  names(posi_y_tick) <- as.character(posi_y_tick)
+
+  y_tick <- c(posi_y_tick,negt_y_tick)
+
+  return(y_tick)
 
 }
 

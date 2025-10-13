@@ -19,7 +19,7 @@
                          readable = TRUE,
                          ont = "ALL",
                          pvalueCutoff = 0.01) %>%
-    simplify(cutoff = 0.8,
+    simplify(cutoff = 0.9,
              measure = "Wang")
 
   GO_results <- as.data.table(GO_results@result)
@@ -39,85 +39,70 @@
 
   on.exit(gc())
 
-  similarity_matrix <- GO_similarity(go_id = GO_results[,ID],
-                                     ont = "BP",
-                                     db = "org.Mm.eg.db",
-                                     measure = "Sim_Resnik_1999")
+  if (nrow(GO_results) <= 3) {
 
-  simplify_result <- simplifyGO(mat = similarity_matrix,
-                                method = "dynamicTreeCut",
-                                draw_word_cloud = FALSE,
-                                plot = FALSE) %>%
-    as.data.table()
+    clustered_GO_results <- list(GO_results)
+    clustered_GO_results["unclustered"] <- list(NULL)
 
-  cluster_symbol <- unique(simplify_result[,cluster])
+  } else {
 
-  avg_similarity <- data.table(cluster = cluster_symbol,
-                               avg_similarity = numeric(length(cluster_symbol)),
-                               GO_num = numeric(length(cluster_symbol)),
-                               minimal_value = numeric(length(cluster_symbol)))
+    similarity_matrix <- GO_similarity(go_id = GO_results[,ID],
+                                       ont = "BP",
+                                       db = "org.Mm.eg.db",
+                                       measure = "Sim_Resnik_1999")
 
-  for (i in 1:length(cluster_symbol)) {
+    simplify_result <- simplifyGO(mat = similarity_matrix,
+                                  method = "dynamicTreeCut",
+                                  draw_word_cloud = FALSE,
+                                  plot = FALSE) %>%
+      as.data.table()
 
-    GO_id <- simplify_result[cluster == cluster_symbol[i],id]
-    sub_sim_mat <- similarity_matrix[GO_id,GO_id]
+    cluster_symbol <- unique(simplify_result[,cluster])
 
-    if (length(GO_id) != 1) {
+    avg_similarity <- data.table(cluster = cluster_symbol,
+                                 avg_similarity = numeric(length(cluster_symbol)),
+                                 GO_num = numeric(length(cluster_symbol)),
+                                 minimal_value = numeric(length(cluster_symbol)))
 
-      avg_similarity[cluster == cluster_symbol[i],avg_similarity := mean(rowMeans(sub_sim_mat))]
-      avg_similarity[cluster == cluster_symbol[i],GO_num := length(GO_id)]
-      avg_similarity[cluster == cluster_symbol[i],minimal_value := sum(sub_sim_mat < 0.2)/(length(GO_id)*length(GO_id))]
+    for (i in 1:length(cluster_symbol)) {
 
-    } else {
+      GO_id <- simplify_result[cluster == cluster_symbol[i],id]
+      sub_sim_mat <- similarity_matrix[GO_id,GO_id]
 
-      avg_similarity[cluster == cluster_symbol[i],avg_similarity := sub_sim_mat]
-      avg_similarity[cluster == cluster_symbol[i],GO_num := length(GO_id)]
-      avg_similarity[cluster == cluster_symbol[i],minimal_value := sum(sub_sim_mat < 0.2)]
+      if (length(GO_id) != 1) {
+
+        avg_similarity[cluster == cluster_symbol[i],avg_similarity := mean(rowMeans(sub_sim_mat))]
+        avg_similarity[cluster == cluster_symbol[i],GO_num := length(GO_id)]
+        avg_similarity[cluster == cluster_symbol[i],minimal_value := sum(sub_sim_mat < 0.2)/(length(GO_id)*length(GO_id))]
+
+      } else {
+
+        avg_similarity[cluster == cluster_symbol[i],avg_similarity := sub_sim_mat]
+        avg_similarity[cluster == cluster_symbol[i],GO_num := length(GO_id)]
+        avg_similarity[cluster == cluster_symbol[i],minimal_value := sum(sub_sim_mat < 0.2)]
+
+      }
 
     }
 
-  }
+    if (length(avg_similarity[,cluster]) != 1) {
 
-  if (length(avg_similarity[,cluster]) != 1) {
+      if (length(avg_similarity[GO_num == 1,cluster]) == 0) {
 
-    if (length(avg_similarity[GO_num == 1,cluster]) == 0) {
+        if (nrow(avg_similarity[minimal_value < 0.2]) != 0) {
 
-      if (nrow(avg_similarity[minimal_value < 0.2]) != 0) {
+          filtered_avg_similarity <- avg_similarity[minimal_value < 0.2]
+          max_sim <- max(filtered_avg_similarity[,avg_similarity])
+          filtered_cluster <- filtered_avg_similarity[avg_similarity == max_sim,cluster]
+          unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
 
-        filtered_avg_similarity <- avg_similarity[minimal_value < 0.2]
-        max_sim <- max(filtered_avg_similarity[,avg_similarity])
-        filtered_cluster <- filtered_avg_similarity[avg_similarity == max_sim,cluster]
-        unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
+        } else {
 
-      } else {
+          max_sim <- max(avg_similarity[,avg_similarity])
+          filtered_cluster <- avg_similarity[avg_similarity == max_sim,cluster]
+          unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
 
-        max_sim <- max(avg_similarity[,avg_similarity])
-        filtered_cluster <- avg_similarity[avg_similarity == max_sim,cluster]
-        unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
-
-      }
-
-      clustered_GO_results <- vector("list",length = length(filtered_cluster))
-      for (i in 1:length(filtered_cluster)) {
-
-        clustered_GO_results[i] <- list(GO_results[ID %in% simplify_result[cluster == filtered_cluster[i],id],])
-
-      }
-
-      clustered_GO_results["unclustered"] <- list(GO_results[ID %in% simplify_result[cluster %in% unfiltered_cluster,id],])
-
-    } else {
-
-      if (max(avg_similarity[,GO_num]) <= 3) {
-
-        clustered_GO_results <- list(GO_results)
-        clustered_GO_results["unclustered"] <- list(NULL)
-
-      } else {
-
-        max_sim <- max(avg_similarity[GO_num > 3,avg_similarity])
-        filtered_cluster <- avg_similarity[avg_similarity == max_sim,cluster]
-        unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
+        }
 
         clustered_GO_results <- vector("list",length = length(filtered_cluster))
         for (i in 1:length(filtered_cluster)) {
@@ -128,14 +113,38 @@
 
         clustered_GO_results["unclustered"] <- list(GO_results[ID %in% simplify_result[cluster %in% unfiltered_cluster,id],])
 
+      } else {
+
+        if (max(avg_similarity[,GO_num]) <= 3) {
+
+          clustered_GO_results <- list(GO_results)
+          clustered_GO_results["unclustered"] <- list(NULL)
+
+        } else {
+
+          max_sim <- max(avg_similarity[GO_num > 3,avg_similarity])
+          filtered_cluster <- avg_similarity[avg_similarity == max_sim,cluster]
+          unfiltered_cluster <- avg_similarity[!cluster %in% filtered_cluster,cluster]
+
+          clustered_GO_results <- vector("list",length = length(filtered_cluster))
+          for (i in 1:length(filtered_cluster)) {
+
+            clustered_GO_results[i] <- list(GO_results[ID %in% simplify_result[cluster == filtered_cluster[i],id],])
+
+          }
+
+          clustered_GO_results["unclustered"] <- list(GO_results[ID %in% simplify_result[cluster %in% unfiltered_cluster,id],])
+
+        }
+
       }
 
+    } else {
+
+      clustered_GO_results <- list(GO_results)
+      clustered_GO_results["unclustered"] <- list(NULL)
+
     }
-
-  } else {
-
-    clustered_GO_results <- list(GO_results)
-    clustered_GO_results["unclustered"] <- list(NULL)
 
   }
 
@@ -208,12 +217,16 @@
   pair_ls <- list()
   for (i in 1:length(cluster_na)) {
 
-    pair_mat <- combn(GO_id_ls[[cluster_na[i]]],2)
+    if (length(GO_id_ls[[cluster_na[i]]]) >= 2) {
 
-    for (j in 1:ncol(pair_mat)) {
+      pair_mat <- combn(GO_id_ls[[cluster_na[i]]],2)
 
-      pair_ls <- append(pair_ls,list(pair_mat[,j]))
-      names(pair_ls)[length(pair_ls)] <- paste(cluster_na[i],j,sep = "_")
+      for (j in 1:ncol(pair_mat)) {
+
+        pair_ls <- append(pair_ls,list(pair_mat[,j]))
+        names(pair_ls)[length(pair_ls)] <- paste(cluster_na[i],j,sep = "_")
+
+      }
 
     }
 
@@ -241,17 +254,21 @@
 
   for (i in 1:length(cluster_na)) {
 
-    sub_pair_overlap <- pair_overlap[GO_cluster %in% cluster_na[i]]
+    if (length(iteration_cluster_results[[cluster_na[i]]][,ID]) >= 2) {
 
-    setorder(sub_pair_overlap,-overlap_num)
+      sub_pair_overlap <- pair_overlap[GO_cluster %in% cluster_na[i]]
 
-    ordered_GO_id <- pair_ls[sub_pair_overlap[,pair_name]] %>%
-      unlist() %>%
-      unique()
+      setorder(sub_pair_overlap,-overlap_num)
 
-    GO_id_order <- match(ordered_GO_id,iteration_cluster_results[[cluster_na[i]]][,ID])
+      ordered_GO_id <- pair_ls[sub_pair_overlap[,pair_name]] %>%
+        unlist() %>%
+        unique()
 
-    iteration_cluster_results[cluster_na[i]] <- list(iteration_cluster_results[[cluster_na[i]]][GO_id_order])
+      GO_id_order <- match(ordered_GO_id,iteration_cluster_results[[cluster_na[i]]][,ID])
+
+      iteration_cluster_results[cluster_na[i]] <- list(iteration_cluster_results[[cluster_na[i]]][GO_id_order])
+
+    }
 
   }
 
@@ -275,8 +292,10 @@
 
     sub_GO_results_1 <- rbindlist(iteration_cluster_results[pair_cluster_ls[[pair_cluster_na[i]]][1]])
     sub_GO_results_2 <- rbindlist(iteration_cluster_results[pair_cluster_ls[[pair_cluster_na[i]]][2]])
-    sub_sim_mat_1 <- similarity_matrix[sub_GO_results_1[,ID],sub_GO_results_1[,ID]]
-    sub_sim_mat_2 <- similarity_matrix[sub_GO_results_2[,ID],sub_GO_results_2[,ID]]
+    sub_sim_mat_1 <- similarity_matrix[sub_GO_results_1[,ID],sub_GO_results_1[,ID]] %>%
+      as.matrix()
+    sub_sim_mat_2 <- similarity_matrix[sub_GO_results_2[,ID],sub_GO_results_2[,ID]] %>%
+      as.matrix()
 
     avg_sim <- sub_sim_mat %>%
       rowMeans() %>%
@@ -417,7 +436,50 @@
 
 }
 
+#' calculate GO term count
+#'
+#' @param enrichment_set the class of Enrichment_Count
 
+.calculate_GO_term_Count <- function(enrichment_set) {
+
+  on.exit(gc())
+
+  GO_results <- rbindlist(enrichment_set@GO_set)
+  GO_results[,gene := vector("list",length = nrow(GO_results))]
+  gene_ls <- enrichment_set@gene_information[,gene_name]
+  gene_information <- enrichment_set@gene_information
+  gene_information[,GO_term_Count := numeric(length = length(gene_ls))]
+
+  for (i in 1:nrow(GO_results)) {
+
+    genes <- strsplit(GO_results[i,geneID],split = "/")
+
+    GO_results[i,gene := genes]
+
+  }
+
+  for (i in 1:length(gene_ls)) {
+
+    k <- 0
+    for (j in 1:nrow(GO_results)) {
+
+      if (gene_ls[i] %in% GO_results[j,gene][[1]]) {
+
+        k <- k + 1
+
+      }
+
+    }
+
+    gene_information[gene_name %in% gene_ls[i],GO_term_Count := k]
+
+  }
+
+  enrichment_set@gene_information <- gene_information
+
+  return(enrichment_set)
+
+}
 
 
 

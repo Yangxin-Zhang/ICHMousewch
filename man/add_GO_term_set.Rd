@@ -6,8 +6,7 @@
 \usage{
 add_GO_term_set(
   enrichment_set,
-  GO_term_set,
-  GO_set_name,
+  GO_term_set_ls,
   ich_mouse,
   diff_symbol = "edge-normal"
 )
@@ -15,9 +14,7 @@ add_GO_term_set(
 \arguments{
 \item{enrichment_set}{the class of Enrichment_Set}
 
-\item{GO_term_set}{the set of GO ID}
-
-\item{GO_set_name}{the name of the GO set}
+\item{GO_term_set_ls}{the set of GO ID}
 
 \item{ich_mouse}{the class of ICH_Mouse}
 }
