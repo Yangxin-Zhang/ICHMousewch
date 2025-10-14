@@ -465,11 +465,12 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 #' plotting bubble chart
 #'
 #' @param ich_mouse the ICH_Mouse class
-#' @param GO_term_set_ls the GO term set ls
 
-.plotting_bubble_chart <- function(ich_mouse,GO_term_set_ls,gene_num = 10) {
+.plotting_bubble_chart <- function(ich_mouse,gene_num = 10) {
 
   on.exit(gc())
+
+  GO_term_set_ls <- ich_mouse@GO_ID_group
 
   enri_set <- ICHMousewch::Create_Enrichment_Set(ich_mouse = ich_mouse)
   enri_set <- ICHMousewch::add_GO_term_set(enrichment_set = enri_set,
@@ -525,10 +526,20 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           axis.ticks.x = element_blank(),
-          axis.text.x = element_blank(),
-          legend.position = "none")
+          axis.text.x = element_blank()) +
+    guides(fill = guide_legend(position = "top",
+                               nrow = 2,
+                               theme = theme(legend.text = element_text(size = 12,
+                                                                        family = "Arial",
+                                                                        vjust = 0.5,
+                                                                        hjust = 0),
+                                             legend.title = element_blank(),
+                                             legend.key.size = unit(12,"pt"))),
+           color = guide_none())
 
-  return(bubble_chart)
+  bubble_chart_ls <- list("bubble_chart" = ggplotGrob(bubble_chart))
+
+  return(bubble_chart_ls)
 
 }
 

@@ -47,6 +47,9 @@ setMethod(f = "initialize",
             # create violin plot
               .Object@violin_plot <- ICHMousewch:::.plotting_violin_plot(ich_mouse =ich_mouse)
 
+            # create bubble chart
+              .Object@bubble_chart <- ICHMousewch:::.plotting_bubble_chart(ich_mouse = ich_mouse)
+
             } else {
 
               .Object@spatial_image <- list()

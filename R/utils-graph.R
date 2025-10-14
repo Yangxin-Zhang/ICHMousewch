@@ -42,7 +42,13 @@
 
     cluster_symbol <- plot_title
 
-    theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",size = 16,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10))))
+    theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",
+                                                                size = 16,
+                                                                color = "black",
+                                                                face = "bold",
+                                                                hjust = 0.5,
+                                                                vjust = 0.5,
+                                                                margin = margin(b = 10, t = 10))))
 
   } else {
 
@@ -129,10 +135,14 @@
                               point_border_stroke = 0,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
-                              show_image = show_image,
-                              axis_text = FALSE,
-                              axis_title = FALSE,
-                              theme_param = c(theme_param,list(plot.background = element_rect(fill = "white", color = NA),axis.ticks = element_blank())))
+                              show_image = TRUE,
+                              theme_param = c(theme_param,list(plot.background = element_rect(fill = "white",color = NA),
+                                                               axis.ticks.x = element_blank(),
+                                                               axis.ticks.y = element_blank(),
+                                                               axis.text.x = element_blank(),
+                                                               axis.text.y = element_blank(),
+                                                               axis.title.x = element_blank(),
+                                                               axis.title.y = element_blank())))
 
   return(spatial_image)
 

@@ -7,12 +7,14 @@
 #' @slot symbol_genes the symbol genes
 #' @slot GO_enrichment the result of GO_enrichment
 #' @slot GO_cluster the cluster of GO term
+#' @slot GO_ID_group the aimed analysis GO ID group
 
 setClass(Class = "ICH_Mouse",
          slots = c(diff_expr_genes = "list",
                    symbol_genes = "list",
                    GO_enrichment = "list",
-                   GO_cluster = "list"),
+                   GO_cluster = "list",
+                   GO_ID_group = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
@@ -75,6 +77,7 @@ setMethod(f = "initialize",
               .Object@GO_enrichment = list()
               .Object@GO_cluster = list()
               .Object@symbol_genes = list()
+              .Object@GO_ID_group = list()
 
             }
 
@@ -215,6 +218,37 @@ setMethod(f = "conduct_GO_enrichment",
 
           })
 ####
+
+####
+#' add GO ID group
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param GO_id_ls the list of GO ID
+
+setGeneric(name = "add_GO_ID_group",
+           def = function(ich_mouse,GO_id_ls) {
+
+             standardGeneric("add_GO_ID_group")
+
+           })
+
+#' add GO ID group
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param GO_id_ls the list of GO ID
+#' @export
+
+setMethod(f = "add_GO_ID_group",
+          signature = signature(GO_id_ls = "list"),
+          definition = function(ich_mouse,GO_id_ls) {
+
+            on.exit(gc())
+
+            ich_mouse@GO_ID_group <- GO_id_ls
+
+            return(ich_mouse)
+
+          })
 
 ####
 #' save ICH_Mouse class
