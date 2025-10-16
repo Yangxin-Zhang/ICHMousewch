@@ -11,7 +11,7 @@ Create_Hematoma(
   tissue_position_address,
   background_image_address,
   giotto_python_path,
-  giotto_results_folder,
+  giotto_results_folder = "giotto_results",
   initialization = TRUE
 )
 }

@@ -15,6 +15,7 @@
 #' @slot giotto_instruction the instruction of Giotto Object
 #' @slot filtered_genes the genes that been filtered
 #' @slot filtered_barcodes the filtered barcodes
+#' @export
 
 setClass(
   Class = "Hematoma",
@@ -137,9 +138,11 @@ setMethod(f = "initialize",
 #' @param initialization whether start at beginning
 #' @export
 
-Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization = TRUE) {
+Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder = "giotto_results",initialization = TRUE) {
 
   on.exit(gc())
+
+  work_folder <- getwd()
 
   Hematoma <- new(Class = "Hematoma",
                   analysis_symbol = analysis_symbol,
@@ -148,7 +151,7 @@ Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_co
                   tissue_position_address = tissue_position_address,
                   background_image_address = background_image_address,
                   giotto_python_path = giotto_python_path,
-                  giotto_results_folder = giotto_results_folder,
+                  giotto_results_folder = paste(work_folder,giotto_results_folder,sep = "/"),
                   initialization = initialization)
 
   return(Hematoma)

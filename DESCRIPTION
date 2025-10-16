@@ -7,17 +7,10 @@ Description: This package is for analysis the spatial transcriptome dataset with
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Imports: 
-    dplyr,
-    Giotto,
-    magrittr,
-    Matrix,
-    mclust,
-    Seurat
+RoxygenNote: 7.3.3
 URL: https://github.com/Yangxin-Zhang/ICHMousewch
 BugReports: https://github.com/Yangxin-Zhang/ICHMousewch/issues
 Depends: 
     R (>= 3.5)
 LazyData: true
-Additional_repositories:https//bioconductor.org/packages/release/bioc
+Additional_repositories: https//bioconductor.org/packages/release/bioc
