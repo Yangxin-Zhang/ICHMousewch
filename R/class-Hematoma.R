@@ -103,7 +103,8 @@ setMethod(f = "initialize",
                                                                                                                    raw_count_matrix = .Object@raw_count_matrix,
                                                                                                                    background_image_address = .Object@file_address["background_image_address"],
                                                                                                                    self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]]) %>%
+                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]],
+                                                                                                                   show_legend_label = TRUE) %>%
                 ggplotGrob()
 
             } else {

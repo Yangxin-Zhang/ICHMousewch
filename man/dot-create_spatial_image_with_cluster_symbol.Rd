@@ -14,7 +14,9 @@
   theme_param = list(),
   plot_title = character(),
   legend_lable = character(),
-  show_image = TRUE
+  show_image = TRUE,
+  show_legend_label = FALSE,
+  show_plot_title = FALSE
 )
 }
 \arguments{

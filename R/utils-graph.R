@@ -28,19 +28,27 @@
 #' @param self_definition_color a set of color defined by user
 #' @param giotto_instruction the instruction of Giotto Object
 
-.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,giotto_instruction,self_definition_color = character(),theme_param = list(),plot_title = character(),legend_lable = character(),show_image = TRUE) {
+.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,giotto_instruction,self_definition_color = character(),theme_param = list(),plot_title = character(),legend_lable = character(),show_image = TRUE,show_legend_label = FALSE,show_plot_title = FALSE) {
 
   on.exit(gc())
 
   in_tissue_metadata[,cell_ID := barcode]
 
-  if (length(plot_title) != 0) {
+  if (show_plot_title == FALSE) {
 
-    aim_col <- in_tissue_metadata[,..cluster_symbol]
+    theme_param <- c(theme_param,list(plot.title = element_blank()))
 
-    in_tissue_metadata[,(plot_title) := aim_col]
+  } else {
 
-    cluster_symbol <- plot_title
+    if (length(plot_title) != 0) {
+
+      aim_col <- in_tissue_metadata[,..cluster_symbol]
+
+      in_tissue_metadata[,(plot_title) := aim_col]
+
+      cluster_symbol <- plot_title
+
+    }
 
     theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",
                                                                 size = 16,
@@ -50,49 +58,58 @@
                                                                 vjust = 0.5,
                                                                 margin = margin(b = 10, t = 10))))
 
-  } else {
-
-    theme_param <- c(theme_param,list(plot.title = element_blank()))
-
   }
 
-  if (length(legend_lable) != 0) {
+  if (show_legend_label == FALSE) {
 
-    ori_lable <- names(legend_lable)
+    theme_param <- c(theme_param,list(legend.position = "none"))
 
-    for (i in 1:length(ori_lable)) {
+  } else {
 
-      filter_condition <- as.character(in_tissue_metadata[,..cluster_symbol]) %in% ori_lable[i]
+    if (length(legend_lable) != 0) {
 
-      in_tissue_metadata[filter_condition,..cluster_symbol := legend_lable[ori_lable[i]]]
+      ori_lable <- names(legend_lable)
 
-    }
+      for (i in 1:length(ori_lable)) {
 
-    if (length(self_definition_color) != 0) {
+        filter_condition <- as.character(in_tissue_metadata[,..cluster_symbol]) %in% ori_lable[i]
 
-      for (i in 1:length(legend_lable)) {
-
-        new_self_def_col <- vector("character",length = length(ori_lable))
-        names(new_self_def_col) <- legend_lable
-
-        new_self_def_col[legend_lable[i]] <- self_definition_color[names(legend_lable[i])]
+        in_tissue_metadata[filter_condition,..cluster_symbol := legend_lable[ori_lable[i]]]
 
       }
 
-      self_definition_color <- new_self_def_col
+      if (length(self_definition_color) != 0) {
+
+        for (i in 1:length(legend_lable)) {
+
+          new_self_def_col <- vector("character",length = length(ori_lable))
+          names(new_self_def_col) <- legend_lable
+
+          new_self_def_col[legend_lable[i]] <- self_definition_color[names(legend_lable[i])]
+
+        }
+
+        self_definition_color <- new_self_def_col
+
+      }
 
     }
 
-  } else {
-
-    theme_param <- c(theme_param,list(legend.position = "none"))
+    theme_param <- c(theme_param,list(legend.position = "top",
+                                      legend.text = element_text(family = "Arial",
+                                                                 size = 12,
+                                                                 color = "black",
+                                                                 face = "bold",
+                                                                 hjust = 0,
+                                                                 vjust = 0.5),
+                                      legend.key.size = unit(12,"pt")))
 
   }
 
   in_tissue_count_matrix <- raw_count_matrix[,in_tissue_metadata[,barcode]]
 
   giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
-                                      spatial_locs = in_tissue_metadata[,c("imagerow","imagecol")],
+                                      spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
                                       cell_metadata = in_tissue_metadata,
                                       instructions = giotto_instruction)
 

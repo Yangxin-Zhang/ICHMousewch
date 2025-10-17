@@ -45,10 +45,14 @@
   adj_tissue_position_matrix <- adj_tissue_position_matrix[barcode_order]
 
   seu_obj_metadata[,imagerow := adj_tissue_position_matrix[,imagerow]]
+  seu_obj_metadata[,neg_imagerow := -adj_tissue_position_matrix[,imagerow]]
   seu_obj_metadata[,imagecol := adj_tissue_position_matrix[,imagecol]]
+  seu_obj_metadata[,neg_imagecol := -adj_tissue_position_matrix[,imagecol]]
   seu_obj_metadata[,tissue := adj_tissue_position_matrix[,tissue]]
   seu_obj_metadata[,row := adj_tissue_position_matrix[,row]]
+  seu_obj_metadata[,neg_row := -adj_tissue_position_matrix[,row]]
   seu_obj_metadata[,col := adj_tissue_position_matrix[,col]]
+  seu_obj_metadata[,neg_col := -adj_tissue_position_matrix[,col]]
 
   return(seu_obj_metadata)
 

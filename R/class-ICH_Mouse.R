@@ -8,6 +8,7 @@
 #' @slot GO_enrichment the result of GO_enrichment
 #' @slot GO_cluster the cluster of GO term
 #' @slot GO_ID_group the aimed analysis GO ID group
+#' @export
 
 setClass(Class = "ICH_Mouse",
          slots = c(diff_expr_genes = "list",
@@ -141,8 +142,8 @@ setGeneric(name = "find_differential_expression_genes",
 #' @export
 
 setMethod(f = "find_differential_expression_genes",
-          signature = signature(ich_mouse = "ICH_Mouse",cluster_symbol = "numeric",gene_set_name = "character"),
-          definition = function(ich_mouse,cluster_symbol,gene_set_name) {
+          signature = signature(ich_mouse = "ICH_Mouse"),
+          definition = function(ich_mouse,cluster_symbol = c(3,1),gene_set_name = "edge-normal") {
 
             on.exit(gc())
 
@@ -201,7 +202,7 @@ setGeneric(name = "conduct_GO_enrichment",
 
 setMethod(f = "conduct_GO_enrichment",
           signature = signature(ich_mouse = "ICH_Mouse"),
-          definition = function(ich_mouse,gene_set_name) {
+          definition = function(ich_mouse,gene_set_name = "edge-normal") {
 
             on.exit(gc())
 
@@ -365,10 +366,4 @@ setMethod(f = "load_ICH_Mouse",
 
           })
 ####
-
-
-
-
-
-
 
