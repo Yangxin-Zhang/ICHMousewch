@@ -201,7 +201,8 @@ setMethod(f = "identify_hematoma",
                                                                                                                         raw_count_matrix = hematoma@raw_count_matrix,
                                                                                                                         background_image_address = hematoma@file_address["background_image_address"],
                                                                                                                         self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                        giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
+                                                                                                                        giotto_instruction = hematoma@giotto_instruction[[1]],
+                                                                                                                        show_legend_label = TRUE) %>%
               ggplotGrob()
 
             return(hematoma)

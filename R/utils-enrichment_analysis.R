@@ -18,9 +18,7 @@
                          OrgDb = org.Mm.eg.db,
                          readable = TRUE,
                          ont = "ALL",
-                         pvalueCutoff = 0.01) %>%
-    simplify(cutoff = 0.9,
-             measure = "Wang")
+                         pvalueCutoff = 0.01)
 
   GO_results <- as.data.table(GO_results@result)
 

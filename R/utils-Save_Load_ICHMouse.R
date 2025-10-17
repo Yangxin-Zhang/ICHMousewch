@@ -197,7 +197,13 @@ setMethod(f = "Load_ICHMouse",
 
             on.exit(gc())
 
-            file_path <- paste(saving_path,"ICHMouse_Database",sep = "/") %>%
+            if (is.null(loading_path)) {
+
+              loading_path <- getwd()
+
+            }
+
+            file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
               paste(data_symbol,sep = "/") %>%
               paste("Class-ICH_Mouse",sep = "/")
 
