@@ -48,6 +48,7 @@
 #' @importFrom ggplot2 guide_legend
 #' @importFrom ggplot2 geom_tile
 #' @importFrom ggplot2 scale_fill_gradientn
+#' @importFrom ggplot2 scale_fill_gradient
 #' @importFrom ggplot2 scale_color_manual
 #' @importFrom ggplot2 theme
 #' @importFrom ggplot2 unit

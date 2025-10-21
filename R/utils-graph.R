@@ -621,3 +621,65 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 }
 
+#' plotting GO term cluster heatmap
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+.plotting_GO_term_cluster_heatmap <- function(ich_mouse,diff_expr_symbol = "edge-normal") {
+
+  on.exit(gc())
+
+  GO_id_group <- ich_mouse@GO_ID_group
+  group_na <- names(GO_id_group)
+  GO_enrichment_result <- ich_mouse@GO_enrichment[[diff_expr_symbol]]
+
+  GO_enrichment_result[,log2_fold_enrichment := log2(FoldEnrichment)]
+
+  heatmap_ls <- vector("list",length = length(group_na))
+  names(heatmap_ls) <- group_na
+
+  for (i in 1:length(group_na)) {
+
+    GO_id_ls <- GO_id_group[[group_na[i]]]
+
+    sub_GO_enrichment_result <- GO_enrichment_result[ID %in% GO_id_ls]
+
+    gene_ls <- sub_GO_enrichment_result[,geneID] %>%
+      unlist() %>%
+      paste(collapse = "/") %>%
+      strsplit(split = "/")
+    gene_ls <- unique(gene_ls[[1]])
+
+    id_order <- match(GO_id_ls,sub_GO_enrichment_result[,ID])
+
+    heatmap_dataset <- data.table(GO_ID = rep(GO_id_ls,times = length(gene_ls)),
+                                  gene_name = rep(gene_ls,each = length(GO_id_ls)),
+                                  log2fold_enrichment = sub_GO_enrichment_result[id_order,log2_fold_enrichment],
+                                  relation = character(length(GO_id_ls)*length(gene_ls)))
+
+    for (j in 1:length(GO_id_ls)) {
+
+      genes <- GO_enrichment_result[ID %in% GO_id_ls[j],geneID] %>%
+        strsplit(split = "/")
+      genes <- genes[[1]]
+
+      heatmap_dataset[GO_ID %in% GO_id_ls[j] & gene_name %in% genes,relation := "yes"]
+      heatmap_dataset[GO_ID %in% GO_id_ls[j] & !gene_name %in% genes,relation := "no"]
+
+    }
+
+    heatmap_dataset[relation == "no",log2fold_enrichment := 0]
+
+    GO_heatmap <- ggplot() +
+      geom_tile(data = heatmap_dataset,
+                mapping = aes(x = GO_ID,y = gene_name,fill = log2fold_enrichment)) +
+      scale_fill_gradient(low = "white",high = "red")
+
+    heatmap_ls[group_na] <- list(GO_heatmap)
+
+  }
+
+  return(heatmap_ls)
+
+}
+
