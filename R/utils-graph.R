@@ -323,6 +323,38 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   on.exit(gc())
 
+  GO_ID_group <- ich_mouse@GO_ID_group
+
+  group_na <- names(GO_ID_group)
+
+  GO_ID_pair <- vector("list",length = length(GO_ID_group))
+  names(GO_ID_pair) <- group_na
+
+  for (i in 1:length(group_na)) {
+
+    id_pair <- combn(GO_ID_group[[group_na[i]]],2) %>%
+      as.data.table()
+
+    pair_da_1 <- data.table(GO_id_x = unlist(id_pair[1]),
+                            GO_id_y = unlist(id_pair[2]),
+                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+    pair_da_2 <- data.table(GO_id_x = unlist(id_pair[2]),
+                            GO_id_y = unlist(id_pair[1]),
+                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+    GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+      rbindlist() %>%
+      list()
+
+  }
+
+  special_blocks <- rbindlist(GO_ID_pair) %>%
+    as.data.frame() %>%
+    mutate(GO_id_x = factor(GO_id_x,levels = unique(GO_id_x)),
+           GO_id_y = factor(GO_id_y,levels = unique(GO_id_y)),
+           GO_id_group = factor(GO_id_group,levels = unique(GO_id_group)))
+
   GO_results <- rbindlist(ich_mouse@GO_cluster$`edge-normal`)
 
   sim_mat <- GO_similarity(go_id = GO_results[,ID],
@@ -353,8 +385,13 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     mutate(GO_id_x = factor(GO_id_x,levels = colnames(sim_mat)),
            GO_id_y = factor(GO_id_y,levels = rownames(sim_mat)))
 
-  sim_heatmap <- ggplot(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
-    geom_tile() +
+  sim_heatmap <- ggplot() +
+    geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+    geom_tile(data = special_blocks,
+              mapping = aes(x = GO_id_x,y = GO_id_y,colour = GO_id_group),
+              fill = "white",
+              alpha = 0,
+              linetype = 1) +
     scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
                          values = c(0,0.75,1),
                          limits = c(0,1)) +
@@ -364,8 +401,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           axis.ticks.x = element_blank(),
-          axis.ticks.y = element_blank(),
-          legend.position = "none")
+          axis.ticks.y = element_blank()) +
+    guides(color = guide_legend(position = "top",
+                                nrow = 2,
+                                theme = theme(legend.text = element_text(size = 12,
+                                                                         family = "Arial",
+                                                                         vjust = 0.5,
+                                                                         hjust = 0),
+                                              legend.title = element_blank(),
+                                              legend.key.size = unit(12,"pt"))),
+           fill = guide_none())
 
   heatmap_ls <- list("GO_heatmap" = ggplotGrob(sim_heatmap))
 
