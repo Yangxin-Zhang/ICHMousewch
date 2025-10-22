@@ -178,15 +178,25 @@
 
   in_tissue_metadata <- seu_metadata_with_cluster_symbol[,cell_ID := barcode]
 
-  in_tissue_count_matrix <- raw_count_matrix[gene_ls,seu_metadata_with_cluster_symbol[,barcode]]
+  in_tissue_count_matrix <- raw_count_matrix[gene_ls,seu_metadata_with_cluster_symbol[,barcode],drop = FALSE]
 
   if (gradient) {
 
     edge_barcodes <- in_tissue_metadata[center_edge_symbol == "3",barcode]
     normal_barcodes <- in_tissue_metadata[center_edge_symbol == "1",barcode]
 
-    in_tissue_count_matrix[!in_tissue_count_matrix == 0 & colnames(in_tissue_count_matrix) %in% edge_barcodes] <- 1
-    in_tissue_count_matrix[!in_tissue_count_matrix == 0 & colnames(in_tissue_count_matrix) %in% normal_barcodes] <- 2
+    logi_zero <- !in_tissue_count_matrix == 0
+    logi_edge <-  Matrix::Matrix(rep(colnames(in_tissue_count_matrix) %in% edge_barcodes,times = length(gene_ls)),
+                                 nrow = length(gene_ls),
+                                 byrow = TRUE,
+                                 sparse = TRUE)
+    logi_normal <- Matrix::Matrix(rep(colnames(in_tissue_count_matrix) %in% normal_barcodes,times = length(gene_ls)),
+                                  nrow = length(gene_ls),
+                                  byrow = TRUE,
+                                  sparse = TRUE)
+
+    in_tissue_count_matrix[logi_zero & logi_edge] <- 1
+    in_tissue_count_matrix[logi_zero & logi_normal] <- 2
 
   } else {
 

@@ -66,6 +66,7 @@
 #' @importFrom dplyr mutate
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix sparseMatrix
+#' @importFrom Matrix Matrix
 #' @importFrom data.table as.data.table
 #' @importFrom data.table rbindlist
 #' @importFrom data.table data.table
