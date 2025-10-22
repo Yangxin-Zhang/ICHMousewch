@@ -8,7 +8,8 @@ create_single_gene_spatial_image(
   ich_mouse,
   gene_ls,
   image_set_name,
-  show_background_image = TRUE
+  show_background_image = TRUE,
+  gradient = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ create_single_gene_spatial_image(
 \item{image_set_name}{the name of the image set}
 
 \item{show_background_image}{whether to show background image}
+
+\item{gradient}{whether to use gradient color}
 }
 \description{
 create single gene spatial image

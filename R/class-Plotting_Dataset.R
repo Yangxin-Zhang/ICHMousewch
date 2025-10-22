@@ -10,6 +10,7 @@
 #' @slot heatmap the heatmap
 #' @slot bubble_chart the bubble chart
 #' @slot barchart the bar chart
+#' @export
 
 setClass(Class = "Plotting_Dataset",
          slots = c(spatial_image = "list",
@@ -193,79 +194,3 @@ setMethod(f = "load_Plotting_Dataset",
 
           })
 ####
-
-####
-#' export plotting dataset
-#'
-#' @param plotting_dataset the Plotting_Dataset class
-#' @param saving_path the path for saving plotting_dataset
-
-setGeneric(name = "export_plotting_dataset",
-           def = function(plotting_dataset,saving_path) {
-
-             standardGeneric("export_plotting_dataset")
-
-           })
-
-#' export plotting dataset
-#'
-#' @param plotting_dataset the Plotting_Dataset class
-#' @param saving_path the path for saving plotting_dataset
-#' @export
-
-setMethod(f = "export_plotting_dataset",
-          signature = signature(plotting_dataset = "Plotting_Dataset",saving_path = "character"),
-          definition = function(plotting_dataset,saving_path) {
-
-            on.exit(gc())
-
-            saving_directory <- paste(saving_path,"ICH_Mouse_plots",sep = "/")
-
-            if(!dir.exists(saving_directory)) {
-
-              dir.create(saving_directory,recursive = TRUE)
-
-            } else {
-
-              unlink(saving_directory,recursive = TRUE)
-              dir.create(saving_directory,recursive = TRUE)
-
-            }
-
-            slot_na <- slotNames(plotting_dataset)
-
-            for (i in 1:length(slot_na)) {
-
-              slot_da <- slot(plotting_dataset,slot_na[i])
-
-              if (length(slot_da) != 0) {
-
-                plot_na <- names(slot_da)
-
-                slot_da_path <- paste(saving_directory,slot_na[i],sep = "/")
-
-                dir.create(slot_da_path,recursive = FALSE)
-
-                for (j in 1:length(plot_na)) {
-
-                  saving_plotting <- as.ggplot(slot_da[[plot_na[j]]])
-
-                  ggsave(filename = paste(plot_na[j],"png",sep = "."),
-                         plot = saving_plotting,
-                         device = "png",
-                         path = slot_da_path,
-                         dpi = 600,
-                         width = (297/25.4),
-                         height = (210/25.4),
-                         unit = "in")
-
-                }
-
-              }
-
-            }
-
-          })
-
-####
-

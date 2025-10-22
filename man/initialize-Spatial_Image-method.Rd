@@ -4,7 +4,7 @@
 \alias{initialize,Spatial_Image-method}
 \title{Initialize the class of Spatial_Image}
 \usage{
-\S4method{initialize}{Spatial_Image}(.Object, image_set_name, spatial_image_ls)
+\S4method{initialize}{Spatial_Image}(.Object, image_set_name, spatial_image_ls, initialization)
 }
 \arguments{
 \item{image_set_name}{the name of image set}

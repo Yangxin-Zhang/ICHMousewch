@@ -8,7 +8,8 @@
   ich_mouse,
   gene_ls,
   image_set_name,
-  show_background_image = TRUE
+  show_background_image = TRUE,
+  gradient = FALSE
 )
 }
 \arguments{

@@ -108,17 +108,15 @@
 
   in_tissue_count_matrix <- raw_count_matrix[,in_tissue_metadata[,barcode]]
 
-  giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
-                                      spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
-                                      cell_metadata = in_tissue_metadata,
-                                      instructions = giotto_instruction)
-
-  image_obj <- createGiottoImage(gobject = giotto_object,
-                                 mg_object = background_image_address,
+  image_obj <- createGiottoImage(mg_object = background_image_address,
                                  name = "background_image",
                                  negative_y = FALSE)
 
-  giotto_object <- addGiottoImage(gobject = giotto_object,images = list(image_obj))
+  giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
+                                      spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
+                                      cell_metadata = in_tissue_metadata,
+                                      instructions = giotto_instruction,
+                                      images = list(image_obj))
 
   color_symbols <- in_tissue_metadata %>%
     subset(select = cluster_symbol) %>%
@@ -174,31 +172,41 @@
 #' @param giotto_instruction the instruction of Giotto Object
 #' @param show_background_image whether to show background image
 
-.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction,show_background_image) {
+.create_spatial_image_with_single_gene <- function(seu_metadata_with_cluster_symbol,gene_ls,raw_count_matrix,background_image_address,giotto_instruction,show_background_image = TRUE,gradient = FALSE) {
 
   on.exit(gc())
 
-  seu_metadata_with_cluster_symbol[,cell_ID := barcode]
+  in_tissue_metadata <- seu_metadata_with_cluster_symbol[,cell_ID := barcode]
 
   in_tissue_count_matrix <- raw_count_matrix[gene_ls,seu_metadata_with_cluster_symbol[,barcode]]
 
-  in_tissue_count_matrix[!in_tissue_count_matrix == 0] <- 1
+  if (gradient) {
 
-  giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
-                                      spatial_locs = seu_metadata_with_cluster_symbol[,c("imagerow","imagecol")],
-                                      cell_metadata = seu_metadata_with_cluster_symbol,
-                                      instructions = giotto_instruction)
+    edge_barcodes <- in_tissue_metadata[center_edge_symbol == "3",barcode]
+    normal_barcodes <- in_tissue_metadata[center_edge_symbol == "1",barcode]
 
-  image_obj <- createGiottoImage(gobject = giotto_object,
-                                 mg_object = background_image_address,
+    in_tissue_count_matrix[!in_tissue_count_matrix == 0 & colnames(in_tissue_count_matrix) %in% edge_barcodes] <- 1
+    in_tissue_count_matrix[!in_tissue_count_matrix == 0 & colnames(in_tissue_count_matrix) %in% normal_barcodes] <- 2
+
+  } else {
+
+    in_tissue_count_matrix[!in_tissue_count_matrix == 0] <- 1
+
+  }
+
+  image_obj <- createGiottoImage(mg_object = background_image_address,
                                  name = "background_image",
                                  negative_y = FALSE)
 
-  giotto_object <- addGiottoImage(gobject = giotto_object,images = list(image_obj))
+  giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
+                                      spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
+                                      cell_metadata = in_tissue_metadata,
+                                      instructions = giotto_instruction,
+                                      images = list(image_obj))
 
   spatial_image_ls <- list()
 
-  if(show_background_image) {
+  if(gradient) {
 
     if(length(gene_ls) > 0) {
 
@@ -210,11 +218,18 @@
                                         background_color = "white",
                                         point_size = 0.5,
                                         point_alpha = 0.5,
-                                        cell_color_gradient = c("#F5D2A8","#D1352B"),
-                                        show_image = TRUE,
-                                        show_legend = FALSE,
-                                        axis_text = FALSE,
-                                        axis_title = FALSE) %>%
+                                        cell_color_gradient = c("#F5D2A8","#D1352B","#3C77AF"),
+                                        gradient_midpoint = 1,
+                                        gradient_style = "divergent",
+                                        show_image = show_background_image,
+                                        theme_param = list(plot.background = element_rect(fill = "white",color = NA),
+                                                           axis.ticks.x = element_blank(),
+                                                           axis.ticks.y = element_blank(),
+                                                           axis.text.x = element_blank(),
+                                                           axis.text.y = element_blank(),
+                                                           axis.title.x = element_blank(),
+                                                           axis.title.y = element_blank(),
+                                                           legend.position = "none")) %>%
           ggplotGrob()
 
         spatial_image_ls <- append(spatial_image_ls,list(spatial_image))
@@ -235,12 +250,17 @@
                                         feats = gene_ls[i],
                                         background_color = "white",
                                         point_size = 0.5,
-                                        point_alpha = 1,
+                                        point_alpha = 0.5,
                                         cell_color_gradient = c("#F5D2A8","#D1352B"),
-                                        show_image = FALSE,
-                                        show_legend = FALSE,
-                                        axis_text = FALSE,
-                                        axis_title = FALSE) %>%
+                                        show_image = show_background_image,
+                                        theme_param = list(plot.background = element_rect(fill = "white",color = NA),
+                                                           axis.ticks.x = element_blank(),
+                                                           axis.ticks.y = element_blank(),
+                                                           axis.text.x = element_blank(),
+                                                           axis.text.y = element_blank(),
+                                                           axis.title.x = element_blank(),
+                                                           axis.title.y = element_blank(),
+                                                           legend.position = "none")) %>%
           ggplotGrob()
 
         spatial_image_ls <- append(spatial_image_ls,list(spatial_image))

@@ -10,7 +10,8 @@
   raw_count_matrix,
   background_image_address,
   giotto_instruction,
-  show_background_image
+  show_background_image = TRUE,
+  gradient = FALSE
 )
 }
 \arguments{

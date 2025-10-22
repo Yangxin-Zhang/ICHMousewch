@@ -4,7 +4,7 @@
 \alias{.Create_Spatial_Image}
 \title{Spatial Image constructor}
 \usage{
-.Create_Spatial_Image(image_set_name, spatial_image_ls)
+.Create_Spatial_Image(image_set_name, spatial_image_ls, initialization = FALSE)
 }
 \arguments{
 \item{image_set_name}{the name of image set}

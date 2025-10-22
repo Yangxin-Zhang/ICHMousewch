@@ -6,6 +6,7 @@
 #' @slot image_set_name the name of image set
 #' @slot gene_name a gene list for plotting the spatial image
 #' @slot spatial_image a list of spatial image
+#' @export
 
 setClass(Class = "Spatial_Image",
          slots = c(image_set_name = "character",
@@ -19,13 +20,25 @@ setClass(Class = "Spatial_Image",
 
 setMethod(f = "initialize",
           signature = signature(.Object = "Spatial_Image"),
-          definition = function(.Object,image_set_name,spatial_image_ls) {
+          definition = function(.Object,image_set_name,spatial_image_ls,initialization) {
 
-            .Object@image_set_name <- image_set_name
+            if(initialization) {
 
-            .Object@gene_name <- names(spatial_image_ls)
+              .Object@image_set_name <- character()
 
-            .Object@spatial_image <- spatial_image_ls
+              .Object@gene_name <- character()
+
+              .Object@spatial_image <- list()
+
+            } else {
+
+              .Object@image_set_name <- image_set_name
+
+              .Object@gene_name <- names(spatial_image_ls)
+
+              .Object@spatial_image <- spatial_image_ls
+
+            }
 
             validObject(.Object)
             return(.Object)
@@ -37,13 +50,14 @@ setMethod(f = "initialize",
 #' @param spatial_image_ls a list contain a set of spatial image
 #' @param image_set_name the name of image set
 
-.Create_Spatial_Image <- function(image_set_name,spatial_image_ls) {
+.Create_Spatial_Image <- function(image_set_name,spatial_image_ls,initialization = FALSE) {
 
   on.exit(gc())
 
   spatial_image <- new(Class = "Spatial_Image",
                        image_set_name = image_set_name,
-                       spatial_image_ls = spatial_image_ls)
+                       spatial_image_ls = spatial_image_ls,
+                       initialization = initialization)
 
   return(spatial_image)
 
@@ -89,9 +103,10 @@ setMethod(f = "save_spatial_image",
 #' @param gene_ls a gene list
 #' @param show_background_image whether to show background image
 #' @param image_set_name the name of the image set
+#' @param gradient whether to use gradient color
 
 setGeneric(name = "create_single_gene_spatial_image",
-           def = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE) {
+           def = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE,gradient = FALSE) {
 
              standardGeneric("create_single_gene_spatial_image")
 
@@ -107,7 +122,7 @@ setGeneric(name = "create_single_gene_spatial_image",
 
 setMethod(f = "create_single_gene_spatial_image",
           signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
-          definition = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE) {
+          definition = function(ich_mouse,gene_ls,image_set_name,show_background_image = TRUE,gradient = FALSE) {
 
             on.exit(gc())
 
@@ -116,7 +131,8 @@ setMethod(f = "create_single_gene_spatial_image",
                                                                                      raw_count_matrix = ich_mouse@raw_count_matrix,
                                                                                      background_image_address = ich_mouse@file_address["background_image_address"],
                                                                                      giotto_instruction = ich_mouse@giotto_instruction[[1]],
-                                                                                     show_background_image = show_background_image)
+                                                                                     show_background_image = show_background_image,
+                                                                                     gradient = gradient)
 
             spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
                                                                      spatial_image_ls = spatial_image_ls)
