@@ -713,3 +713,70 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 }
 
+#' create umap plot
+#'
+#' @param raw_count_matrix the raw count matrix
+#' @param seu_meta the seurat metadata
+#' @param umap_feature the features for umap
+#' @param diff_expr_genes the different expression genes
+#' @param filter_genes the filter genes
+
+.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,umap_feature = "diff_expr_genes") {
+
+  on.exit(gc())
+
+  fil_count_matrix <- raw_count_matrix[filter_genes,seu_meta[,barcode]]
+
+  seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
+    NormalizeData()
+
+  seu_meta[center_edge_symbol == "1", center_edge_symbol := "normal"]
+  seu_meta[center_edge_symbol == "2", center_edge_symbol := "center"]
+  seu_meta[center_edge_symbol == "3", center_edge_symbol := "edge"]
+
+  if (umap_feature == "diff_expr_genes") {
+
+    fil_genes <- diff_expr_genes
+
+    seu_obj <- seu_obj[fil_genes]
+
+  }
+
+  if (umap_feature == "filter_genes") {
+
+    fil_genes <- filter_genes
+    seu_obj <- seu_obj[fil_genes]
+
+  }
+
+  if (umap_feature == "variable_genes") {
+
+    variable_genes <- seu_obj %>%
+      FindVariableFeatures() %>%
+      VariableFeatures()
+
+    fil_genes <- variable_genes
+
+    seu_obj <- seu_obj[fil_genes]
+
+  }
+
+  seu_obj <- seu_obj %>%
+    NormalizeData() %>%
+    ScaleData() %>%
+    RunPCA(features = fil_genes,
+           npcs = 10) %>%
+    RunUMAP(dims = 1:10)
+
+  cluster_order <- match(rownames(seu_obj@meta.data),seu_meta[,barcode])
+
+  seu_obj@meta.data$cluster <- seu_meta[cluster_order,center_edge_symbol]
+
+  umap_plot <- DimPlot(seu_obj,
+                       group.by = "cluster") %>%
+    patchworkGrob()
+
+  return(umap_plot)
+
+}
+
