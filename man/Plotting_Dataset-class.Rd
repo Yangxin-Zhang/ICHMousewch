@@ -23,5 +23,7 @@ the class for Plotting
 \item{\code{bubble_chart}}{the bubble chart}
 
 \item{\code{barchart}}{the bar chart}
+
+\item{\code{umap_plot}}{the umap plot}
 }}
 

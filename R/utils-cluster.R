@@ -92,8 +92,70 @@
 
 }
 
+#' conduct Louvain cluster on custom features
+#'
+#' @param seu_meta the Seurat Object metadata
+#' @param raw_count_matrix the row count matrix
+#' @param custom_features the custom features
+
+.conduct_Louvain_cluster_on_custom_features <- function(seu_meta,raw_count_matrix,custom_features) {
+
+  on.exit(gc())
+
+  barcodes <- seu_meta[,cell_ID]
+
+  filtered_count_matrix <- raw_count_matrix[custom_features,barcodes]
+
+  dataset_for_KNN <- filtered_count_matrix %>%
+    as.matrix() %>%
+    t()
+
+  rownames(dataset_for_KNN) <- barcodes
+
+  KNN_graph <- dataset_for_KNN %>%
+    FindNeighbors(k.param = 100)
+
+  seu_obj <- CreateSeuratObject(filtered_count_matrix)
+
+  seu_obj@graphs$custom_nn <- KNN_graph[["nn"]]
+  seu_obj@graphs$custom_snn <- KNN_graph[["snn"]]
+
+  seu_obj <- FindClusters(object = seu_obj,
+                          resolution = 0.5,
+                          algorithm = 1,
+                          random.seed = 2025,
+                          graph.name = "custom_snn",
+                          cluster.name = "Louvain_cluster_custom_feature")
 
 
+  return(seu_obj@meta.data)
+
+}
+
+#' conduct HMRF cluster
+#'
+#' @param giotto_instruction the instruction of Giotto Object
+#' @param seu_meta the Seurat Object metadata
+#' @param raw_count_matrix the raw count matrix
+#' @param symbol_genes the symbol genes
+
+.conduct_HMRF_cluster <- function(giotto_instruction,seu_meta,raw_count_matrix,symbol_genes) {
+
+  on.exit(gc())
+
+  filtered_matrix <- raw_count_matrix[symbol_genes,seu_meta[,cell_ID]]
+
+  gio_obj <- createGiottoObject(expression = filtered_matrix,
+                                spatial_locs = seu_meta[,c("imagerow","neg_imagecol")],
+                                instructions = giotto_instruction) %>%
+    normalizeGiotto(scalefactor = 1e6) %>%
+    addStatistics() %>%
+    createSpatialDelaunayNetwork() %>%
+    doHMRF(k = 2)
+
+  return(gio_obj)
+
+}
 
 
 

@@ -182,7 +182,7 @@
 
   if (gradient) {
 
-    edge_barcodes <- in_tissue_metadata[center_edge_symbol == "3",barcode]
+    edge_barcodes <- in_tissue_metadata[!center_edge_symbol == "1",barcode]
     normal_barcodes <- in_tissue_metadata[center_edge_symbol == "1",barcode]
 
     logi_zero <- !in_tissue_count_matrix == 0
@@ -720,8 +720,9 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param umap_feature the features for umap
 #' @param diff_expr_genes the different expression genes
 #' @param filter_genes the filter genes
+#' @param group_symbol the group symbol
 
-.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,umap_feature = "diff_expr_genes") {
+.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,group_symbol = "center_edge_symbol",umap_feature = "variable_genes") {
 
   on.exit(gc())
 
@@ -730,9 +731,38 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
     NormalizeData()
 
-  seu_meta[center_edge_symbol == "1", center_edge_symbol := "normal"]
-  seu_meta[center_edge_symbol == "2", center_edge_symbol := "center"]
-  seu_meta[center_edge_symbol == "3", center_edge_symbol := "edge"]
+  if (group_symbol == "center_edge_symbol") {
+
+    seu_meta[center_edge_symbol == "1", cluster := "normal"]
+    seu_meta[center_edge_symbol == "2", cluster := "center"]
+    seu_meta[center_edge_symbol == "3", cluster := "edge"]
+
+  }
+
+  if (group_symbol == "hematoma_symbol") {
+
+    seu_meta[hematoma_symbol == "1", cluster := "normal"]
+    seu_meta[hematoma_symbol == "2", cluster := "hematoma"]
+
+  }
+
+  if (group_symbol == "GMM_cluster") {
+
+    seu_meta[,cluster := GMM_cluster]
+
+  }
+
+  if (group_symbol == "Louvain_cluster_posi") {
+
+    seu_meta[,cluster := Louvain_cluster_posi]
+
+  }
+
+  if (group_symbol == "Louvain_cluster_filt_gene") {
+
+    seu_meta[,cluster := Louvain_cluster_filt_gene]
+
+  }
 
   if (umap_feature == "diff_expr_genes") {
 
@@ -770,7 +800,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   cluster_order <- match(rownames(seu_obj@meta.data),seu_meta[,barcode])
 
-  seu_obj@meta.data$cluster <- seu_meta[cluster_order,center_edge_symbol]
+  seu_obj@meta.data$cluster <- seu_meta[cluster_order,cluster]
 
   umap_plot <- DimPlot(seu_obj,
                        group.by = "cluster") %>%

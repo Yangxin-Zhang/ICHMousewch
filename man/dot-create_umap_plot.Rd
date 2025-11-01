@@ -9,7 +9,8 @@
   seu_meta,
   diff_expr_genes,
   filter_genes,
-  umap_feature = "diff_expr_genes"
+  group_symbol = "center_edge_symbol",
+  umap_feature = "variable_genes"
 )
 }
 \arguments{
@@ -20,6 +21,8 @@
 \item{diff_expr_genes}{the different expression genes}
 
 \item{filter_genes}{the filter genes}
+
+\item{group_symbol}{the group symbol}
 
 \item{umap_feature}{the features for umap}
 }

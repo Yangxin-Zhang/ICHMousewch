@@ -10,6 +10,7 @@
 #' @slot heatmap the heatmap
 #' @slot bubble_chart the bubble chart
 #' @slot barchart the bar chart
+#' @slot umap_plot the umap plot
 #' @export
 
 setClass(Class = "Plotting_Dataset",
@@ -19,7 +20,8 @@ setClass(Class = "Plotting_Dataset",
                    volcano_plot = "list",
                    heatmap = "list",
                    bubble_chart = "list",
-                   barchart = "list"))
+                   barchart = "list",
+                   umap_plot = "list"))
 
 #' initialize Plotting_Dataset
 #'
@@ -60,6 +62,7 @@ setMethod(f = "initialize",
               .Object@heatmap <- list()
               .Object@bubble_chart <- list()
               .Object@barchart <- list()
+              .Object@umap_plot <- list()
 
             }
 

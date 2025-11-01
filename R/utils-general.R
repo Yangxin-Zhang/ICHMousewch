@@ -731,4 +731,34 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
 }
 
+#' plotting umap plots
+#'
+#' @param ich_mouse the class of ICH_Mouse
 
+.plotting_umap_plot <- function(ich_mouse,diff_expr_genes_symbol = "edge-normal") {
+
+  on.exit(gc())
+
+  raw_count_matrix <- ich_mouse@raw_count_matrix
+  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
+  filter_genes <- ich_mouse@filtered_genes
+  diff_expr_genes <- ich_mouse@diff_expr_genes[[diff_expr_genes_symbol]]
+
+  umap_center_edge <- ICHMousewch:::.create_umap_plot(raw_count_matrix = raw_count_matrix,
+                                                      seu_meta = seu_meta,
+                                                      filter_genes = filter_genes,
+                                                      diff_expr_genes = diff_expr_genes,
+                                                      group_symbol = "center_edge_symbol")
+
+  umap_Louvain_posi <- ICHMousewch:::.create_umap_plot(raw_count_matrix = raw_count_matrix,
+                                                       seu_meta = seu_meta,
+                                                       filter_genes = filter_genes,
+                                                       diff_expr_genes = diff_expr_genes,
+                                                       group_symbol = "Louvain_cluster_posi")
+
+  umap_plot_ls <- list("umap_center_edge" = umap_center_edge,
+                       "umap_Louvain_posi" = umap_Louvain_posi)
+
+  return(umap_plot_ls)
+
+}
