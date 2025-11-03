@@ -157,6 +157,52 @@
 
 }
 
+#' conduct bayesspace cluster
+#'
+#' @param seu_meta the Seurat metadata
+#' @param raw_count_matrix the raw_count_matrix
+#' @param symbol_genes the symbol genes for cluster
+#' @param adjust_symbol the adjust symbol
 
+.conduct_bayesspace_cluster <- function(seu_meta,raw_count_matrix,symbol_genes,adjust_symbol = "center") {
+
+  on.exit(gc())
+
+  filtered_matrix <- raw_count_matrix[,seu_meta[,cell_ID]]
+
+  seu_obj <- CreateSeuratObject(counts = filtered_matrix) %>%
+    NormalizeData() %>%
+    ScaleData(features = symbol_genes)
+
+  sce <- SingleCellExperiment(assays = list(counts = filtered_matrix))
+
+  sce_order <- match(rownames(colData(sce)), seu_meta[,cell_ID])
+
+  colData(sce)$array_col <- seu_meta[sce_order,col]
+  colData(sce)$array_row <- seu_meta[sce_order,row]
+
+  PCA <- as.data.frame(t(seu_obj@assays$RNA$scale.data))
+
+  reducedDim(sce,"PCA") <- PCA
+
+  sce <- spatialCluster(sce = sce,
+                        q = 2,
+                        burn.in = 50,
+                        nrep = 500,
+                        platform = "Visium")
+
+  sce_metadata <- sce %>%
+    colData() %>%
+    as.data.frame()
+
+  seu_order <- match(seu_meta[,cell_ID],rownames(sce_metadata))
+
+  seu_meta[,spatial_cluster := sce_metadata[seu_order,"spatial.cluster"]]
+
+  seu_meta[center_edge_symbol == 2 & spatial_cluster == 1,spatial_cluster := 0]
+
+  return(seu_meta)
+
+}
 
 

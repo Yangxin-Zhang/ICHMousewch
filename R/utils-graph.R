@@ -810,3 +810,149 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 }
 
+#' create gene distribution map
+#'
+#' @param seu_meta the Seurat metadata
+#' @param raw_count_matrix the raw count matrix
+#' @param filtered_genes the filtered genes
+#' @param filtered_barcodes the filtered barcodes
+#' @param diff_expr_gene the differential expression genes
+#' @param background_genes the background genes for graph
+#' @param aim_gene the aim gene for plotting
+
+.create_gene_distribution_map <- function(seu_meta,raw_count_matrix,filtered_genes,filtered_barcodes,diff_expr_gene,aim_gene = character(),background_genes = c("Hbb-bt","Hbb-bs","Hba-a2")) {
+
+  on.exit(gc())
+
+  seu_meta <- seu_meta[cell_ID %in% filtered_barcodes]
+
+  filtered_count_matrix <- raw_count_matrix[filtered_genes,seu_meta[,cell_ID]]
+
+  seu_meta[,plot_row := -row]
+  seu_meta[,plot_col := -col]
+
+  seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
+    NormalizeData() %>%
+    ScaleData(features = diff_expr_gene[avg_log2FC > 1,gene_name])
+
+  normalized_count_matrix <- seu_obj@assays$RNA$data
+
+  gene_expr_matrix <- t(seu_obj@assays$RNA$scale.data) %>%
+    as.data.frame()
+  gene_expr_matrix <- bind_cols(data.frame(barcode = rownames(gene_expr_matrix),
+                                           color_symbol = 0),
+                                gene_expr_matrix) %>%
+    as.data.table()
+
+  graph_df <- merge(seu_meta,gene_expr_matrix,by = "barcode")
+
+
+  if (length(background_genes) == 1) {
+
+    background_df <- data.frame(background_genes_name = normalized_count_matrix[background_genes,])
+
+  } else {
+
+    background_df <- normalized_count_matrix[background_genes,] %>%
+      as.data.frame() %>%
+      t()
+
+  }
+
+  graph_df[,background_count := Matrix::rowSums(background_df != 0)]
+  graph_df[background_count != 0,color_symbol := 1]
+
+  if (length(aim_gene) != 0) {
+
+    distribution_graph_ls <- vector("list",length = length(aim_gene))
+    names(distribution_graph_ls) <- aim_gene
+
+    for (i in 1:length(aim_gene)) {
+
+      aim_gene_na <- aim_gene[i]
+
+      aim_gene_df <- data.frame(aim_gene_name = normalized_count_matrix[aim_gene_na,])
+
+      aim_gene_scale_data <- graph_df[,..aim_gene_na]
+      graph_df[,plotting_gene := aim_gene_scale_data]
+
+      graph_df[,aim_gene_count := Matrix::rowSums(aim_gene_df != 0)]
+
+      graph_df[aim_gene_count != 0,color_symbol := 2]
+
+      distribution_graph <- ggplot() +
+        geom_point(data = graph_df[color_symbol == 0],
+                   mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                   size = 0.01,
+                   color = "gray90") +
+        geom_point(data = graph_df[color_symbol == 1],
+                   mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                   size = 0.01,
+                   color = "white") +
+        geom_point(data = graph_df[color_symbol == 2],
+                   mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
+                   size = 0.01) +
+        scale_color_gradientn(colors = c("#FFFFFF", "#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
+        labs(title = aim_gene_na) +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              axis.title.x = element_blank(),
+              axis.title.y = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.ticks.y = element_blank(),
+              legend.position = "right",
+              legend.title = element_blank(),
+              legend.text = element_text(size = 8,
+                                         family = "Arial"),
+              panel.background = element_rect(fill = "white", color = "black"),
+              plot.background = element_rect(fill = "white", color = NA),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              plot.title = element_text(size = 12,
+                                        face = "bold",
+                                        family = "Arial",
+                                        hjust = 0.5,
+                                        vjust = 0,
+                                        margin = margin(b = 10)))
+
+      distribution_graph_ls[aim_gene_na] <- list(ggplotGrob(distribution_graph))
+
+    }
+
+  } else {
+
+    distribution_graph <- ggplot() +
+      geom_point(data = graph_df[color_symbol == 0],
+                 mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                 size = 0.01,
+                 color = "gray90") +
+      geom_point(data = graph_df[color_symbol == 1],
+                 mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                 size = 0.01,
+                 color = "white") +
+      labs(title = "Background") +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "none",
+            panel.background = element_rect(fill = "white", color = "black"),
+            plot.background = element_rect(fill = "white", color = NA),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 12,
+                                      face = "bold",
+                                      family = "Arial",
+                                      hjust = 0.5,
+                                      vjust = 0,
+                                      margin = margin(b = 10)))
+
+    distribution_graph_ls <- list("background" = list(ggplotGrob(distribution_graph)))
+
+  }
+
+  return(distribution_graph_ls)
+
+}

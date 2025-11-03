@@ -68,6 +68,7 @@
 #' @importFrom patchwork plot_layout
 #' @importFrom patchwork plot_annotation
 #' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_cols
 #' @importFrom dplyr union
 #' @importFrom dplyr intersect
 #' @importFrom dplyr mutate
@@ -105,5 +106,9 @@
 #' @importFrom stats dist
 #' @importFrom kernlab rbfdot
 #' @importFrom kernlab kernelMatrix
+#' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom SingleCellExperiment colData
+#' @importFrom SingleCellExperiment reducedDim
+#' @importFrom BayesSpace spatialCluster
 
 NULL
