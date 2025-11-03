@@ -143,6 +143,48 @@ setMethod(f = "create_single_gene_spatial_image",
 ####
 
 ####
+#' create single gene distribution map
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+
+setGeneric(name = "create_single_gene_distribution_map",
+           def = function(ich_mouse,gene_ls,image_set_name) {
+
+             standardGeneric("create_single_gene_distribution_map")
+
+           })
+
+#' create single gene distribution map
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+#' @export
+
+setMethod(f = "create_single_gene_distribution_map",
+          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
+          definition = function(ich_mouse,gene_ls,image_set_name) {
+
+            on.exit(gc())
+
+            spatial_image_ls <- ICHMousewch:::.create_gene_distribution_map(seu_meta = ich_mouse@seu_metadata_with_cluster_symbol,
+                                                                            raw_count_matrix = ich_mouse@raw_count_matrix,
+                                                                            filtered_genes = ich_mouse@filtered_genes,
+                                                                            filtered_barcodes = ich_mouse@filtered_barcodes,
+                                                                            diff_expr_gene = ich_mouse@diff_expr_genes$`edge-normal`,
+                                                                            aim_gene = gene_ls)
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = spatial_image_ls)
+
+            return(spatial_image_set)
+
+          })
+####
+
+####
 
 #' show ggplotGrob image
 #'
