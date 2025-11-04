@@ -62,6 +62,7 @@
 #' @importFrom ggplot2 ggplot_build
 #' @importFrom ggplot2 expansion
 #' @importFrom ggplot2 guide_none
+#' @importFrom ggplot2 scale_color_gradientn
 #' @importFrom ggplotify as.ggplot
 #' @importFrom patchwork patchworkGrob
 #' @importFrom patchwork wrap_plots

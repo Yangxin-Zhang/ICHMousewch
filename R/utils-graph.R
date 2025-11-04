@@ -370,6 +370,38 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   on.exit(gc())
 
+  GO_ID_group <- ich_mouse@GO_ID_group
+
+  group_na <- names(GO_ID_group)
+
+  GO_ID_pair <- vector("list",length = length(GO_ID_group))
+  names(GO_ID_pair) <- group_na
+
+  for (i in 1:length(group_na)) {
+
+    id_pair <- combn(GO_ID_group[[group_na[i]]],2) %>%
+      as.data.table()
+
+    pair_da_1 <- data.table(GO_id_x = unlist(id_pair[1]),
+                            GO_id_y = unlist(id_pair[2]),
+                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+    pair_da_2 <- data.table(GO_id_x = unlist(id_pair[2]),
+                            GO_id_y = unlist(id_pair[1]),
+                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+    GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+      rbindlist() %>%
+      list()
+
+  }
+
+  special_blocks <- rbindlist(GO_ID_pair) %>%
+    as.data.frame() %>%
+    mutate(GO_id_x = factor(GO_id_x,levels = unique(GO_id_x)),
+           GO_id_y = factor(GO_id_y,levels = unique(GO_id_y)),
+           GO_id_group = factor(GO_id_group,levels = unique(GO_id_group)))
+
   GO_results <- rbindlist(ich_mouse@GO_cluster$`edge-normal`)
 
   sim_mat <- GO_similarity(go_id = GO_results[,ID],
@@ -400,8 +432,13 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     mutate(GO_id_x = factor(GO_id_x,levels = colnames(sim_mat)),
            GO_id_y = factor(GO_id_y,levels = rownames(sim_mat)))
 
-  sim_heatmap <- ggplot(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
-    geom_tile() +
+  sim_heatmap <- ggplot() +
+    geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+    geom_tile(data = special_blocks,
+              mapping = aes(x = GO_id_x,y = GO_id_y,colour = GO_id_group),
+              fill = "white",
+              alpha = 0,
+              linetype = 1) +
     scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
                          values = c(0,0.75,1),
                          limits = c(0,1)) +
@@ -411,8 +448,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           axis.ticks.x = element_blank(),
-          axis.ticks.y = element_blank(),
-          legend.position = "none")
+          axis.ticks.y = element_blank()) +
+    guides(color = guide_legend(position = "top",
+                                nrow = 2,
+                                theme = theme(legend.text = element_text(size = 12,
+                                                                         family = "Arial",
+                                                                         vjust = 0.5,
+                                                                         hjust = 0),
+                                              legend.title = element_blank(),
+                                              legend.key.size = unit(12,"pt"))),
+           fill = guide_none())
 
   heatmap_ls <- list("GO_heatmap" = ggplotGrob(sim_heatmap))
 
@@ -892,7 +937,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
         geom_point(data = graph_df[color_symbol == 2],
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
                    size = 0.01) +
-        scale_color_gradientn(colors = c("#FFFFFF", "#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
+        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
         labs(title = aim_gene_na) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
@@ -954,5 +999,60 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   }
 
   return(distribution_graph_ls)
+
+}
+
+#' create GO cluster graph combination set
+#'
+#' @param GO_ID_group the GO ID group
+#' @param GO_enrichment the result of GO enrichment
+#' @param seu_meta the Seurat metadata
+#' @param raw_count_matrix the raw count matrix
+#' @param filtered_genes the filtered genes
+#' @param filtered_barcodes the filtered barcodes
+#' @param diff_expr_gene the differential expression genes
+
+.create_GO_cluster_graph_combination_set <- function(GO_ID_group,GO_enrichment,seu_meta,raw_count_matrix,filtered_genes,filtered_barcodes,diff_expr_gene) {
+
+  on.exit(gc())
+
+  sub_GO_enri <- GO_enrichment[ID %in% GO_ID_group]
+
+  gene_ls <- vector("list",length = length(GO_ID_group))
+  names(gene_ls) <- GO_ID_group
+
+  for (i in 1:length(GO_ID_group)) {
+
+    genes <- sub_GO_enri[ID == GO_ID_group[i],geneID] %>%
+      strsplit(split = "/")
+    gene_ls[GO_ID_group[i]] <- genes
+
+  }
+
+  aim_genes <- gene_ls %>%
+    unlist() %>%
+    unique()
+
+  gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(seu_meta = seu_meta,
+                                                                       raw_count_matrix = raw_count_matrix,
+                                                                       filtered_genes = filtered_genes,
+                                                                       filtered_barcodes = filtered_barcodes,
+                                                                       diff_expr_gene = diff_expr_gene,
+                                                                       aim_gene = aim_genes)
+
+}
+
+#' create Venn Diagram
+#'
+#' @param data_list the data list for Venn Diagram
+
+.create_Venn_Diagram <- function(data_list) {
+
+  on.exit(gc())
+
+  venn_plot <- venn.diagram(x = data_list,
+                            filename = NULL)
+
+  return(venn_plot)
 
 }

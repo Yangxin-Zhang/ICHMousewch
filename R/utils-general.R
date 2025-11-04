@@ -762,3 +762,73 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   return(umap_plot_ls)
 
 }
+
+#' generate GO term gene contained matrix
+#'
+#' @param GO_ID_group the GO terms
+#' @param GO_enrichment the result of GO enrichment
+
+.generate_GO_term_gene_contained_matrix <- function(GO_ID_group,GO_enrichment) {
+
+  on.exit(gc())
+
+  sub_GO_enri <- GO_enrichment[ID %in% GO_ID_group]
+
+  gene_ls <- vector("list",length = length(GO_ID_group))
+  names(gene_ls) <- GO_ID_group
+  for (i in 1:length(GO_ID_group)) {
+
+    genes <- sub_GO_enri[ID == GO_ID_group[i],geneID] %>%
+      strsplit(split = "/")
+    gene_ls[GO_ID_group[i]] <- genes
+
+  }
+
+  contained_matrix <- vector("list",length = length(GO_ID_group))
+  names(contained_matrix) <- GO_ID_group
+  for (i in 1:length(GO_ID_group)) {
+
+    con_vec <- vector("integer",length = length(GO_ID_group))
+    names(con_vec) <- GO_ID_group
+    for (j in 1:length(GO_ID_group)) {
+
+      num <- sum(!gene_ls[[GO_ID_group[i]]] %in% gene_ls[[GO_ID_group[j]]])
+
+      con_vec[GO_ID_group[j]] <- num
+
+    }
+
+    contained_matrix[GO_ID_group[i]] <- list(con_vec)
+
+  }
+
+  contained_matrix <- as.data.frame(contained_matrix)
+
+  return(contained_matrix)
+
+}
+
+#' filter GO term based on contained matrix
+#'
+#' @param GO_ID_group the GO terms
+#' @param GO_enrichment the result of GO enrichment
+
+.filter_GO_term_based_on_contained_matrix <- function(GO_ID_group,GO_enrichment) {
+
+  on.exit(gc())
+
+  contained_matrix <- ICHMousewch:::.generate_GO_term_gene_contained_matrix(GO_ID_group = GO_ID_group,
+                                                                            GO_enrichment = GO_enrichment)
+
+  zero_symbol <- which(contained_matrix == 0,arr.ind = TRUE) %>%
+    as.data.table()
+
+  zero_symbol <- zero_symbol[!row == col]
+
+  de <- GO_ID_group[unique(zero_symbol[,col])]
+
+  sa <- GO_ID_group[!GO_ID_group %in% de]
+
+  return(GO_enrichment[ID %in% sa])
+
+}
