@@ -422,6 +422,65 @@ setMethod(f = "Save_ICHMouse",
 ####
 
 ####
+#' save Plotting_Dataset
+#' @param Class_ICHMouse the class of ICHMouse
+#' @param saving_path the path for saving
+#' @param data_symbol the saving symbol
+#' @export
+
+setMethod(f = "Save_ICHMouse",
+          signature = signature(Class_ICHMouse = "Plotting_Dataset"),
+          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+
+            on.exit(gc())
+
+            if (is.null(saving_path)) {
+
+              saving_path <- getwd()
+
+            }
+
+            file_path <- paste(saving_path,"ICHMouse_Database",sep = "/") %>%
+              paste(data_symbol,sep = "/") %>%
+              paste("Graph_Database",sep = "/")
+
+            plotting_dataset <- Class_ICHMouse
+
+            if(!dir.exists(file_path)) {
+
+              dir.create(file_path,recursive = TRUE)
+
+            }
+
+            slot_na <- slotNames(plotting_dataset)
+            for (i in 1:length(slot_na)) {
+
+              image_ls <- slot(plotting_dataset,slot_na[i])
+              image_na_ls <- names(image_ls)
+
+              if (length(image_ls) != 0) {
+
+                for (j in 1:length(image_na_ls)) {
+
+                  da_na <- image_na_ls[j]
+                  da <- image_ls[[da_na]]
+
+                  file_name <- paste(da_na,"rds",sep = ".")
+
+                  saveRDS(object = da,
+                          file = paste(file_path,file_name,sep = "/"),
+                          compress = FALSE)
+
+                }
+
+              }
+
+            }
+
+          })
+####
+
+####
 #' load graph
 #' @param loading_path the path loading data
 #' @param data_symbol the data symbol
@@ -457,7 +516,10 @@ setMethod(f = "load_graph",
 
               file_name <- paste(graph_name[i],"rds",sep = ".")
 
-              graph_ls[graph_name[i]] <- list(readRDS(file = paste(file_path,file_name,sep = "/")))
+              graph_ls[graph_name[i]] <- paste(file_path,file_name,sep = "/") %>%
+                readRDS() %>%
+                as.ggplot() %>%
+                list()
 
             }
 

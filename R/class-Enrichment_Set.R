@@ -82,7 +82,7 @@ setGeneric(name = "add_GO_term_set",
 
 setMethod(f = "add_GO_term_set",
           signature = signature(enrichment_set = "Enrichment_Set",GO_term_set_ls = "list"),
-          definition = function(enrichment_set,GO_term_set_ls,ich_mouse,diff_symbol) {
+          definition = function(enrichment_set,GO_term_set_ls,ich_mouse,diff_symbol = "edge-normal") {
 
             on.exit(gc())
 
@@ -90,52 +90,42 @@ setMethod(f = "add_GO_term_set",
 
             GO_set_name_ls <- names(GO_term_set_ls)
 
-            gene_set_whole <- character()
-            for (i in 1:length(GO_set_name_ls)) {
+            GO_names <- unlist(GO_term_set_ls)
+            gene_set_ls <- vector("list",length = length(GO_names))
+            names(gene_set_ls) <- GO_names
+            for (i in 1:length(GO_names)) {
 
-              GO_set_name <- GO_set_name_ls[i]
-              GO_term_set <- GO_term_set_ls[[GO_set_name]]
+              GO_genes <- GO_results[ID %in% GO_names[i],geneID] %>%
+                strsplit(split = "/")
 
-              sub_GO_results <- GO_results[ID %in% GO_term_set]
+              GO_genes <- GO_genes[[1]]
 
-              gene_set <- character()
-              if (length(GO_term_set) == 1) {
+              GO_genes <- GO_genes[GO_genes %in% ich_mouse@filtered_genes]
 
-                genes <- sub_GO_results[ID %in% GO_term_set,geneID] %>%
-                  strsplit(split = "/")
-
-                genes <- genes[[1]]
-
-                gene_set <- c(gene_set,genes)
-
-                sub_GO_results[ID %in% GO_term_set,gene := list(genes)]
-
-              } else {
-
-                sub_GO_results[,gene := vector("list",length = length(GO_term_set))]
-
-                for (j in 1:length(GO_term_set)) {
-
-                  genes <- sub_GO_results[ID %in% GO_term_set[j],geneID] %>%
-                    strsplit(split = "/")
-
-                  genes <- genes[[1]]
-
-                  gene_set <- c(gene_set,genes)
-
-                  sub_GO_results[ID %in% GO_term_set[j],gene := list(genes)]
-
-                }
-
-              }
-
-              enrichment_set@GO_set[GO_set_name] <- list(sub_GO_results)
-
-              gene_set_whole <- c(gene_set_whole,gene_set)
+              gene_set_ls[GO_names[i]] <- list(GO_genes)
 
             }
 
-            gene_set_whole <- gene_set_whole[!gene_set_whole %in% enrichment_set@gene_information[,gene_name]] %>%
+            sub_GO_results <- vector("list",length = length(GO_set_name_ls))
+            names(sub_GO_results) <- GO_set_name_ls
+            for (i in 1:length(GO_set_name_ls)) {
+
+              go_re <- GO_results[ID %in% GO_term_set_ls[[GO_set_name_ls[i]]]]
+
+              for (j in 1:length(GO_term_set_ls[[GO_set_name_ls[i]]])) {
+
+                go_re[ID == GO_term_set_ls[[GO_set_name_ls[i]]][j], gene := gene_set_ls[GO_term_set_ls[[GO_set_name_ls[i]]][j]]]
+
+              }
+
+              sub_GO_results[GO_set_name_ls[i]] <- list(go_re)
+
+            }
+
+            enrichment_set@GO_set <- sub_GO_results
+
+            gene_set_whole <- gene_set_ls %>%
+              unlist() %>%
               unique()
 
             gene_information <- data.table(gene_name = gene_set_whole,
