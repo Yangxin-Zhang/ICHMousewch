@@ -946,7 +946,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
         geom_point(data = graph_df[color_symbol == 2],
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
                    size = 0.01) +
-        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
+        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
+                              limits = range(graph_df[color_symbol == 2,plotting_gene])) +
         labs(title = aim_gene_na) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
@@ -1063,5 +1064,48 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                             filename = NULL)
 
   return(venn_plot)
+
+}
+
+#' create count distribution map
+#'
+#' @param seu_meta the Seurat metadata
+
+.create_count_distribution_map <- function(seu_meta) {
+
+  on.exit(gc())
+
+  seu_meta[,plot_row := -row]
+  seu_meta[,plot_col := -col]
+
+  count_distribution_map <- ggplot() +
+    geom_point(data = seu_meta,
+               mapping = aes(x = plot_row,y = plot_col,color = nCount_log2),
+               size = 0.01) +
+    scale_color_gradientn(colors = c("#0D0887", "#3F007D", "#6A00A8", "#B12A90", "#E16462", "#FCA636", "#F0F921"),
+                          limits = range(seu_meta[,nCount_log2])) +
+    labs(title = "log2Count") +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "right",
+          legend.title = element_blank(),
+          legend.text = element_text(size = 8,
+                                     family = "Arial"),
+          panel.background = element_rect(fill = "white", color = "black"),
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 12,
+                                    face = "bold",
+                                    family = "Arial",
+                                    hjust = 0.5,
+                                    vjust = 0,
+                                    margin = margin(b = 10)))
+
+  return(count_distribution_map)
 
 }

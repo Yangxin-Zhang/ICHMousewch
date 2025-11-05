@@ -379,6 +379,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
                                                                                   self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
                                                                                   giotto_instruction = ich_mouse@giotto_instruction[[1]])
 
+  log2Count <- ICHMousewch:::.create_count_distribution_map(seu_meta = ich_mouse@seu_metadata_with_cluster_symbol)
+
   find_hematoma <- GMM_cluster + Louvain_cluster_posi +
     plot_layout(ncol = 2) +
     plot_annotation(title = "Normal-Hematoma",
@@ -396,7 +398,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   plotting_list <- list("Normal-Hematoma" = patchworkGrob(find_hematoma),
                         "Center-Edge" = patchworkGrob(find_center_edge),
-                        "Hematoma" = patchworkGrob(hematoma))
+                        "Hematoma" = patchworkGrob(hematoma),
+                        "log2Count" = ggplotGrob(log2Count))
 
   return(plotting_list)
 
