@@ -4,11 +4,13 @@
 \alias{Load_ICHMouse,ANY-method}
 \title{load Hematoma}
 \usage{
-\S4method{Load_ICHMouse}{ANY}(data_symbol = "ich_mouse", loading_path = NULL)
+\S4method{Load_ICHMouse}{ANY}(class_symbol, data_symbol = "ich_mouse", loading_path = NULL)
 
-\S4method{Load_ICHMouse}{ANY}(data_symbol = "ich_mouse", loading_path = NULL)
+\S4method{Load_ICHMouse}{ANY}(class_symbol, data_symbol = "ich_mouse", loading_path = NULL)
 }
 \arguments{
+\item{class_symbol}{the class type}
+
 \item{data_symbol}{the data symbol}
 
 \item{loading_path}{the path loading data}

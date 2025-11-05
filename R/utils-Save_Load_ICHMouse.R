@@ -17,9 +17,10 @@ setGeneric(name = "Save_ICHMouse",
 #'
 #' @param loading_path the path saving data
 #' @param data_symbol the data symbol
+#' @param class_symbol the class type
 
 setGeneric(name = "Load_ICHMouse",
-           def = function(data_symbol = "ich_mouse",loading_path = NULL) {
+           def = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
 
              standardGeneric("Load_ICHMouse")
 
@@ -88,10 +89,11 @@ setMethod(f = "Save_ICHMouse",
 #'
 #' @param loading_path the path loading data
 #' @param data_symbol the data symbol
+#' @param class_symbol the class type
 #' @export
 
 setMethod(f = "Load_ICHMouse",
-          definition = function(data_symbol = "ich_mouse",loading_path = NULL) {
+          definition = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
 
             on.exit(gc())
 
@@ -101,9 +103,11 @@ setMethod(f = "Load_ICHMouse",
 
             }
 
+            class_type <- paste("Class",class_symbol,sep = "-")
+
             file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
               paste(data_symbol,sep = "/") %>%
-              paste("Class-Hematoma",sep = "/")
+              paste(class_type,sep = "/")
 
             hematoma <- new(Class = "Hematoma",
                             analysis_symbol = NULL,
@@ -190,10 +194,11 @@ setMethod(f = "Save_ICHMouse",
 #'
 #' @param loading_path the path loading data
 #' @param data_symbol the data symbol
+#' @param class_symbol the class type
 #' @export
 
 setMethod(f = "Load_ICHMouse",
-          definition = function(data_symbol = "ich_mouse",loading_path = NULL) {
+          definition = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
 
             on.exit(gc())
 
@@ -203,9 +208,11 @@ setMethod(f = "Load_ICHMouse",
 
             }
 
+            class_type <- paste("Class",class_symbol,sep = "-")
+
             file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
               paste(data_symbol,sep = "/") %>%
-              paste("Class-ICH_Mouse",sep = "/")
+              paste(class_type,sep = "/")
 
             ich_mouse <- new(Class = "ICH_Mouse",
                              analysis_symbol = NULL,
@@ -361,5 +368,103 @@ setMethod(f = "export_plotting_dataset",
           })
 ###
 
-###
+####
+
+####
+#' save Spatial_Image
+#' @param Class_ICHMouse the class of ICHMouse
+#' @param saving_path the path for saving
+#' @param data_symbol the saving symbol
+#' @export
+
+setMethod(f = "Save_ICHMouse",
+          signature = signature(Class_ICHMouse = "Spatial_Image"),
+          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+
+            on.exit(gc())
+
+            if (is.null(saving_path)) {
+
+              saving_path <- getwd()
+
+            }
+
+            file_path <- paste(saving_path,"ICHMouse_Database",sep = "/") %>%
+              paste(data_symbol,sep = "/") %>%
+              paste("Graph_Database",sep = "/")
+
+            spatial_image <- Class_ICHMouse
+
+            if(!dir.exists(file_path)) {
+
+              dir.create(file_path,recursive = TRUE)
+
+            }
+
+            image_ls <- spatial_image@spatial_image
+            image_na_ls <- names(image_ls)
+
+            for (i in 1:length(image_na_ls)) {
+
+              da_na <- image_na_ls[i]
+              da <- image_ls[[da_na]]
+
+              file_name <- paste(da_na,"rds",sep = ".")
+
+              saveRDS(object = da,
+                      file = paste(file_path,file_name,sep = "/"),
+                      compress = FALSE)
+
+            }
+
+          })
+
+####
+
+####
+#' load graph
+#' @param loading_path the path loading data
+#' @param data_symbol the data symbol
+#' @param graph_name the name of the graph
+
+setGeneric(name = "load_graph",
+           def = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL) {
+
+             standardGeneric("load_graph")
+
+           })
+
+setMethod(f = "load_graph",
+          definition = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL) {
+
+            on.exit(gc())
+
+            if (is.null(loading_path)) {
+
+              loading_path <- getwd()
+
+            }
+
+            file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
+              paste(data_symbol,sep = "/") %>%
+              paste("Graph_Database",sep = "/")
+
+            graph_database <- new(Class = "Graph_Database")
+
+            graph_ls <- vector("list",length = length(graph_name))
+            names(graph_ls) <- graph_name
+            for (i in 1:length(graph_name)) {
+
+              file_name <- paste(graph_name[i],"rds",sep = ".")
+
+              graph_ls[graph_name[i]] <- list(readRDS(file = paste(file_path,file_name,sep = "/")))
+
+            }
+
+            graph_database@graph_database <- graph_ls
+
+            return(graph_database)
+
+          })
+
 ####

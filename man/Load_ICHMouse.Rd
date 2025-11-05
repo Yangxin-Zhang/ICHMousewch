@@ -4,9 +4,11 @@
 \alias{Load_ICHMouse}
 \title{load ICHMouse data}
 \usage{
-Load_ICHMouse(data_symbol = "ich_mouse", loading_path = NULL)
+Load_ICHMouse(class_symbol, data_symbol = "ich_mouse", loading_path = NULL)
 }
 \arguments{
+\item{class_symbol}{the class type}
+
 \item{data_symbol}{the data symbol}
 
 \item{loading_path}{the path saving data}

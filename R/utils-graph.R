@@ -880,32 +880,37 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     NormalizeData() %>%
     ScaleData(features = diff_expr_gene[avg_log2FC > 1,gene_name])
 
-  normalized_count_matrix <- seu_obj@assays$RNA$data
-
   gene_expr_matrix <- t(seu_obj@assays$RNA$scale.data) %>%
     as.data.frame()
-  gene_expr_matrix <- bind_cols(data.frame(barcode = rownames(gene_expr_matrix),
-                                           color_symbol = 0),
+  gene_expr_matrix <- bind_cols(data.frame(barcode = rownames(gene_expr_matrix)),
                                 gene_expr_matrix) %>%
     as.data.table()
 
   graph_df <- merge(seu_meta,gene_expr_matrix,by = "barcode")
 
+  initialize_color_symbol <- function(background_genes,filtered_count_matrix,graph_df) {
 
-  if (length(background_genes) == 1) {
+    graph_df[,color_symbol := 0]
 
-    background_df <- data.frame(background_genes_name = normalized_count_matrix[background_genes,])
+    if (length(background_genes) == 1) {
 
-  } else {
+      background_df <- data.frame(background_genes_name = filtered_count_matrix[background_genes,])
 
-    background_df <- normalized_count_matrix[background_genes,] %>%
-      as.data.frame() %>%
-      t()
+    } else {
+
+      background_df <- filtered_count_matrix[background_genes,] %>%
+        as.data.frame() %>%
+        t()
+
+    }
+
+    graph_df[,background_count := Matrix::rowSums(background_df != 0)]
+    graph_df[background_count != 0,color_symbol := 1]
+
+    return(graph_df)
 
   }
 
-  graph_df[,background_count := Matrix::rowSums(background_df != 0)]
-  graph_df[background_count != 0,color_symbol := 1]
 
   if (length(aim_gene) != 0) {
 
@@ -914,9 +919,13 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
     for (i in 1:length(aim_gene)) {
 
+      graph_df <- initialize_color_symbol(background_genes = background_genes,
+                                          filtered_count_matrix = filtered_count_matrix,
+                                          graph_df = graph_df)
+
       aim_gene_na <- aim_gene[i]
 
-      aim_gene_df <- data.frame(aim_gene_name = normalized_count_matrix[aim_gene_na,])
+      aim_gene_df <- data.frame(aim_gene_name = filtered_count_matrix[aim_gene_na,])
 
       aim_gene_scale_data <- graph_df[,..aim_gene_na]
       graph_df[,plotting_gene := aim_gene_scale_data]
