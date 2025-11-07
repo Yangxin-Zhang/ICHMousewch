@@ -16,9 +16,10 @@ setClass(Class = "Graph_Database",
 #' @param graph_database the class of graph database
 #' @param plot_name_ls the plot for combination
 #' @param combination_num the number to combination
+#' @param graph_name the graph name
 
 setGeneric(name = "combine_plots",
-           def = function(graph_database,plot_name_ls,combination_num = 2) {
+           def = function(graph_database,plot_name_ls,combination_num = 2,graph_name = character()) {
 
              standardGeneric("combine_plots")
 
@@ -29,10 +30,11 @@ setGeneric(name = "combine_plots",
 #' @param graph_database the class of graph database
 #' @param plot_name_ls the plot for combination
 #' @param combination_num the number to combination
+#' @param graph_name the graph name
 
 setMethod(f = "combine_plots",
           signature = signature(graph_database = "Graph_Database"),
-          definition = function(graph_database,plot_name_ls,combination_num = 2) {
+          definition = function(graph_database,plot_name_ls,combination_num = 2,graph_name = character()) {
 
             on.exit()
 
@@ -44,10 +46,6 @@ setMethod(f = "combine_plots",
               plot_name_com <- paste(plot_name_ls,collapse = "-")
 
               com_plot <- plot_1 + plot_2
-
-              graph_database@combined_graph[plot_name_com] <- com_plot %>%
-                patchworkGrob() %>%
-                list()
 
             }
 
@@ -62,11 +60,24 @@ setMethod(f = "combine_plots",
 
               com_plot <- (plot_1 | plot_2) / (plot_3 | plot_4)
 
-              graph_database@combined_graph[plot_name_com] <- com_plot %>%
-                patchworkGrob() %>%
-                list()
+            }
+
+            if (length(graph_name) != 0) {
+
+              com_plot <- com_plot +
+                plot_annotation(title = graph_name,
+                                theme = theme(plot.title = element_text(size = 16,
+                                                                        face = "bold",
+                                                                        family = "Arial",
+                                                                        hjust = 0.5
+                                                                        ,vjust = 0.5,
+                                                                        margin = margin(b = 1,t = 30))))
 
             }
+
+            graph_database@combined_graph[plot_name_com] <- com_plot %>%
+              patchworkGrob() %>%
+              list()
 
             return(graph_database)
 
