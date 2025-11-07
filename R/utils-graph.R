@@ -520,8 +520,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 .plotting_theme <- function() {
 
   theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
-        axis.text.x = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
-        axis.text.y = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5,vjust = 0.5),
+        axis.text.x = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5),
+        axis.text.y = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5),
         axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
         axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
         legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),

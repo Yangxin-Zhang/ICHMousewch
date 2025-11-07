@@ -4,7 +4,12 @@
 \alias{combine_plots,Graph_Database-method}
 \title{combine plots}
 \usage{
-\S4method{combine_plots}{Graph_Database}(graph_database, plot_name_ls, combination_num = 2)
+\S4method{combine_plots}{Graph_Database}(
+  graph_database,
+  plot_name_ls,
+  combination_num = 2,
+  graph_name = character()
+)
 }
 \arguments{
 \item{graph_database}{the class of graph database}
@@ -12,6 +17,8 @@
 \item{plot_name_ls}{the plot for combination}
 
 \item{combination_num}{the number to combination}
+
+\item{graph_name}{the graph name}
 }
 \description{
 combine plots

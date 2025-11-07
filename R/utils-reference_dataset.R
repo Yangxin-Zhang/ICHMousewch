@@ -520,3 +520,58 @@
 
 }
 
+#' create public plotting dataset
+
+.create_public_reference_plotting_dataset <- function() {
+
+  on.exit(gc())
+
+  ref_da <- celldex::MouseRNAseqData()
+
+  ref_mat <- SummarizedExperiment::assay(ref_da) %>%
+    t() %>%
+    as.data.frame()
+
+  mouse_cell_type <- SummarizedExperiment::colData(ref_da)$label.fine %>%
+    unique()
+
+  avg_gene_na <- paste("avg",colnames(ref_mat),sep = "-")
+  names(avg_gene_na) <- colnames(ref_mat)
+
+  da_sym_ord <- match(rownames(ref_mat),rownames(colData(ref_da)))
+  ref_plotting_da <- bind_cols(data.frame(dataset_symbol = rownames(ref_mat),
+                                          cell_type = colData(ref_da)[da_sym_ord,"label.fine"]),
+                               ref_mat) %>%
+    as.data.table()
+
+  avg_da_ls <- vector("list",length = length(mouse_cell_type))
+  names(avg_da_ls) <- mouse_cell_type
+  for (i in 1:length(mouse_cell_type)) {
+
+    gene_na <- colnames(ref_mat)
+
+    cell_type_da <- ref_plotting_da[cell_type == mouse_cell_type[i],..gene_na]
+
+    cell_type_avg_da <- colMeans(cell_type_da)
+
+    cell_type_avg_da <- cell_type_avg_da %>%
+      rep(nrow(ref_plotting_da[cell_type == mouse_cell_type[i]])) %>%
+      matrix(nrow = nrow(ref_plotting_da[cell_type == mouse_cell_type[i]]),
+             byrow = TRUE)
+
+    colnames(cell_type_avg_da) <- avg_gene_na
+    rownames(cell_type_avg_da) <- ref_plotting_da[cell_type == mouse_cell_type[i],dataset_symbol]
+    avg_da_ls[mouse_cell_type[i]] <- list(as.data.frame(cell_type_avg_da))
+
+  }
+
+  avg_da <- bind_rows(avg_da_ls)
+
+  avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                      avg_da) %>%
+    as.data.table()
+
+  ref_plotting_da <- merge(ref_plotting_da,avg_da,by = "dataset_symbol")
+
+
+}
