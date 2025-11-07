@@ -484,7 +484,10 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_x_continuous(breaks = para_ncount[["x_tick"]]) +
     coord_cartesian(xlim = para_ncount[["x_width"]],
                     ylim = para_ncount[["y_high"]]) +
-    ICHMousewch:::.plotting_theme()
+    labs(title = plotting_title) +
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank())
 
   para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2],bins = para_ncount[["bins"]],reso = reso)
   barchart_nfeature <- ggplot(data = seu_metadata,mapping = aes(x = nFeature_log2))+
@@ -496,14 +499,19 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_x_continuous(breaks = para_nfeature[["x_tick"]]) +
     coord_cartesian(xlim = para_nfeature[["x_width"]],
                     ylim = para_nfeature[["y_high"]]) +
-    ICHMousewch:::.plotting_theme()
+    labs(title = plotting_title) +
+    ICHMousewch:::.plotting_theme() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank())
 
-  barchart <- barchart_ncount + barchart_nfeature +
-    plot_layout(ncol = 2) +
-    plot_annotation(title = plotting_title,
-                    theme = ICHMousewch:::.plotting_theme())
+  ncount_na <- paste("Barchart_Count",plotting_title,sep = "-")
+  nfeature_na <- paste("Barchart_Feature",plotting_title,sep = "-")
 
-  return(patchworkGrob(barchart))
+  barchart_ls <- list()
+  barchart_ls[ncount_na] <- list(ggplotGrob(barchart_ncount))
+  barchart_ls[nfeature_na] <- list(ggplotGrob(barchart_nfeature))
+
+  return(barchart_ls)
 
 }
 
@@ -865,7 +873,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param background_genes the background genes for graph
 #' @param aim_gene the aim gene for plotting
 
-.create_gene_distribution_map <- function(seu_meta,raw_count_matrix,filtered_genes,filtered_barcodes,diff_expr_gene,aim_gene = character(),background_genes = c("Hbb-bt","Hbb-bs","Hba-a2")) {
+.create_gene_distribution_map <- function(seu_meta,raw_count_matrix,filtered_genes,filtered_barcodes,diff_expr_gene,aim_gene = character(),background_genes = c("Hbb-bt","Hbb-bs","Hba-a2"),point_size = 0.0001) {
 
   on.exit(gc())
 
@@ -937,17 +945,18 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
       distribution_graph <- ggplot() +
         geom_point(data = graph_df[color_symbol == 0],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                   size = 0.01,
+                   size = point_size,
                    color = "gray90") +
         geom_point(data = graph_df[color_symbol == 1],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                   size = 0.01,
+                   size = point_size,
                    color = "white") +
         geom_point(data = graph_df[color_symbol == 2],
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
-                   size = 0.01) +
+                   size = point_size) +
         scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
                               limits = range(graph_df[color_symbol == 2,plotting_gene])) +
+        coord_fixed() +
         labs(title = aim_gene_na) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
@@ -1071,7 +1080,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #'
 #' @param seu_meta the Seurat metadata
 
-.create_count_distribution_map <- function(seu_meta) {
+.create_count_distribution_map <- function(seu_meta,point_size = 0.01) {
 
   on.exit(gc())
 
@@ -1081,10 +1090,11 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   count_distribution_map <- ggplot() +
     geom_point(data = seu_meta,
                mapping = aes(x = plot_row,y = plot_col,color = nCount_log2),
-               size = 0.01) +
+               size = point_size) +
     scale_color_gradientn(colors = c("#0D0887", "#3F007D", "#6A00A8", "#B12A90", "#E16462", "#FCA636", "#F0F921"),
                           limits = range(seu_meta[,nCount_log2])) +
     labs(title = "log2Count") +
+    coord_fixed() +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.title.x = element_blank(),

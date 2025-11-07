@@ -381,25 +381,12 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   log2Count <- ICHMousewch:::.create_count_distribution_map(seu_meta = ich_mouse@seu_metadata_with_cluster_symbol)
 
-  find_hematoma <- GMM_cluster + Louvain_cluster_posi +
-    plot_layout(ncol = 2) +
-    plot_annotation(title = "Normal-Hematoma",
-                    theme = theme(plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 0.5,margin = margin(b = 10,t = 10))))
-
-  find_center_edge <- Louvain_cluster_filt_gene + hematoma_center_edge +
-    plot_layout(ncol = 2) +
-    plot_annotation(title = "Center-Edge",
-                    theme = theme(plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 0.5,margin = margin(b = 10,t = 10))))
-
-  hematoma <- original_hematoma + hematoma_center_edge +
-    plot_layout(ncol = 2) +
-    plot_annotation(title = "Hematoma",
-                    theme = theme(plot.title = element_text(size = 16,face = "bold",family = "Arial",hjust = 0.5,vjust = 0.5,margin = margin(b = 10,t = 10))))
-
-  plotting_list <- list("Normal-Hematoma" = patchworkGrob(find_hematoma),
-                        "Center-Edge" = patchworkGrob(find_center_edge),
-                        "Hematoma" = patchworkGrob(hematoma),
-                        "log2Count" = ggplotGrob(log2Count))
+  plotting_list <- list("log2Count" = ggplotGrob(log2Count),
+                        "GMM_cluster" = ggplotGrob(GMM_cluster),
+                        "Louvain_cluster_posi" = ggplotGrob(Louvain_cluster_posi),
+                        "original_hematoma" = ggplotGrob(original_hematoma),
+                        "Louvain_cluster_filt_gene" = ggplotGrob(Louvain_cluster_filt_gene),
+                        "hematoma_center_edge" = ggplotGrob(hematoma_center_edge))
 
   return(plotting_list)
 
@@ -559,17 +546,15 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   seu_metadata_hematoma <- ich_mouse@seu_metadata_with_cluster_symbol[hematoma_symbol == 2]
 
   barchart_ori <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata,
-                                                                  plotting_title = "nCount-nFeature-Origin")
+                                                                  plotting_title = "Origin")
 
   barchart_normal <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_normal,
-                                                                     plotting_title = "nCount-nFeature-Normal")
+                                                                     plotting_title = "Normal")
   barchart_hematoma <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_hematoma,
-                                                                       plotting_title = "nCount-nFeature-Hematoma",
-                                                                       reso = 0.1)
+                                                                       plotting_title = "Hematoma",
+                                                                       reso = 0.4)
 
-  barchart <- list("barchart_ori" = barchart_ori,
-                   "barchart_normal" = barchart_normal,
-                   "barchart_hematoma" = barchart_hematoma)
+  barchart <- c(barchart_ori,barchart_normal,barchart_hematoma)
 
   return(barchart)
 

@@ -11,5 +11,7 @@ the class of Graph_Database
 
 \describe{
 \item{\code{graph_database}}{the graph database}
+
+\item{\code{combined_graph}}{the combined graph}
 }}
 

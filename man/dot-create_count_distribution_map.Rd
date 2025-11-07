@@ -4,7 +4,7 @@
 \alias{.create_count_distribution_map}
 \title{create count distribution map}
 \usage{
-.create_count_distribution_map(seu_meta)
+.create_count_distribution_map(seu_meta, point_size = 0.01)
 }
 \arguments{
 \item{seu_meta}{the Seurat metadata}

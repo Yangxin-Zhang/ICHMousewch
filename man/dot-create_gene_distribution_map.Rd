@@ -11,7 +11,8 @@
   filtered_barcodes,
   diff_expr_gene,
   aim_gene = character(),
-  background_genes = c("Hbb-bt", "Hbb-bs", "Hba-a2")
+  background_genes = c("Hbb-bt", "Hbb-bs", "Hba-a2"),
+  point_size = 1e-04
 )
 }
 \arguments{

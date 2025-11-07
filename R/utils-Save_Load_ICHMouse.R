@@ -530,3 +530,115 @@ setMethod(f = "load_graph",
           })
 
 ####
+
+####
+#' save Graph_Database
+#' @param Class_ICHMouse the class of ICHMouse
+#' @param saving_path the path for saving
+#' @param data_symbol the saving symbol
+#' @export
+
+setMethod(f = "Save_ICHMouse",
+          signature = signature(Class_ICHMouse = "Graph_Database"),
+          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+
+            on.exit(gc())
+
+            if (is.null(saving_path)) {
+
+              saving_path <- getwd()
+
+            }
+
+            file_path <- paste(saving_path,"ICHMouse_Database",sep = "/") %>%
+              paste(data_symbol,sep = "/") %>%
+              paste("Graph_Database",sep = "/")
+
+            graph_database <- Class_ICHMouse
+
+            if(!dir.exists(file_path)) {
+
+              dir.create(file_path,recursive = TRUE)
+
+            }
+
+            slot_na <- slotNames(graph_database)
+            for (i in 1:length(slot_na)) {
+
+              image_ls <- slot(graph_database,slot_na[i])
+              image_na_ls <- names(image_ls)
+
+              if (length(image_ls) != 0) {
+
+                for (j in 1:length(image_na_ls)) {
+
+                  da_na <- image_na_ls[j]
+                  da <- image_ls[[da_na]]
+
+                  file_name <- paste(da_na,"rds",sep = ".")
+
+                  saveRDS(object = da,
+                          file = paste(file_path,file_name,sep = "/"),
+                          compress = FALSE)
+
+                }
+
+              }
+
+            }
+
+          })
+
+####
+
+####
+#' export graph database
+#'
+#' @param plotting_dataset the Graph_Database class
+#' @param saving_path the path for saving Spatial_Image
+#' @export
+
+setMethod(f = "export_plotting_dataset",
+          signature = signature(plotting_dataset = "Graph_Database",saving_path = "character"),
+          definition = function(plotting_dataset,saving_path) {
+
+            on.exit(gc())
+
+            saving_directory <- paste(saving_path,"Combined_Graph_Database",sep = "/")
+
+            if(!dir.exists(saving_directory)) {
+
+              dir.create(saving_directory,recursive = TRUE)
+
+            }
+
+            slot_na <- "combined_graph"
+            slot_da <- slot(plotting_dataset,slot_na)
+
+            if (length(slot_da) != 0) {
+
+              plot_na <- names(slot_da)
+
+              slot_da_path <- saving_directory
+
+              dir.create(slot_da_path,recursive = FALSE)
+
+              for (j in 1:length(plot_na)) {
+
+                saving_plotting <- as.ggplot(slot_da[[plot_na[j]]])
+
+                ggsave(filename = paste(plot_na[j],"png",sep = "."),
+                       plot = saving_plotting,
+                       device = "png",
+                       path = slot_da_path,
+                       dpi = 600,
+                       width = (297/25.4),
+                       height = (210/25.4),
+                       unit = "in")
+
+              }
+
+            }
+
+          })
+####
