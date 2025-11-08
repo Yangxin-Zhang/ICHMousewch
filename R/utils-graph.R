@@ -51,7 +51,7 @@
     }
 
     theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",
-                                                                size = 16,
+                                                                size = 12,
                                                                 color = "black",
                                                                 face = "bold",
                                                                 hjust = 0.5,
