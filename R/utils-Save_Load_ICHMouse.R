@@ -493,6 +493,10 @@ setGeneric(name = "load_graph",
 
            })
 
+#'load to Graph_Database
+#'
+#' @export
+
 setMethod(f = "load_graph",
           definition = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL) {
 

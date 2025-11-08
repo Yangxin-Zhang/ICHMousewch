@@ -510,11 +510,14 @@
   mouse_cell_variable_genes <- ICHMousewch:::.variable_genes(reference_dataset = integrated_mouse_RNA_seq_dataset)
   mouse_immune_cell_variable_genes <- ICHMousewch:::.variable_genes(reference_dataset = integrated_immune_mouse_RNA_seq_dataset)
 
+  mouse_cell_plotting_dataset <- ICHMousewch:::.create_public_reference_plotting_dataset_mouse_cell()
+
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,
                     integrated_immune_mouse_RNA_seq_dataset,
                     mouse_cell_variable_genes,
                     mouse_immune_cell_variable_genes,
+                    mouse_cell_plotting_dataset,
                     overwrite = TRUE,
                     internal = FALSE)
 
@@ -522,7 +525,7 @@
 
 #' create public plotting dataset
 
-.create_public_reference_plotting_dataset <- function() {
+.create_public_reference_plotting_dataset_mouse_cell <- function() {
 
   on.exit(gc())
 
@@ -573,5 +576,6 @@
 
   ref_plotting_da <- merge(ref_plotting_da,avg_da,by = "dataset_symbol")
 
+  return(ref_plotting_da)
 
 }

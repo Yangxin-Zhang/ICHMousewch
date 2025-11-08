@@ -1119,3 +1119,105 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   return(count_distribution_map)
 
 }
+
+#' create the barchart of the mouse cell reference dataset
+#'
+#' @param gene_ls the gene list for the barchart
+
+.create_the_barchart_of_the_mouse_cell_reference_dataset <- function(gene_ls) {
+
+  on.exit(gc())
+
+  reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+
+  gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
+
+  cell_type_color <- qualitative_hcl(length(unique(reference_dataset[,cell_type])), palette = "Dark 3")
+  names(cell_type_color) <- unique(reference_dataset[,cell_type])
+
+  barchart_ls <- vector("list",length = length(gene_ls))
+  names(barchart_ls) <- paste(gene_ls,"mouse_cell",sep = "-")
+  for (i in 1:length(gene_ls)) {
+
+    aim_gene_na <- gene_ls[i]
+    avg_aim_gene_na <- paste("avg",aim_gene_na,sep = "-")
+
+    orig_da_col <- c("cell_type",aim_gene_na,avg_aim_gene_na)
+    orig_da <- reference_dataset[,..orig_da_col]
+
+    aim_gene_da <- orig_da[,..aim_gene_na] %>%
+      unlist()
+    avg_aim_gene_da <- orig_da[,..avg_aim_gene_na] %>%
+      unlist()
+
+    adj_da <- data.table(cell_type = orig_da[,cell_type],
+                         aim_gene = aim_gene_da,
+                         avg_aim_gene = avg_aim_gene_da)
+
+    plot_da <- adj_da[,c("cell_type","avg_aim_gene")] %>%
+      unique() %>%
+      setorder(-avg_aim_gene) %>%
+      as.data.frame() %>%
+      mutate(cell_type = factor(cell_type,levels = cell_type))
+
+    cell_type_num <- seq(from = 1,
+                         to = 20,
+                         by = 1)
+
+    plotting_cell_type <- plot_da$cell_type[cell_type_num]
+
+    barchart <- ggplot() +
+      geom_col(data = plot_da[cell_type_num,],
+               mapping = aes(x = cell_type,y = avg_aim_gene,
+                             colour = cell_type,
+                             fill = cell_type),
+               width = 0.8,
+               alpha = 0.2) +
+      geom_point(data = adj_da[cell_type %in% plotting_cell_type],
+                 mapping = aes(x = cell_type,
+                               y = aim_gene,
+                               colour = cell_type),
+                 position = position_jitter(width = 0.3,
+                                            seed = 2025),
+                 size = 1,
+                 shape = 24,
+                 fill = NA)  +
+      geom_boxplot(data = adj_da[cell_type %in% plotting_cell_type],
+                   mapping = aes(x = cell_type,
+                                 y = aim_gene,
+                                 colour = cell_type),
+                   width = 0.3,
+                   fill = NA,
+                   outlier.shape = NA,
+                   linewidth = 0.8) +
+      scale_colour_manual(values = cell_type_color) +
+      scale_fill_manual(values = cell_type_color) +
+      labs(title = gene_ls[i]) +
+      ICHMousewch:::.plotting_theme() +
+      theme(panel.background = element_rect(fill = "white", color = "black"),
+            plot.background = element_rect(fill = "white", color = NA),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.position = "none",
+            axis.title.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.text.y = element_text(family = "Arial",
+                                       size = 8,
+                                       color = "black",
+                                       hjust = 1),
+            axis.text.x = element_text(family = "Arial",
+                                       size = 8,
+                                       color = "black",
+                                       hjust = 1,
+                                       angle = 30),
+            plot.margin = margin(l = 1,
+                                 unit = "cm"))
+
+    barchart_na <- paste(gene_ls[i],"mouse_cell",sep = "-")
+    barchart_ls[barchart_na] <- list(ggplotGrob(barchart))
+
+  }
+
+  return(barchart_ls)
+
+}

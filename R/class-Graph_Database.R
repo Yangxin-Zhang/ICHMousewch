@@ -11,6 +11,18 @@ setClass(Class = "Graph_Database",
          slots = c(graph_database = "list",
                    combined_graph = "list"))
 
+#' create empty Graph_Database
+#'
+#'@export
+
+Graph_Database <- function(){
+
+  graph_database <- new(Class = "Graph_Database")
+
+  return(graph_database)
+
+}
+
 #' combine plots
 #'
 #' @param graph_database the class of graph database
@@ -37,6 +49,12 @@ setMethod(f = "combine_plots",
           definition = function(graph_database,plot_name_ls,combination_num = 2,graph_name = character()) {
 
             on.exit()
+
+            if (sum(!plot_name_ls %in% names(graph_database@graph_database)) != 0) {
+
+              graph_database <- ICHMousewch::load_graph(graph_name = plot_name_ls)
+
+            }
 
             if (combination_num == 2) {
 

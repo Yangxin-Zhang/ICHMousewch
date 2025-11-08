@@ -185,6 +185,42 @@ setMethod(f = "create_single_gene_distribution_map",
 ####
 
 ####
+#' create single gene reference mouse cell barchart
+#'
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+
+setGeneric(name = "create_single_gene_reference_mouse_cell_barchart",
+           def = function(gene_ls,image_set_name) {
+
+             standardGeneric("create_single_gene_reference_mouse_cell_barchart")
+
+           })
+
+#' create single gene reference mouse cell barchart
+#'
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+#' @export
+
+setMethod(f = "create_single_gene_reference_mouse_cell_barchart",
+          signature = signature(gene_ls = "character",image_set_name = "character"),
+          definition = function(gene_ls,image_set_name) {
+
+            on.exit(gc())
+
+            reference_barchart <- ICHMousewch:::.create_the_barchart_of_the_mouse_cell_reference_dataset(gene_ls = gene_ls)
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = reference_barchart)
+
+            return(spatial_image_set)
+
+          })
+
+####
+
+####
 
 #' show ggplotGrob image
 #'
