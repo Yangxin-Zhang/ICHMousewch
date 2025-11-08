@@ -31,7 +31,7 @@ Graph_Database <- function(){
 #' @param graph_name the graph name
 
 setGeneric(name = "combine_plots",
-           def = function(graph_database,plot_name_ls,combination_num = 2,graph_name = character()) {
+           def = function(plot_name_ls,graph_database = ICHMousewch::Graph_Database(),combination_num = 2,graph_name = character()) {
 
              standardGeneric("combine_plots")
 
@@ -46,7 +46,7 @@ setGeneric(name = "combine_plots",
 
 setMethod(f = "combine_plots",
           signature = signature(graph_database = "Graph_Database"),
-          definition = function(graph_database,plot_name_ls,combination_num = 2,graph_name = character()) {
+          definition = function(plot_name_ls,graph_database = ICHMousewch::Graph_Database(),combination_num = 2,graph_name = character()) {
 
             on.exit()
 

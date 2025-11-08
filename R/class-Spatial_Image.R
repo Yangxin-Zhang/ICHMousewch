@@ -150,7 +150,7 @@ setMethod(f = "create_single_gene_spatial_image",
 #' @param image_set_name the name of the image set
 
 setGeneric(name = "create_single_gene_distribution_map",
-           def = function(ich_mouse,gene_ls,image_set_name) {
+           def = function(ich_mouse,gene_ls = character(),image_set_name) {
 
              standardGeneric("create_single_gene_distribution_map")
 
@@ -165,7 +165,7 @@ setGeneric(name = "create_single_gene_distribution_map",
 
 setMethod(f = "create_single_gene_distribution_map",
           signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
-          definition = function(ich_mouse,gene_ls,image_set_name) {
+          definition = function(ich_mouse,gene_ls = character(),image_set_name) {
 
             on.exit(gc())
 

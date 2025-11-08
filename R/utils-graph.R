@@ -898,7 +898,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   initialize_color_symbol <- function(background_genes,filtered_count_matrix,graph_df) {
 
-    graph_df[,color_symbol := 0]
+    graph_df[,color_symbol := "0"]
 
     if (length(background_genes) == 1) {
 
@@ -913,7 +913,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     }
 
     graph_df[,background_count := Matrix::rowSums(background_df != 0)]
-    graph_df[background_count != 0,color_symbol := 1]
+    graph_df[background_count != 0,color_symbol := "1"]
 
     return(graph_df)
 
@@ -940,22 +940,22 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
       graph_df[,aim_gene_count := Matrix::rowSums(aim_gene_df != 0)]
 
-      graph_df[aim_gene_count != 0,color_symbol := 2]
+      graph_df[aim_gene_count != 0,color_symbol := "2"]
 
       distribution_graph <- ggplot() +
-        geom_point(data = graph_df[color_symbol == 0],
+        geom_point(data = graph_df[color_symbol == "0"],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
                    size = point_size,
                    color = "gray90") +
-        geom_point(data = graph_df[color_symbol == 1],
+        geom_point(data = graph_df[color_symbol == "1"],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
                    size = point_size,
                    color = "white") +
-        geom_point(data = graph_df[color_symbol == 2],
+        geom_point(data = graph_df[color_symbol == "2"],
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
                    size = point_size) +
         scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
-                              limits = range(graph_df[color_symbol == 2,plotting_gene])) +
+                              limits = range(graph_df[color_symbol == "2",plotting_gene])) +
         coord_fixed() +
         labs(title = aim_gene_na) +
         theme(axis.text.x = element_blank(),
@@ -985,23 +985,35 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   } else {
 
+    graph_df <- initialize_color_symbol(background_genes = background_genes,
+                                        filtered_count_matrix = filtered_count_matrix,
+                                        graph_df = graph_df)
+
     distribution_graph <- ggplot() +
-      geom_point(data = graph_df[color_symbol == 0],
+      geom_point(data = graph_df[color_symbol == "0"],
                  mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                 size = 0.01,
-                 color = "gray90") +
-      geom_point(data = graph_df[color_symbol == 1],
+                 size = 0.01) +
+      scale_colour_manual(values = c("0" = "grey")) +
+      geom_point(data = graph_df[color_symbol == "1"],
                  mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
                  size = 0.01,
                  color = "white") +
       labs(title = "Background") +
+      coord_fixed() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
-            legend.position = "none",
+            legend.position = "right",
+            legend.title = element_blank(),
+            legend.text = element_text(size = 8,
+                                       family = "Arial",
+                                       color = "white"),
+            legend.key = element_blank(),
+            legend.background = element_blank(),
+            legend.box.background = element_blank(),
             panel.background = element_rect(fill = "white", color = "black"),
             plot.background = element_rect(fill = "white", color = NA),
             panel.grid.major = element_blank(),
@@ -1011,9 +1023,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                       family = "Arial",
                                       hjust = 0.5,
                                       vjust = 0,
-                                      margin = margin(b = 10)))
+                                      margin = margin(b = 10))) +
+      guides(color = guide_legend(override.aes = list(colour = "white")))
 
-    distribution_graph_ls <- list("background" = list(ggplotGrob(distribution_graph)))
+    background_na <- background_genes %>%
+      paste(collapse = "-") %>%
+      paste("background",sep = "_")
+    distribution_graph_ls <- list()
+    distribution_graph_ls[background_na] <- list(ggplotGrob(distribution_graph))
 
   }
 
