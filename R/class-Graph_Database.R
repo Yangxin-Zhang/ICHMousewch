@@ -52,7 +52,8 @@ setMethod(f = "combine_plots",
 
             if (sum(!plot_name_ls %in% names(graph_database@graph_database)) != 0) {
 
-              graph_database <- ICHMousewch::load_graph(graph_name = plot_name_ls)
+              graph_database <- ICHMousewch::load_graph(graph_name = plot_name_ls,
+                                                        graph_database = graph_database)
 
             }
 
@@ -93,9 +94,11 @@ setMethod(f = "combine_plots",
 
             }
 
-            graph_database@combined_graph[plot_name_com] <- com_plot %>%
+            new_com_plot <- com_plot %>%
               patchworkGrob() %>%
               list()
+            names(new_com_plot) <- plot_name_com
+            graph_database@combined_graph <- append(graph_database@combined_graph,new_com_plot)
 
             return(graph_database)
 

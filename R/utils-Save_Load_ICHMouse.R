@@ -485,9 +485,10 @@ setMethod(f = "Save_ICHMouse",
 #' @param loading_path the path loading data
 #' @param data_symbol the data symbol
 #' @param graph_name the name of the graph
+#' @param graph_database the Graph_Database class
 
 setGeneric(name = "load_graph",
-           def = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL) {
+           def = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL,graph_database = ICHMousewch::Graph_Database()) {
 
              standardGeneric("load_graph")
 
@@ -495,10 +496,14 @@ setGeneric(name = "load_graph",
 
 #'load to Graph_Database
 #'
+#' @param loading_path the path loading data
+#' @param data_symbol the data symbol
+#' @param graph_name the name of the graph
+#' @param graph_database the Graph_Database class
 #' @export
 
 setMethod(f = "load_graph",
-          definition = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL) {
+          definition = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL,graph_database = ICHMousewch::Graph_Database()) {
 
             on.exit(gc())
 
@@ -511,8 +516,6 @@ setMethod(f = "load_graph",
             file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
               paste(data_symbol,sep = "/") %>%
               paste("Graph_Database",sep = "/")
-
-            graph_database <- new(Class = "Graph_Database")
 
             graph_ls <- vector("list",length = length(graph_name))
             names(graph_ls) <- graph_name
@@ -527,7 +530,7 @@ setMethod(f = "load_graph",
 
             }
 
-            graph_database@graph_database <- graph_ls
+            graph_database@graph_database <- append(graph_database@graph_database,graph_ls)
 
             return(graph_database)
 
