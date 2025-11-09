@@ -511,13 +511,14 @@
   mouse_immune_cell_variable_genes <- ICHMousewch:::.variable_genes(reference_dataset = integrated_immune_mouse_RNA_seq_dataset)
 
   mouse_cell_plotting_dataset <- ICHMousewch:::.create_public_reference_plotting_dataset_mouse_cell()
-
+  mouse_immune_cell_plotting_dataset <- ICHMousewch:::.create_public_reference_plotting_dataset_mouse_immune_cell()
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,
                     integrated_immune_mouse_RNA_seq_dataset,
                     mouse_cell_variable_genes,
                     mouse_immune_cell_variable_genes,
                     mouse_cell_plotting_dataset,
+                    mouse_immune_cell_plotting_dataset,
                     overwrite = TRUE,
                     internal = FALSE)
 
@@ -528,6 +529,35 @@
 .create_public_reference_plotting_dataset_mouse_cell <- function() {
 
   on.exit(gc())
+
+  cell_type_color <- c("Granulocytes" = "#4E342E",
+                       "Adipocytes" = "#C2185B",
+                       "Cardiomyocytes" = "#0097A7",
+                       "Hepatocytes" = "#CDDC39",
+                       "Endothelial cells" = "#D3622F",
+                       "Erythrocytes" = "#FF8F00",
+                       "B cells" = "#33691E",
+                       "T cells" = "#75D32F",
+                       "NK cells" = "#2FB8D3",
+                       "Ependymal" = "#FDD835",
+                       "Oligodendrocytes" = "#D3A52F",
+                       "NPCs" = "#2F52D3",
+                       "OPCs" = "#669966",
+                       "Monocytes" = "#C0C0C0",
+                       "Dendritic cells" = "#66FFFF",
+                       "Fibroblasts activated" = "#303F9F",
+                       "Fibroblasts" = "#7986CB",
+                       "Fibroblasts senescent" = "#E8EAF6",
+                       "Neurons" = "#512DA8",
+                       "Neurons activated" = "#9575CD",
+                       "Astrocytes" = "#C62828",
+                       "Astrocytes activated" = "#E57373",
+                       "Macrophages" = "#A52FD3",
+                       "Macrophages activated" = "#CE6BFF",
+                       "Microglia" = "#D32F8A",
+                       "Microglia activated" = "#FFBAE1",
+                       "qNSCs" = "#FF9999",
+                       "aNSCs" = "#FFCCCC")
 
   ref_da <- celldex::MouseRNAseqData()
 
@@ -542,6 +572,70 @@
   names(avg_gene_na) <- colnames(ref_mat)
 
   da_sym_ord <- match(rownames(ref_mat),rownames(colData(ref_da)))
+  ref_plotting_da <- bind_cols(data.frame(dataset_symbol = rownames(ref_mat),
+                                          cell_type = colData(ref_da)[da_sym_ord,"label.fine"]),
+                               ref_mat) %>%
+    as.data.table()
+
+  avg_da_ls <- vector("list",length = length(mouse_cell_type))
+  names(avg_da_ls) <- mouse_cell_type
+  for (i in 1:length(mouse_cell_type)) {
+
+    gene_na <- colnames(ref_mat)
+
+    cell_type_da <- ref_plotting_da[cell_type == mouse_cell_type[i],..gene_na]
+
+    cell_type_avg_da <- colMeans(cell_type_da)
+
+    cell_type_avg_da <- cell_type_avg_da %>%
+      rep(nrow(ref_plotting_da[cell_type == mouse_cell_type[i]])) %>%
+      matrix(nrow = nrow(ref_plotting_da[cell_type == mouse_cell_type[i]]),
+             byrow = TRUE)
+
+    colnames(cell_type_avg_da) <- avg_gene_na
+    rownames(cell_type_avg_da) <- ref_plotting_da[cell_type == mouse_cell_type[i],dataset_symbol]
+    avg_da_ls[mouse_cell_type[i]] <- list(as.data.frame(cell_type_avg_da))
+
+  }
+
+  avg_da <- bind_rows(avg_da_ls)
+
+  avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                      avg_da) %>%
+    as.data.table()
+
+  ref_plotting_da <- merge(ref_plotting_da,avg_da,by = "dataset_symbol")
+
+  ref_plotting_da[,cell_color := character()]
+  for (i in 1:length(mouse_cell_type)) {
+
+    ref_plotting_da[cell_type == mouse_cell_type[i],cell_color := cell_type_color[mouse_cell_type[i]]]
+
+  }
+
+  return(ref_plotting_da)
+
+}
+
+#' create public plotting dataset mouse immune cell
+
+.create_public_reference_plotting_dataset_mouse_immune_cell <- function() {
+
+  on.exit(gc())
+
+  ref_da <- celldex::ImmGenData()
+
+  ref_mat <- SummarizedExperiment::assay(ref_da) %>%
+    t() %>%
+    as.data.frame()
+
+  mouse_cell_type <- SummarizedExperiment::colData(ref_da)$label.fine %>%
+    unique()
+
+  avg_gene_na <- paste("avg",colnames(ref_mat),sep = "-")
+  names(avg_gene_na) <- colnames(ref_mat)
+
+  da_sym_ord <- match(rownames(ref_mat),rownames(SummarizedExperiment::colData(ref_da)))
   ref_plotting_da <- bind_cols(data.frame(dataset_symbol = rownames(ref_mat),
                                           cell_type = colData(ref_da)[da_sym_ord,"label.fine"]),
                                ref_mat) %>%

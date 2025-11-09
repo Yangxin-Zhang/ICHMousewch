@@ -4,7 +4,11 @@
 \alias{create_single_gene_distribution_map,ICH_Mouse,character,character-method}
 \title{create single gene distribution map}
 \usage{
-\S4method{create_single_gene_distribution_map}{ICH_Mouse,character,character}(ich_mouse, gene_ls, image_set_name)
+\S4method{create_single_gene_distribution_map}{ICH_Mouse,character,character}(
+  ich_mouse,
+  gene_ls = character(),
+  image_set_name
+)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}

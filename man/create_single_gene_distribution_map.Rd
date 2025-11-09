@@ -4,7 +4,11 @@
 \alias{create_single_gene_distribution_map}
 \title{create single gene distribution map}
 \usage{
-create_single_gene_distribution_map(ich_mouse, gene_ls, image_set_name)
+create_single_gene_distribution_map(
+  ich_mouse,
+  gene_ls = character(),
+  image_set_name
+)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}

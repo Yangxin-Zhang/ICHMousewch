@@ -5,16 +5,16 @@
 \title{combine plots}
 \usage{
 combine_plots(
-  graph_database,
   plot_name_ls,
+  graph_database = ICHMousewch::Graph_Database(),
   combination_num = 2,
   graph_name = character()
 )
 }
 \arguments{
-\item{graph_database}{the class of graph database}
-
 \item{plot_name_ls}{the plot for combination}
+
+\item{graph_database}{the class of graph database}
 
 \item{combination_num}{the number to combination}
 

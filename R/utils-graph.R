@@ -879,6 +879,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   seu_meta <- seu_meta[cell_ID %in% filtered_barcodes]
 
+  aim_gene <- aim_gene[aim_gene %in% filtered_genes]
+
   filtered_count_matrix <- raw_count_matrix[filtered_genes,seu_meta[,cell_ID]]
 
   seu_meta[,plot_row := -row]

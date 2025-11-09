@@ -4,7 +4,21 @@
 \alias{load_graph,ANY-method}
 \title{load to Graph_Database}
 \usage{
-\S4method{load_graph}{ANY}(graph_name, data_symbol = "ich_mouse", loading_path = NULL)
+\S4method{load_graph}{ANY}(
+  graph_name,
+  data_symbol = "ich_mouse",
+  loading_path = NULL,
+  graph_database = ICHMousewch::Graph_Database()
+)
+}
+\arguments{
+\item{graph_name}{the name of the graph}
+
+\item{data_symbol}{the data symbol}
+
+\item{loading_path}{the path loading data}
+
+\item{graph_database}{the Graph_Database class}
 }
 \description{
 load to Graph_Database

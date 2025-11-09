@@ -4,7 +4,12 @@
 \alias{load_graph}
 \title{load graph}
 \usage{
-load_graph(graph_name, data_symbol = "ich_mouse", loading_path = NULL)
+load_graph(
+  graph_name,
+  data_symbol = "ich_mouse",
+  loading_path = NULL,
+  graph_database = ICHMousewch::Graph_Database()
+)
 }
 \arguments{
 \item{graph_name}{the name of the graph}
@@ -12,6 +17,8 @@ load_graph(graph_name, data_symbol = "ich_mouse", loading_path = NULL)
 \item{data_symbol}{the data symbol}
 
 \item{loading_path}{the path loading data}
+
+\item{graph_database}{the Graph_Database class}
 }
 \description{
 load graph
