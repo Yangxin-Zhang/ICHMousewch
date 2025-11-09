@@ -1142,12 +1142,65 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' create the barchart of the mouse cell reference dataset
 #'
 #' @param gene_ls the gene list for the barchart
+#' @param reference_data_symbol the reference data symbol
 
-.create_the_barchart_of_the_mouse_cell_reference_dataset <- function(gene_ls) {
+.create_the_barchart_of_the_mouse_cell_reference_dataset <- function(gene_ls,reference_data_symbol,cell_type_label = "main") {
 
   on.exit(gc())
 
-  reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+  if (reference_data_symbol == "mouse_cell") {
+
+    reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+
+  }
+
+  if (reference_data_symbol == "immune_cell") {
+
+    reference_dataset <- ICHMousewch::mouse_immune_cell_plotting_dataset
+
+    gene_ls_na <- paste("avg",gene_ls,sep = "-")
+
+    if (cell_type_label == "main") {
+
+      reference_dataset[,cell_type := cell_type_main]
+
+      gene_ls_na_main <- paste(gene_ls_na,"main",sep = "_")
+
+      avg_da <- reference_dataset[,..gene_ls_na_main] %>%
+        as.matrix()
+
+      rownames(avg_da) <- reference_dataset[,dataset_symbol]
+      colnames(avg_da) <- gene_ls_na
+
+      avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                          avg_da) %>%
+        as.data.table()
+
+      reference_dataset <- merge(reference_dataset,avg_da,by = "dataset_symbol")
+
+    }
+
+    if (cell_type_label == "fine") {
+
+      reference_dataset[,cell_type := cell_type_fine]
+
+      gene_ls_na_fine <- paste(gene_ls_na,"fine",sep = "_")
+
+      avg_da <- reference_dataset[,..gene_ls_na_fine] %>%
+        as.matrix()
+
+      rownames(avg_da) <- reference_dataset[,dataset_symbol]
+      colnames(avg_da) <- gene_ls_na
+
+      avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                          avg_da) %>%
+        as.data.table()
+
+      reference_dataset <- merge(reference_dataset,avg_da,by = "dataset_symbol")
+
+    }
+
+  }
 
   gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
 
@@ -1238,5 +1291,49 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   }
 
   return(barchart_ls)
+
+}
+
+#' create heatmap of mouse cell reference dataset
+#'
+#' @param gene_ls the gene list for heatmap
+#' @param reference_data_symbol the reference data symbol
+
+.create_heatmap_of_mouse_cell_reference_dataset <- function(gene_ls,reference_data_symbol) {
+
+  on.exit(gc())
+
+  if (reference_data_symbol == "mouse_cell") {
+
+    reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+
+  }
+
+  if (reference_data_symbol == "immune_cell") {
+
+    reference_dataset <- ICHMousewch::mouse_immune_cell_plotting_dataset
+
+  }
+
+  avg_gene_ls <- paste("avg",gene_ls,sep = "-")
+
+  avg_dataset <- unique(reference_data_symbol[cell_type,..avg_gene_ls])
+
+  plotting_dataset <- data.table(cell_type = rep(avg_dataset[,cell_type],times = length(gene_ls)),
+                                 gene_name = rep(gene_ls,each = length(avg_dataset[,cell_type])),
+                                 avg_expression = numeric(length(gene_ls)*length(avg_dataset[,cell_type])))
+
+  for (i in 1:length(gene_ls)) {
+
+    gene_na <- gene_ls[i]
+
+    ce_order <- match(plotting_dataset[gene_name == gene_na,cell_type],avg_dataset[,cell_type])
+
+    plotting_dataset[gene_name == gene_na,avg_expression := avg_dataset[ce_order,..gene_na]]
+
+  }
+
+  reference_heatmap <- ggplot() +
+    geom_tile(data = plotting_dataset,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity))
 
 }

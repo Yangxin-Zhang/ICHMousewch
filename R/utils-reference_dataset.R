@@ -512,6 +512,7 @@
 
   mouse_cell_plotting_dataset <- ICHMousewch:::.create_public_reference_plotting_dataset_mouse_cell()
   mouse_immune_cell_plotting_dataset <- ICHMousewch:::.create_public_reference_plotting_dataset_mouse_immune_cell()
+
   usethis::use_data(gene_id_information,
                     integrated_mouse_RNA_seq_dataset,
                     integrated_immune_mouse_RNA_seq_dataset,
@@ -629,46 +630,86 @@
     t() %>%
     as.data.frame()
 
-  mouse_cell_type <- SummarizedExperiment::colData(ref_da)$label.fine %>%
+  mouse_cell_type_fine <- SummarizedExperiment::colData(ref_da)$label.fine %>%
     unique()
 
-  avg_gene_na <- paste("avg",colnames(ref_mat),sep = "-")
-  names(avg_gene_na) <- colnames(ref_mat)
+  mouse_cell_type_main <- SummarizedExperiment::colData(ref_da)$label.main %>%
+    unique()
+
+  avg_gene_na_fine <- paste("avg",colnames(ref_mat),sep = "-") %>%
+    paste("fine",sep = "_")
+  avg_gene_na_main <- paste("avg",colnames(ref_mat),sep = "-") %>%
+    paste("main",sep = "_")
+  names(avg_gene_na_fine) <- colnames(ref_mat)
+  names(avg_gene_na_main) <- colnames(ref_mat)
 
   da_sym_ord <- match(rownames(ref_mat),rownames(SummarizedExperiment::colData(ref_da)))
   ref_plotting_da <- bind_cols(data.frame(dataset_symbol = rownames(ref_mat),
-                                          cell_type = colData(ref_da)[da_sym_ord,"label.fine"]),
+                                          cell_type_fine = SummarizedExperiment::colData(ref_da)[da_sym_ord,"label.fine"],
+                                          cell_type_main = SummarizedExperiment::colData(ref_da)[da_sym_ord,"label.main"]),
                                ref_mat) %>%
     as.data.table()
 
-  avg_da_ls <- vector("list",length = length(mouse_cell_type))
-  names(avg_da_ls) <- mouse_cell_type
-  for (i in 1:length(mouse_cell_type)) {
+  calculate_avg_da <- function(mouse_cell_type,cell_type_label,ref_mat,ref_plotting_da,avg_gene_na) {
 
-    gene_na <- colnames(ref_mat)
+    on.exit(gc())
 
-    cell_type_da <- ref_plotting_da[cell_type == mouse_cell_type[i],..gene_na]
+    if (cell_type_label == "main") {
 
-    cell_type_avg_da <- colMeans(cell_type_da)
+      ref_plotting_da[,cell_type := cell_type_main]
 
-    cell_type_avg_da <- cell_type_avg_da %>%
-      rep(nrow(ref_plotting_da[cell_type == mouse_cell_type[i]])) %>%
-      matrix(nrow = nrow(ref_plotting_da[cell_type == mouse_cell_type[i]]),
-             byrow = TRUE)
+    }
 
-    colnames(cell_type_avg_da) <- avg_gene_na
-    rownames(cell_type_avg_da) <- ref_plotting_da[cell_type == mouse_cell_type[i],dataset_symbol]
-    avg_da_ls[mouse_cell_type[i]] <- list(as.data.frame(cell_type_avg_da))
+    if (cell_type_label == "fine") {
+
+      ref_plotting_da[,cell_type := cell_type_fine]
+
+    }
+
+    avg_da_ls <- vector("list",length = length(mouse_cell_type))
+    names(avg_da_ls) <- mouse_cell_type
+    for (i in 1:length(mouse_cell_type)) {
+
+      gene_na <- colnames(ref_mat)
+
+      cell_type_da <- ref_plotting_da[cell_type == mouse_cell_type[i],..gene_na]
+
+      cell_type_avg_da <- colMeans(cell_type_da)
+
+      cell_type_avg_da <- cell_type_avg_da %>%
+        rep(nrow(ref_plotting_da[cell_type == mouse_cell_type[i]])) %>%
+        matrix(nrow = nrow(ref_plotting_da[cell_type == mouse_cell_type[i]]),
+               byrow = TRUE)
+
+      colnames(cell_type_avg_da) <- avg_gene_na
+      rownames(cell_type_avg_da) <- ref_plotting_da[cell_type == mouse_cell_type[i],dataset_symbol]
+      avg_da_ls[mouse_cell_type[i]] <- list(as.data.frame(cell_type_avg_da))
+
+    }
+
+    avg_da <- bind_rows(avg_da_ls)
+
+    avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                        avg_da) %>%
+      as.data.table()
+
+    return(avg_da)
 
   }
 
-  avg_da <- bind_rows(avg_da_ls)
+  avg_da_fine <- calculate_avg_da(mouse_cell_type = mouse_cell_type_fine,
+                                  ref_mat = ref_mat,
+                                  ref_plotting_da = ref_plotting_da,
+                                  avg_gene_na = avg_gene_na_fine,
+                                  cell_type_label = "fine")
+  avg_da_main <- calculate_avg_da(mouse_cell_type = mouse_cell_type_main,
+                                  ref_mat = ref_mat,
+                                  ref_plotting_da = ref_plotting_da,
+                                  avg_gene_na = avg_gene_na_main,
+                                  cell_type_label = "main")
 
-  avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
-                      avg_da) %>%
-    as.data.table()
-
-  ref_plotting_da <- merge(ref_plotting_da,avg_da,by = "dataset_symbol")
+  ref_plotting_da <- merge(ref_plotting_da,avg_da_fine,by = "dataset_symbol") %>%
+    merge(avg_da_main,by = "dataset_symbol")
 
   return(ref_plotting_da)
 

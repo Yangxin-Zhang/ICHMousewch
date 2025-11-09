@@ -4,10 +4,16 @@
 \alias{.create_the_barchart_of_the_mouse_cell_reference_dataset}
 \title{create the barchart of the mouse cell reference dataset}
 \usage{
-.create_the_barchart_of_the_mouse_cell_reference_dataset(gene_ls)
+.create_the_barchart_of_the_mouse_cell_reference_dataset(
+  gene_ls,
+  reference_data_symbol,
+  cell_type_label = "main"
+)
 }
 \arguments{
 \item{gene_ls}{the gene list for the barchart}
+
+\item{reference_data_symbol}{the reference data symbol}
 }
 \description{
 create the barchart of the mouse cell reference dataset
