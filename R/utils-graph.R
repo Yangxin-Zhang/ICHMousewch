@@ -1151,12 +1151,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   if (reference_data_symbol == "mouse_cell") {
 
     reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+    gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
 
   }
 
   if (reference_data_symbol == "immune_cell") {
 
     reference_dataset <- ICHMousewch::mouse_immune_cell_plotting_dataset
+    gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
 
     gene_ls_na <- paste("avg",gene_ls,sep = "-")
 
@@ -1201,8 +1203,6 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     }
 
   }
-
-  gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
 
   cell_type_color <- qualitative_hcl(length(unique(reference_dataset[,cell_type])), palette = "Dark 3")
   names(cell_type_color) <- unique(reference_dataset[,cell_type])
@@ -1285,7 +1285,18 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
             plot.margin = margin(l = 1,
                                  unit = "cm"))
 
-    barchart_na <- paste(gene_ls[i],"mouse_cell",sep = "-")
+    if (reference_data_symbol == "immune_cell") {
+
+      barchart_na <- paste(gene_ls[i],"mouse_immune_cell",sep = "-")
+
+    }
+
+    if (reference_data_symbol == "mouse_cell") {
+
+      barchart_na <- paste(gene_ls[i],"mouse_cell",sep = "-")
+
+    }
+
     barchart_ls[barchart_na] <- list(ggplotGrob(barchart))
 
   }
@@ -1299,25 +1310,70 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param gene_ls the gene list for heatmap
 #' @param reference_data_symbol the reference data symbol
 
-.create_heatmap_of_mouse_cell_reference_dataset <- function(gene_ls,reference_data_symbol) {
+.create_heatmap_of_mouse_cell_reference_dataset <- function(gene_ls,reference_data_symbol,cell_type_label = "main") {
 
   on.exit(gc())
 
   if (reference_data_symbol == "mouse_cell") {
 
     reference_dataset <- ICHMousewch::mouse_cell_plotting_dataset
+    gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
 
   }
 
   if (reference_data_symbol == "immune_cell") {
 
     reference_dataset <- ICHMousewch::mouse_immune_cell_plotting_dataset
+    gene_ls <- gene_ls[gene_ls %in% colnames(reference_dataset)]
+
+    gene_ls_na <- paste("avg",gene_ls,sep = "-")
+
+    if (cell_type_label == "main") {
+
+      reference_dataset[,cell_type := cell_type_main]
+
+      gene_ls_na_main <- paste(gene_ls_na,"main",sep = "_")
+
+      avg_da <- reference_dataset[,..gene_ls_na_main] %>%
+        as.matrix()
+
+      rownames(avg_da) <- reference_dataset[,dataset_symbol]
+      colnames(avg_da) <- gene_ls_na
+
+      avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                          avg_da) %>%
+        as.data.table()
+
+      reference_dataset <- merge(reference_dataset,avg_da,by = "dataset_symbol")
+
+    }
+
+    if (cell_type_label == "fine") {
+
+      reference_dataset[,cell_type := cell_type_fine]
+
+      gene_ls_na_fine <- paste(gene_ls_na,"fine",sep = "_")
+
+      avg_da <- reference_dataset[,..gene_ls_na_fine] %>%
+        as.matrix()
+
+      rownames(avg_da) <- reference_dataset[,dataset_symbol]
+      colnames(avg_da) <- gene_ls_na
+
+      avg_da <- bind_cols(data.frame(dataset_symbol = rownames(avg_da)),
+                          avg_da) %>%
+        as.data.table()
+
+      reference_dataset <- merge(reference_dataset,avg_da,by = "dataset_symbol")
+
+    }
 
   }
 
   avg_gene_ls <- paste("avg",gene_ls,sep = "-")
+  avg_gene_ls <- c("cell_type",avg_gene_ls)
 
-  avg_dataset <- unique(reference_data_symbol[cell_type,..avg_gene_ls])
+  avg_dataset <- unique(reference_dataset[,..avg_gene_ls])
 
   plotting_dataset <- data.table(cell_type = rep(avg_dataset[,cell_type],times = length(gene_ls)),
                                  gene_name = rep(gene_ls,each = length(avg_dataset[,cell_type])),
@@ -1325,15 +1381,40 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   for (i in 1:length(gene_ls)) {
 
-    gene_na <- gene_ls[i]
+    gene_na <- paste("avg",gene_ls[i],sep = "-")
 
-    ce_order <- match(plotting_dataset[gene_name == gene_na,cell_type],avg_dataset[,cell_type])
+    ce_order <- match(plotting_dataset[gene_name == gene_ls[i],cell_type],avg_dataset[,cell_type])
 
-    plotting_dataset[gene_name == gene_na,avg_expression := avg_dataset[ce_order,..gene_na]]
+    plotting_dataset[gene_name == gene_ls[i],avg_expression := avg_dataset[ce_order,..gene_na]]
 
   }
 
   reference_heatmap <- ggplot() +
-    geom_tile(data = plotting_dataset,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity))
+    geom_tile(data = plotting_dataset,
+              mapping = aes(x = cell_type,
+                            y = gene_name,
+                            fill = avg_expression)) +
+    scale_fill_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
+                          limits = c(0,20)) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(family = "Arial",
+                                     size = 8,
+                                     color = "black",
+                                     hjust = 1,
+                                     angle = 30),
+          axis.text.y = element_text(family = "Arial",
+                                     size = 8,
+                                     color = "black",
+                                     hjust = 1),
+          panel.background = element_rect(fill = "white", color = "black"),
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none")
+
+  return(reference_heatmap)
 
 }

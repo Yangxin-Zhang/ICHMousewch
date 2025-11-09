@@ -4,7 +4,11 @@
 \alias{.create_heatmap_of_mouse_cell_reference_dataset}
 \title{create heatmap of mouse cell reference dataset}
 \usage{
-.create_heatmap_of_mouse_cell_reference_dataset(gene_ls, reference_data_symbol)
+.create_heatmap_of_mouse_cell_reference_dataset(
+  gene_ls,
+  reference_data_symbol,
+  cell_type_label = "main"
+)
 }
 \arguments{
 \item{gene_ls}{the gene list for heatmap}
