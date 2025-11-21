@@ -425,32 +425,72 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   on.exit(gc())
 
-  diff_expr_mat <- ich_mouse@diff_expr_genes$`edge-normal`
+  volcano_plot <- function(ich_mouse,symbol,absolute = FALSE) {
 
-  diff_expr_mat[,Threshold := rep("No",nrow(diff_expr_mat))]
+    on.exit(gc())
 
-  diff_expr_mat[avg_log2FC >= 1 & p_val_adj < 0.01,Threshold := "Up"]
+    diff_expr_mat <- ich_mouse@diff_expr_genes[[symbol]]
 
-  diff_expr_mat[,log10p_val_adj := -log10(p_val_adj)]
+    diff_expr_mat[,Threshold := rep("No",nrow(diff_expr_mat))]
 
-  diff_expr_mat[log10p_val_adj > 300,log10p_val_adj := 300]
-  diff_expr_mat[avg_log2FC > 10, avg_log2FC := 10]
-  diff_expr_mat[avg_log2FC < -10, avg_log2FC := -10]
+    if (absolute == FALSE) {
 
-  volcano_plot <- ggplot(data = diff_expr_mat,mapping = aes(x = avg_log2FC, y = log10p_val_adj, color = Threshold)) +
-    labs(title = "Volcano_Plot") +
-    geom_point(size = 1,alpha = 0.7) +
-    coord_cartesian(xlim = c(-10, 10), ylim = c(-1, 300)) +
-    scale_x_continuous(breaks = c(-10,-5,-1,0,1,5,10)) +
-    scale_y_continuous(breaks = c(0,100,200,300)) +
-    scale_color_manual(values = c("No" = "#999999", "Up" = "#E41A1C")) +
-    geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black") +
-    geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
-    ICHMousewch:::.plotting_theme() +
-    guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
-                                override.aes = list(size = 3,alpha = 1)))
+      diff_expr_mat[avg_log2FC >= 1 & p_val_adj < 0.01,Threshold := "Up"]
 
-  volcano_plot_ls <- list("diff_expr_gene" = ggplotGrob(volcano_plot))
+    } else {
+
+      diff_expr_mat[abs(avg_log2FC) >= 1 & p_val_adj < 0.01,Threshold := "Up"]
+
+    }
+
+    diff_expr_mat[,log10p_val_adj := -log10(p_val_adj)]
+
+    diff_expr_mat[log10p_val_adj > 300,log10p_val_adj := 300]
+    diff_expr_mat[avg_log2FC > 10, avg_log2FC := 10]
+    diff_expr_mat[avg_log2FC < -10, avg_log2FC := -10]
+
+    volcano_plot <- ggplot(data = diff_expr_mat,mapping = aes(x = avg_log2FC, y = log10p_val_adj, color = Threshold)) +
+      labs(title = symbol) +
+      geom_point(size = 1,alpha = 0.7) +
+      coord_cartesian(xlim = c(-10, 10), ylim = c(-1, 300)) +
+      scale_x_continuous(breaks = c(-10,-5,-1,0,1,5,10)) +
+      scale_y_continuous(breaks = c(0,100,200,300)) +
+      scale_color_manual(values = c("No" = "#999999", "Up" = "#E41A1C")) +
+      geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")  +
+      ICHMousewch:::.plotting_theme() +
+      guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
+                                  override.aes = list(size = 3,alpha = 1))) +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank())
+
+    if (absolute == FALSE) {
+
+      volcano_plot <- volcano_plot +
+        geom_vline(xintercept = 1, linetype = "dashed", color = "black")
+
+    } else {
+
+      volcano_plot <- volcano_plot +
+        geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
+        geom_vline(xintercept = -1, linetype = "dashed", color = "black")
+
+    }
+
+  }
+
+  edge_normal <- volcano_plot(ich_mouse = ich_mouse,
+                              symbol = "edge-normal")
+
+  center_normal <- volcano_plot(ich_mouse = ich_mouse,
+                                symbol = "center-normal")
+
+  edge_center <- volcano_plot(ich_mouse = ich_mouse,
+                              symbol = "center-edge",
+                              absolute = TRUE)
+
+  volcano_plot_ls <- list("edge_normal" = ggplotGrob(edge_normal),
+                          "center_normal" = ggplotGrob(center_normal),
+                          "edge_center" = ggplotGrob(edge_center))
 
   return(volcano_plot_ls)
 
@@ -822,5 +862,75 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   sa <- GO_ID_group[!GO_ID_group %in% de]
 
   return(GO_enrichment[ID %in% sa])
+
+}
+
+#' calculate pathway features
+#'
+#' @param pathway_ID the wikipathway ID
+#' @param ich_mouse the class of ICH_Mouse
+
+.calculate_pathway_features <- function(pathway_ID,ich_mouse) {
+
+  on.exit(gc())
+
+  fe_genes <- rWikiPathways::getXrefList(pathway = pathway_ID,
+                                         systemCode = "L") %>%
+    homologene::human2mouse() %>%
+    data.table::as.data.table() %>%
+    unique(by = "mouseGene")
+
+  fe_genes <- fe_genes[mouseGene %in% ich_mouse@filtered_genes]
+
+  raw_count <- ich_mouse@raw_count_matrix[ich_mouse@filtered_genes,ich_mouse@seu_metadata_with_cluster_symbol$barcode]
+
+  edge_barcode <- ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == 3,barcode]
+  normal_barcode <-  ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == 1,barcode]
+  center_barcode <- ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == 2,barcode]
+
+  seu_obj <- Seurat::CreateSeuratObject(counts = raw_count) %>%
+    Seurat::NormalizeData(normalization.method = "RC",
+                          scale.factor = 1e6)
+
+  seu_obj_edge <- seu_obj[,edge_barcode]
+  seu_obj_normal <- seu_obj[,normal_barcode]
+  seu_obj_center <- seu_obj[,center_barcode]
+
+  CPM_edge <- seu_obj_edge[fe_genes$mouseGene,]@assays$RNA$data %>%
+    Matrix::rowMeans() %>%
+    as.data.frame(nm = "CPM_edge") %>%
+    tibble::rownames_to_column(var = "mouseGene") %>%
+    data.table::as.data.table()
+
+  CPM_normal <- seu_obj_normal[fe_genes$mouseGene,]@assays$RNA$data %>%
+    Matrix::rowMeans() %>%
+    as.data.frame(nm = "CPM_normal") %>%
+    tibble::rownames_to_column(var = "mouseGene") %>%
+    data.table::as.data.table()
+
+  CPM_center <- seu_obj_center[fe_genes$mouseGene,]@assays$RNA$data %>%
+    Matrix::rowMeans() %>%
+    as.data.frame(nm = "CPM_center") %>%
+    tibble::rownames_to_column(var = "mouseGene") %>%
+    data.table::as.data.table()
+
+  res_df <- merge(CPM_center,CPM_edge,by = "mouseGene") %>%
+    merge(CPM_normal,by = "mouseGene") %>%
+    merge(fe_genes,by = "mouseGene")
+
+  res_df[,log2_FC := log2(CPM_edge/CPM_normal)]
+
+  ensm_id <- clusterProfiler::bitr(res_df[,humanGene],
+                                   fromType = "SYMBOL",
+                                   toType = "ENSEMBL",
+                                   OrgDb = "org.Hs.eg.db") %>%
+    data.table::as.data.table() %>%
+    unique(by = "SYMBOL")
+
+  res_df <- merge(res_df,data.table::data.table(humanGene = ensm_id[,SYMBOL],
+                                                ENSEMBL = ensm_id[,ENSEMBL]),
+                  by = "humanGene")
+
+  return(res_df)
 
 }

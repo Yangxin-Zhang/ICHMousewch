@@ -68,6 +68,18 @@ setMethod(f = "combine_plots",
 
             }
 
+            if (combination_num == 3) {
+
+              plot_1 <- graph_database@graph_database[[plot_name_ls[1]]]
+              plot_2 <- graph_database@graph_database[[plot_name_ls[2]]]
+              plot_3 <- graph_database@graph_database[[plot_name_ls[3]]]
+
+              plot_name_com <- paste(plot_name_ls,collapse = "-")
+
+              com_plot <- (plot_1 | plot_2) / (plot_3)
+
+            }
+
             if (combination_num == 4) {
 
               plot_1 <- graph_database@graph_database[[plot_name_ls[1]]]
