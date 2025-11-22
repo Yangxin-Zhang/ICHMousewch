@@ -4,22 +4,10 @@
 \alias{.create_umap_plot}
 \title{create umap plot}
 \usage{
-.create_umap_plot(
-  raw_count_matrix,
-  seu_meta,
-  diff_expr_genes,
-  filter_genes,
-  spaceranger_result
-)
+.create_umap_plot(ich_mouse, spaceranger_result)
 }
 \arguments{
-\item{raw_count_matrix}{the raw count matrix}
-
-\item{seu_meta}{the seurat metadata}
-
-\item{diff_expr_genes}{the different expression genes}
-
-\item{filter_genes}{the filter genes}
+\item{ich_mouse}{the class of ICH_Mouse}
 
 \item{spaceranger_result}{the file address of spaceranger_result}
 }

@@ -17,6 +17,7 @@
 #' @importFrom Seurat VariableFeatures
 #' @importFrom Seurat FindMarkers
 #' @importFrom Seurat Embeddings
+#' @importFrom Seurat GetAssayData
 #' @importFrom mclust Mclust
 #' @importFrom mclust mclustBIC
 #' @importFrom Giotto createGiottoInstructions

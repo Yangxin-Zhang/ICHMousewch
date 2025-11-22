@@ -58,6 +58,11 @@ setMethod(f = "initialize",
             # create venn plot
               .Object@venn_plot <- ICHMousewch:::.create_Venn_Diagram(ich_mouse = ich_mouse)
 
+            # create umap plot
+              .Object@umap_plot <- ICHMousewch:::.create_umap_plot(ich_mouse = ich_mouse,
+                                                                   spaceranger_result = list("spacerange_umap_address" = "D:/Pango_Project/ICH_Mouse_Analysis/Original_Data/projection.csv",
+                                                                                             "spacerange_cluster_address" = "D:/Pango_Project/ICH_Mouse_Analysis/Original_Data/clusters.csv"))
+
             } else {
 
               .Object@spatial_image <- list()

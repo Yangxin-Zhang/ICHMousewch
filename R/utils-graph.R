@@ -768,15 +768,17 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 #' create umap plot
 #'
-#' @param raw_count_matrix the raw count matrix
-#' @param seu_meta the seurat metadata
-#' @param diff_expr_genes the different expression genes
-#' @param filter_genes the filter genes
+#' @param ich_mouse the class of ICH_Mouse
 #' @param spaceranger_result the file address of spaceranger_result
 
-.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,spaceranger_result) {
+.create_umap_plot <- function(ich_mouse,spaceranger_result) {
 
   on.exit(gc())
+
+  raw_count_matrix <- ich_mouse@raw_count_matrix
+  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
+  diff_expr_genes <- ich_mouse@diff_expr_genes
+  filter_genes <- ich_mouse@filtered_genes
 
   spaceranger_umap <- read_csv(spaceranger_result[["spacerange_umap_address"]]) %>%
     as.tibble()
@@ -787,17 +789,19 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   spaceranger_cluster <- read_csv(spaceranger_result[["spacerange_cluster_address"]]) %>%
     as.tibble()
   spaceranger_cluster <- tibble(barcode = spaceranger_cluster$Barcode,
-                                cluster_spaceranger = spaceranger_cluster$Cluster)
+                                cluster_spaceranger = as.character(spaceranger_cluster$Cluster))
 
   barcodes <- seu_meta[barcode %in% spaceranger_umap$barcode,barcode]
-  hematoma_cluster <- tibble(barcode = hematoma_cluster$barcode,
-                             cluster_hematoma = hematoma_cluster$cluster)
 
   fil_count_matrix <- raw_count_matrix[filter_genes,barcodes]
 
   seu_meta[center_edge_symbol == "1", cluster := "normal"]
   seu_meta[center_edge_symbol == "2", cluster := "center"]
   seu_meta[center_edge_symbol == "3", cluster := "edge"]
+
+  hematoma_cluster <- seu_meta[barcode %in% barcodes,c("barcode","cluster")]
+  hematoma_cluster <- tibble(barcode = hematoma_cluster$barcode,
+                             cluster_hematoma = hematoma_cluster$cluster)
 
   seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
     NormalizeData()
@@ -814,9 +818,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
            npcs = 10,
            features = DEG_genes) %>%
     RunUMAP(dims = 1:10,
-            min.dist = 1)
-
-  hematoma_cluster <- seu_meta[barcode %in% barcode,c("barcode","cluster")]
+            min.dist = 1,
+            seed.use = 2025)
 
   umap_coord_DEG <- Embeddings(seu_obj,"umap") %>%
     as.data.frame() %>%
@@ -880,7 +883,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                        "umap_spaceranger_cluster_ichmouse" = ggplotGrob(umap_spaceranger_cluster_ichmouse),
                        "umap_spaceranger_cluster_spaceranger" = ggplotGrob(umap_spaceranger_cluster_spaceranger))
 
-  return(umap_plot)
+  return(umap_plot_ls)
 
 }
 
