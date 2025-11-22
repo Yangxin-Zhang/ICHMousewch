@@ -84,6 +84,7 @@
 #' @importFrom dplyr union
 #' @importFrom dplyr intersect
 #' @importFrom dplyr mutate
+#' @importFrom dplyr rename
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colSums
 #' @importFrom Matrix sparseMatrix
@@ -127,5 +128,6 @@
 #' @importFrom tibble rownames_to_column
 #' @importFrom tibble column_to_rownames
 #' @importFrom readr read_csv
+#' @importFrom progeney progeney
 
 NULL

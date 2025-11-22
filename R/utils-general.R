@@ -938,3 +938,30 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   return(res_df)
 
 }
+
+#' combined matrix on column
+#'
+#' @param matrix_ls the list of matrix
+#' @export
+
+combined_matrix_on_column <- function(matrix_ls) {
+
+  on.exit(gc())
+
+  all_rows <- unique(unlist(lapply(matrix_ls, rownames)))
+  all_cols <- unique(unlist(lapply(matrix_ls, colnames)))
+
+  res_mat <- matrix(numeric(),
+                    nrow = length(all_rows),
+                    ncol = length(all_cols),
+                    dimnames = list(all_rows, all_cols))
+
+  for(mat in matrix_ls) {
+
+    res_mat[rownames(mat), colnames(mat)] <- mat
+
+  }
+
+  return(res_mat)
+
+}
