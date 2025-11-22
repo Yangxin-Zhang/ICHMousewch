@@ -44,10 +44,12 @@ setClass(
 #' @param giotto_python_path the path to a python which the Giotto can use
 #' @param giotto_results_folder the folder for Giotto save plots
 #' @param initialization whether start at beginning
+#' @param spaceranger_umap_address address for spaceranger umap
+#' @param spaceranger_cluster_address address for spaceranger cluster
 
 setMethod(f = "initialize",
           signature = signature(.Object = "Hematoma"),
-          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization) {
+          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization,spaceranger_umap_address,spaceranger_cluster_address) {
 
             on.exit(gc())
 
@@ -61,7 +63,9 @@ setMethod(f = "initialize",
               .Object@file_address <- ICHMousewch ::: .integrate_file_address(raw_count_matrix_address = raw_count_matrix_address,
                                                                               filtered_count_matrix_address = filtered_count_matrix_address,
                                                                               tissue_position_address = tissue_position_address,
-                                                                              background_image_address = background_image_address)
+                                                                              background_image_address = background_image_address,
+                                                                              spaceranger_cluster_address = spaceranger_cluster_address,
+                                                                              spaceranger_umap_address = spaceranger_umap_address)
 
               # add Giotto instruction
               .Object@giotto_instruction <- ICHMousewch:::.create_giotto_instruction(python_path = giotto_python_path,
@@ -137,9 +141,11 @@ setMethod(f = "initialize",
 #' @param tissue_position_address address for tissue position matrix
 #' @param background_image_address address for background address
 #' @param initialization whether start at beginning
+#' @param spaceranger_umap_address address for spaceranger umap
+#' @param spaceranger_cluster_address address for spaceranger cluster
 #' @export
 
-Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder = "giotto_results",initialization = TRUE) {
+Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder = "giotto_results",initialization = TRUE,spaceranger_umap_address = character(),spaceranger_cluster_address = character()) {
 
   on.exit(gc())
 
@@ -153,7 +159,9 @@ Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_co
                   background_image_address = background_image_address,
                   giotto_python_path = giotto_python_path,
                   giotto_results_folder = paste(work_folder,giotto_results_folder,sep = "/"),
-                  initialization = initialization)
+                  initialization = initialization,
+                  spaceranger_umap_address = spaceranger_umap_address,
+                  spaceranger_cluster_address = spaceranger_cluster_address)
 
   return(Hematoma)
 

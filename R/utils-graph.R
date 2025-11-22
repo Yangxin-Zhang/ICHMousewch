@@ -770,94 +770,115 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #'
 #' @param raw_count_matrix the raw count matrix
 #' @param seu_meta the seurat metadata
-#' @param umap_feature the features for umap
 #' @param diff_expr_genes the different expression genes
 #' @param filter_genes the filter genes
-#' @param group_symbol the group symbol
+#' @param spaceranger_result the file address of spaceranger_result
 
-.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,group_symbol = "center_edge_symbol",umap_feature = "variable_genes") {
+.create_umap_plot <- function(raw_count_matrix,seu_meta,diff_expr_genes,filter_genes,spaceranger_result) {
 
   on.exit(gc())
 
-  fil_count_matrix <- raw_count_matrix[filter_genes,seu_meta[,barcode]]
+  spaceranger_umap <- read_csv(spaceranger_result[["spacerange_umap_address"]]) %>%
+    as.tibble()
+  spaceranger_umap <- tibble(barcode = spaceranger_umap$Barcode,
+                             UMAP_1 = spaceranger_umap$`UMAP-1`,
+                             UMAP_2 = spaceranger_umap$`UMAP-2`)
+
+  spaceranger_cluster <- read_csv(spaceranger_result[["spacerange_cluster_address"]]) %>%
+    as.tibble()
+  spaceranger_cluster <- tibble(barcode = spaceranger_cluster$Barcode,
+                                cluster_spaceranger = spaceranger_cluster$Cluster)
+
+  barcodes <- seu_meta[barcode %in% spaceranger_umap$barcode,barcode]
+  hematoma_cluster <- tibble(barcode = hematoma_cluster$barcode,
+                             cluster_hematoma = hematoma_cluster$cluster)
+
+  fil_count_matrix <- raw_count_matrix[filter_genes,barcodes]
+
+  seu_meta[center_edge_symbol == "1", cluster := "normal"]
+  seu_meta[center_edge_symbol == "2", cluster := "center"]
+  seu_meta[center_edge_symbol == "3", cluster := "edge"]
 
   seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
     NormalizeData()
 
-  if (group_symbol == "center_edge_symbol") {
+  DEG_genes <- c(diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                 diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name],
+                 diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name]) %>%
+    unique()
 
-    seu_meta[center_edge_symbol == "1", cluster := "normal"]
-    seu_meta[center_edge_symbol == "2", cluster := "center"]
-    seu_meta[center_edge_symbol == "3", cluster := "edge"]
+  seu_obj <- seu_obj[DEG_genes,]
+
+  seu_obj <- ScaleData(seu_obj) %>%
+    RunPCA(seed.use = 2025,
+           npcs = 10,
+           features = DEG_genes) %>%
+    RunUMAP(dims = 1:10,
+            min.dist = 1)
+
+  hematoma_cluster <- seu_meta[barcode %in% barcode,c("barcode","cluster")]
+
+  umap_coord_DEG <- Embeddings(seu_obj,"umap") %>%
+    as.data.frame() %>%
+    rownames_to_column()
+  umap_coord_DEG <- tibble(barcode = umap_coord_DEG$rowname,
+                           UMAP_1 = umap_coord_DEG$umap_1,
+                           UMAP_2 = umap_coord_DEG$umap_2)
+
+  umap_coord_DEG <- merge(umap_coord_DEG,hematoma_cluster,by = "barcode") %>%
+    merge(spaceranger_cluster,by = "barcode") %>%
+    column_to_rownames(var = "barcode")
+
+  spaceranger_umap <- merge(spaceranger_umap,hematoma_cluster,by = "barcode") %>%
+    merge(spaceranger_cluster,by = "barcode") %>%
+    column_to_rownames(var = "barcode")
+
+  create_umap_plot <- function(umap_coord,cluster_symbol) {
+
+    on.exit(gc())
+
+    if (cluster_symbol == "hematoma") {
+
+      umap_coord$cluster <-umap_coord$cluster_hematoma
+
+    }
+
+    if (cluster_symbol == "spaceranger") {
+
+      umap_coord$cluster <-umap_coord$cluster_spaceranger
+
+    }
+
+    umap_plot <- ggplot() +
+      geom_point(data = umap_coord,
+                 mapping = aes(x = UMAP_1, y = UMAP_2, colour = cluster),
+                 size = 0.01) +
+      ICHMousewch:::.plotting_theme() +
+      theme(legend.position = "none",
+            panel.grid.major = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank())
+
+    return(umap_plot)
 
   }
 
-  if (group_symbol == "hematoma_symbol") {
+  umap_hematoma_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
+                                             cluster_symbol = "hematoma")
+  umap_hematoma_spaceranger <- create_umap_plot(umap_coord = spaceranger_umap,
+                                             cluster_symbol = "hematoma")
+  umap_spaceranger_cluster_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
+                                                        cluster_symbol = "spaceranger")
+  umap_spaceranger_cluster_spaceranger <- create_umap_plot(umap_coord = spaceranger_umap,
+                                                        cluster_symbol = "spaceranger")
 
-    seu_meta[hematoma_symbol == "1", cluster := "normal"]
-    seu_meta[hematoma_symbol == "2", cluster := "hematoma"]
 
-  }
-
-  if (group_symbol == "GMM_cluster") {
-
-    seu_meta[,cluster := GMM_cluster]
-
-  }
-
-  if (group_symbol == "Louvain_cluster_posi") {
-
-    seu_meta[,cluster := Louvain_cluster_posi]
-
-  }
-
-  if (group_symbol == "Louvain_cluster_filt_gene") {
-
-    seu_meta[,cluster := Louvain_cluster_filt_gene]
-
-  }
-
-  if (umap_feature == "diff_expr_genes") {
-
-    fil_genes <- diff_expr_genes
-
-    seu_obj <- seu_obj[fil_genes]
-
-  }
-
-  if (umap_feature == "filter_genes") {
-
-    fil_genes <- filter_genes
-    seu_obj <- seu_obj[fil_genes]
-
-  }
-
-  if (umap_feature == "variable_genes") {
-
-    variable_genes <- seu_obj %>%
-      FindVariableFeatures() %>%
-      VariableFeatures()
-
-    fil_genes <- variable_genes
-
-    seu_obj <- seu_obj[fil_genes]
-
-  }
-
-  seu_obj <- seu_obj %>%
-    NormalizeData() %>%
-    ScaleData() %>%
-    RunPCA(features = fil_genes,
-           npcs = 10) %>%
-    RunUMAP(dims = 1:10)
-
-  cluster_order <- match(rownames(seu_obj@meta.data),seu_meta[,barcode])
-
-  seu_obj@meta.data$cluster <- seu_meta[cluster_order,cluster]
-
-  umap_plot <- DimPlot(seu_obj,
-                       group.by = "cluster") %>%
-    patchworkGrob()
+  umap_plot_ls <- list("umap_hematoma_ichmouse" = ggplotGrob(umap_hematoma_ichmouse),
+                       "umap_hematoma_spaceranger" = ggplotGrob(umap_hematoma_spaceranger),
+                       "umap_spaceranger_cluster_ichmouse" = ggplotGrob(umap_spaceranger_cluster_ichmouse),
+                       "umap_spaceranger_cluster_spaceranger" = ggplotGrob(umap_spaceranger_cluster_spaceranger))
 
   return(umap_plot)
 
@@ -1082,16 +1103,26 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 #' create Venn Diagram
 #'
-#' @param data_list the data list for Venn Diagram
+#' @param ich_mouse the class of ICH_Mouse
 
-.create_Venn_Diagram <- function(data_list) {
+.create_Venn_Diagram <- function(ich_mouse) {
 
   on.exit(gc())
 
-  venn_plot <- venn.diagram(x = data_list,
-                            filename = NULL)
+  data_ls <- list("edge_normal" = ich_mouse@diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                  "center_normal" = ich_mouse@diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                  "center_edge" = ich_mouse@diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name])
 
-  return(venn_plot)
+  venn_plot <- ggvenn::ggvenn(data_ls,
+                              fill_color = c("#1F77B4","#FF7F0E","#2CA02C"),
+                              fill_alpha = 0.8,
+                              text_size = 3.5,
+                              set_name_size = 4.5) +
+    theme(text = element_text(family = "Arial"))
+
+  venn_plot_ls <- list("DEG_venn_plot" = ggplotGrob(venn_plot))
+
+  return(venn_plot_ls)
 
 }
 
@@ -1418,3 +1449,4 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   return(reference_heatmap)
 
 }
+

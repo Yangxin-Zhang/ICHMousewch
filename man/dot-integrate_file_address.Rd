@@ -8,7 +8,9 @@
   raw_count_matrix_address,
   filtered_count_matrix_address,
   tissue_position_address,
-  background_image_address
+  background_image_address,
+  spaceranger_umap_address = character(),
+  spaceranger_cluster_address = character()
 )
 }
 \arguments{
@@ -17,6 +19,10 @@
 \item{tissue_position_address}{address for tissue position matrix}
 
 \item{background_image_address}{address for background address}
+
+\item{spaceranger_umap_address}{address for spaceranger umap}
+
+\item{spaceranger_cluster_address}{address for spaceranger cluster}
 
 \item{filtered_count_matrix}{address for filtered count matrix}
 }

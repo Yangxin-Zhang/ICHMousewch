@@ -25,5 +25,7 @@ the class for Plotting
 \item{\code{barchart}}{the bar chart}
 
 \item{\code{umap_plot}}{the umap plot}
+
+\item{\code{venn_plot}}{the venn plot}
 }}
 

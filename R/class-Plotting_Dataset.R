@@ -11,6 +11,7 @@
 #' @slot bubble_chart the bubble chart
 #' @slot barchart the bar chart
 #' @slot umap_plot the umap plot
+#' @slot venn_plot the venn plot
 #' @export
 
 setClass(Class = "Plotting_Dataset",
@@ -21,7 +22,8 @@ setClass(Class = "Plotting_Dataset",
                    heatmap = "list",
                    bubble_chart = "list",
                    barchart = "list",
-                   umap_plot = "list"))
+                   umap_plot = "list",
+                   venn_plot = "list"))
 
 #' initialize Plotting_Dataset
 #'
@@ -52,6 +54,9 @@ setMethod(f = "initialize",
 
             # create bubble chart
               .Object@bubble_chart <- ICHMousewch:::.plotting_bubble_chart(ich_mouse = ich_mouse)
+
+            # create venn plot
+              .Object@venn_plot <- ICHMousewch:::.create_Venn_Diagram(ich_mouse = ich_mouse)
 
             } else {
 

@@ -16,6 +16,7 @@
 #' @importFrom Seurat FindVariableFeatures
 #' @importFrom Seurat VariableFeatures
 #' @importFrom Seurat FindMarkers
+#' @importFrom Seurat Embeddings
 #' @importFrom mclust Mclust
 #' @importFrom mclust mclustBIC
 #' @importFrom Giotto createGiottoInstructions
@@ -120,5 +121,10 @@
 #' @importFrom SingleCellExperiment colData
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom BayesSpace spatialCluster
+#' @importFrom ggvenn ggvenn
+#' @importFrom tibble as.tibble
+#' @importFrom tibble rownames_to_column
+#' @importFrom tibble column_to_rownames
+#' @importFrom readr read_csv
 
 NULL

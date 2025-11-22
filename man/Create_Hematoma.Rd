@@ -12,7 +12,9 @@ Create_Hematoma(
   background_image_address,
   giotto_python_path,
   giotto_results_folder = "giotto_results",
-  initialization = TRUE
+  initialization = TRUE,
+  spaceranger_umap_address = character(),
+  spaceranger_cluster_address = character()
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ Create_Hematoma(
 \item{background_image_address}{address for background address}
 
 \item{initialization}{whether start at beginning}
+
+\item{spaceranger_umap_address}{address for spaceranger umap}
+
+\item{spaceranger_cluster_address}{address for spaceranger cluster}
 
 \item{filtered_count_matrix}{address for filtered count matrix}
 }

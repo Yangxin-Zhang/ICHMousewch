@@ -13,7 +13,9 @@
   background_image_address,
   giotto_python_path,
   giotto_results_folder,
-  initialization
+  initialization,
+  spaceranger_umap_address,
+  spaceranger_cluster_address
 )
 }
 \arguments{
@@ -30,6 +32,10 @@
 \item{giotto_results_folder}{the folder for Giotto save plots}
 
 \item{initialization}{whether start at beginning}
+
+\item{spaceranger_umap_address}{address for spaceranger umap}
+
+\item{spaceranger_cluster_address}{address for spaceranger cluster}
 
 \item{filtered_count_matrix}{address for filtered count matrix}
 }

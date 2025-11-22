@@ -9,8 +9,7 @@
   seu_meta,
   diff_expr_genes,
   filter_genes,
-  group_symbol = "center_edge_symbol",
-  umap_feature = "variable_genes"
+  spaceranger_result
 )
 }
 \arguments{
@@ -22,9 +21,7 @@
 
 \item{filter_genes}{the filter genes}
 
-\item{group_symbol}{the group symbol}
-
-\item{umap_feature}{the features for umap}
+\item{spaceranger_result}{the file address of spaceranger_result}
 }
 \description{
 create umap plot

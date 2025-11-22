@@ -4,10 +4,10 @@
 \alias{.create_Venn_Diagram}
 \title{create Venn Diagram}
 \usage{
-.create_Venn_Diagram(data_list)
+.create_Venn_Diagram(ich_mouse)
 }
 \arguments{
-\item{data_list}{the data list for Venn Diagram}
+\item{ich_mouse}{the class of ICH_Mouse}
 }
 \description{
 create Venn Diagram

@@ -7,15 +7,19 @@
 #' @param filtered_count_matrix address for filtered count matrix
 #' @param tissue_position_address address for tissue position matrix
 #' @param background_image_address address for background address
+#' @param spaceranger_umap_address address for spaceranger umap
+#' @param spaceranger_cluster_address address for spaceranger cluster
 
-.integrate_file_address <- function(raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address) {
+.integrate_file_address <- function(raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,spaceranger_umap_address = character(),spaceranger_cluster_address = character()) {
 
   on.exit(gc())
 
   file_address <- c("raw_count_matrix_address" = raw_count_matrix_address,
                     "filtered_count_matrix_address" = filtered_count_matrix_address,
                     "tissue_position_address" = tissue_position_address,
-                    "background_image_address" = background_image_address)
+                    "background_image_address" = background_image_address,
+                    "spaceranger_cluster_address" = spaceranger_cluster_address,
+                    "spaceranger_umap_address" = spaceranger_umap_address)
 
   return(file_address)
 
