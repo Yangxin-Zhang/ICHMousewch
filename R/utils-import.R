@@ -85,6 +85,7 @@
 #' @importFrom dplyr intersect
 #' @importFrom dplyr mutate
 #' @importFrom dplyr rename
+#' @importFrom dplyr tibble
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colSums
 #' @importFrom Matrix sparseMatrix
@@ -124,10 +125,10 @@
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom BayesSpace spatialCluster
 #' @importFrom ggvenn ggvenn
-#' @importFrom tibble as.tibble
+#' @importFrom tibble as_tibble
 #' @importFrom tibble rownames_to_column
 #' @importFrom tibble column_to_rownames
 #' @importFrom readr read_csv
-#' @importFrom progeney progeney
+#' @importFrom progeny progeny
 
 NULL

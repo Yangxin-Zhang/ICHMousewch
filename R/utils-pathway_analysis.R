@@ -19,9 +19,6 @@
     NormalizeData(normalization.method = "RC",
                   scale.factor = 1e6)
 
-  normalized_matrix <- GetAssayData(seu_obj,
-                                    layer = "data")
-
   barcode_chunks <- Create_Spatial_Chunk(chunk_set_name = "barcode_chunk",
                                          barcodes = filtered_barcode,
                                          bin_scale = 5000)
@@ -32,31 +29,42 @@
                                  barcodes = filtered_genes,
                                  bin_scale = 2000)
   gene_chunks <- gene_chunks@chunk_barcode
-  gene_chunk_name <- names(gene_chunks)
 
-  scaled_matrix_ls <- vector("list",length = length(gene_chunks))
-  names(scaled_matrix_ls) <- gene_chunk_name
-  for (i in 1:length(gene_chunk_name)) {
+  calculate_seperate_progeney_result <- function(barcode_chunk,gene_chunks) {
 
-    scaled_chunk <- gene_chunks[[gene_chunk_name[i]]]
+    on.exit(gc())
 
-    scaled_matrix <- seu_obj[scaled_chunk,] %>%
-      ScaleData() %>%
-      GetAssayData(layer = "scale.data")
+    gene_chunk_name <- names(gene_chunks)
 
-    scaled_matrix_ls[gene_chunk_name[i]] <- list(scaled_matrix[,barcode_chunks[[barcode_chunk_name[1]]]])
+    scaled_matrix_ls <- vector("list",length = length(gene_chunks))
+    names(scaled_matrix_ls) <- gene_chunk_name
+    for (i in 1:length(gene_chunk_name)) {
 
-    gc()
+      scaled_chunk <- gene_chunks[[gene_chunk_name[i]]]
+
+      scaled_matrix <- seu_obj[scaled_chunk,] %>%
+        ScaleData() %>%
+        GetAssayData(layer = "scale.data")
+
+      scaled_matrix_ls[gene_chunk_name[i]] <- list(scaled_matrix[,barcode_chunk])
+
+      gc()
+
+    }
+
+    combined_matrix <- ICHMousewch::combined_matrix_on_column(matrix_ls = scaled_matrix_ls)
+
+    progeney_result <- progeny(expr = combined_matrix,
+                               organism = "Mouse") %>%
+      as.data.frame() %>%
+      rownames_to_column() %>%
+      rename(barcode = rowname) %>%
+      as.data.table()
+
+    return(progeney_result)
 
   }
 
-  combined_matrix <- ICHMousewch::combined_matrix_on_column(matrix_ls = scaled_matrix_ls)
-
-  progeney_result <- progeny(expr = combined_matrix,
-                             organism = "Mouse") %>%
-    as.data.frame() %>%
-    rownames_to_column() %>%
-    rename(barcode = rowname) %>%
-    as.data.table()
+  progeney_result_ls <- lapply(barcode_chunks,calculate_seperate_progeney_result,gene_chunks = gene_chunks)
 
 }

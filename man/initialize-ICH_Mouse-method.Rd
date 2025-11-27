@@ -15,7 +15,9 @@
   giotto_results_folder,
   hematoma_symbols,
   center_symbols,
-  initialization
+  initialization,
+  spaceranger_umap_address,
+  spaceranger_cluster_address
 )
 }
 \arguments{

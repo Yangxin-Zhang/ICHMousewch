@@ -224,7 +224,9 @@ setMethod(f = "Load_ICHMouse",
                              giotto_results_folder = NULL,
                              hematoma_symbols = NULL,
                              center_symbols = NULL,
-                             initialization = FALSE)
+                             initialization = FALSE,
+                             spaceranger_umap_address = NULL,
+                             spaceranger_cluster_address = NULL)
 
             dataset_name <- readRDS(file = paste(file_path,"dataset_name.rds",sep = "/"))
 

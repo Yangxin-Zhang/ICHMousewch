@@ -349,6 +349,43 @@ setMethod(f = "create_single_gene_contrasting_spatial_image",
           })
 ####
 
+####
+#' create single gene GO barchart
+#'
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+#' @param ich_mouse the class of ICH_Mouse
+
+setGeneric(name = "create_single_gene_GO_barchart",
+           def = function(ich_mouse,gene_ls,image_set_name) {
+
+             standardGeneric("create_single_gene_GO_barchart")
+
+           })
+
+#' create single gene GO barchart
+#'
+#' @param gene_ls a gene list
+#' @param image_set_name the name of the image set
+#' @param ich_mouse the class of ICH_Mouse
+#' @export
+
+setMethod(f = "create_single_gene_GO_barchart",
+          signature = signature(ich_mouse = "ICH_Mouse",gene_ls = "character",image_set_name = "character"),
+          definition = function(ich_mouse,gene_ls,image_set_name) {
+
+            on.exit(gc())
+
+            reference_barchart <- ICHMousewch:::.create_gene_group_barchart(ich_mouse = ich_mouse,
+                                                                            gene_name = gene_ls)
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = reference_barchart)
+
+            return(spatial_image_set)
+
+          })
+####
 
 
 

@@ -4,10 +4,21 @@
 \alias{.plotting_GO_term_similarity_heatmap}
 \title{plotting GO term similarity heatmap}
 \usage{
-.plotting_GO_term_similarity_heatmap(ich_mouse)
+.plotting_GO_term_similarity_heatmap(
+  ich_mouse,
+  cluster_symbol = "edge-normal",
+  special_block = FALSE,
+  GO_group_symbol = list()
+)
 }
 \arguments{
 \item{ich_mouse}{the ICH_Mouse class}
+
+\item{cluster_symbol}{the GO cluster symbol}
+
+\item{special_block}{logic}
+
+\item{GO_group_symbol}{the GO group symbol}
 }
 \description{
 plotting GO term similarity heatmap

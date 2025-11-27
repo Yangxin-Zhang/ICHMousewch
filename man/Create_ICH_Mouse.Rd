@@ -14,7 +14,9 @@ Create_ICH_Mouse(
   giotto_results_folder,
   hematoma_symbols,
   center_symbols,
-  initialization = TRUE
+  initialization = TRUE,
+  spaceranger_umap_address = character(),
+  spaceranger_cluster_address = character()
 )
 }
 \arguments{

@@ -19,5 +19,7 @@ ICH_Mouse a class for analysis ICH_Mouse
 \item{\code{GO_cluster}}{the cluster of GO term}
 
 \item{\code{GO_ID_group}}{the aimed analysis GO ID group}
+
+\item{\code{gene_group}}{the gene group}
 }}
 

@@ -44,7 +44,10 @@ setMethod(f = "initialize",
               .Object@volcano_plot <- ICHMousewch:::.plotting_volcano_plot(ich_mouse = ich_mouse)
 
             # create heatmap
-              .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ich_mouse)
+              .Object@heatmap <- ICHMousewch:::.plotting_GO_term_similarity_heatmap(ich_mouse = ICH_Mouse_Day_1,
+                                                                                    cluster_symbol = "total-diff_expr_genes",
+                                                                                    special_block = TRUE,
+                                                                                    GO_group_symbol = c("cluster.4","cluster.5"))
 
             # create barchart
               .Object@barchart <- ICHMousewch:::.plotting_GMM_barchart(ich_mouse = ich_mouse)

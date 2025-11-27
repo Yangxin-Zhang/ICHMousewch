@@ -8,6 +8,7 @@
 #' @slot GO_enrichment the result of GO_enrichment
 #' @slot GO_cluster the cluster of GO term
 #' @slot GO_ID_group the aimed analysis GO ID group
+#' @slot gene_group the gene group
 #' @export
 
 setClass(Class = "ICH_Mouse",
@@ -15,7 +16,8 @@ setClass(Class = "ICH_Mouse",
                    symbol_genes = "list",
                    GO_enrichment = "list",
                    GO_cluster = "list",
-                   GO_ID_group = "list"),
+                   GO_ID_group = "list",
+                   gene_group = "list"),
          contains = "Hematoma")
 
 #' Initialize class ICH_Mouse
@@ -33,13 +35,13 @@ setClass(Class = "ICH_Mouse",
 
 setMethod(f = "initialize",
           signature = signature(.Object = "ICH_Mouse"),
-          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization) {
+          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization,spaceranger_umap_address,spaceranger_cluster_address) {
 
             on.exit(gc())
 
             if (initialization) {
 
-              .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization)
+              .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization,spaceranger_umap_address,spaceranger_cluster_address)
 
               .Object <- ICHMousewch:::identify_hematoma(hematoma = .Object,
                                                          hematoma_symbols = hematoma_symbols)
@@ -79,6 +81,7 @@ setMethod(f = "initialize",
               .Object@GO_cluster = list()
               .Object@symbol_genes = list()
               .Object@GO_ID_group = list()
+              .Object@gene_group = list()
 
             }
 
@@ -100,7 +103,7 @@ setMethod(f = "initialize",
 #' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 #' @export
 
-Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization = TRUE) {
+Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization = TRUE,spaceranger_umap_address = character(),spaceranger_cluster_address = character()) {
 
   on.exit(gc())
 
@@ -114,7 +117,9 @@ Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_c
                    giotto_results_folder = giotto_results_folder,
                    hematoma_symbols = hematoma_symbols,
                    center_symbols = center_symbols,
-                   initialization = initialization)
+                   initialization = initialization,
+                   spaceranger_umap_address = spaceranger_umap_address,
+                   spaceranger_cluster_address = spaceranger_cluster_address)
 
   return(ICH_Mouse)
 
@@ -206,7 +211,19 @@ setMethod(f = "conduct_GO_enrichment",
 
             on.exit(gc())
 
-            gene_ls <- ich_mouse@diff_expr_genes[[gene_set_name]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name]
+            if (gene_set_name == "total-diff_expr_genes") {
+
+              gene_ls <- c(ich_mouse@diff_expr_genes[["edge-normal"]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name],
+                           ich_mouse@diff_expr_genes[["center-normal"]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name],
+                           ich_mouse@diff_expr_genes[["center-edge"]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name]) %>%
+                unique()
+
+              } else {
+
+              gene_ls <- ich_mouse@diff_expr_genes[[gene_set_name]][avg_log2FC >= 1 & p_val_adj <= 0.01,gene_name]
+
+              }
+
             go_enrichment <- ICHMousewch:::.conduct_GO_enrichment(gene_ls = gene_ls,
                                                                   filtered_genes = ich_mouse@filtered_genes)
 
@@ -371,5 +388,40 @@ setMethod(f = "load_ICH_Mouse",
             return(ich_mouse)
 
           })
+####
+
+####
+#' add gene group
+#'
+#' @slot gene_ls the gene list
+#' @slot group_symbol the gene group symbol
+#' @slot ich_mouse the class of ICH_Mouse
+
+setGeneric(name = "add_gene_group",
+           def = function(gene_ls,group_symbol,ich_mouse) {
+
+             standardGeneric("add_gene_group")
+
+           })
+
+#' add gene group
+#'
+#' @slot gene_ls the gene list
+#' @slot group_symbol the gene group symbol
+#' @slot ich_mouse the class of ICH_Mouse
+#' @export
+
+setMethod(f = "add_gene_group",
+          signature = signature(gene_ls = "character",group_symbol = "character",ich_mouse = "ICH_Mouse"),
+          definition = function(gene_ls,group_symbol,ich_mouse) {
+
+            on.exit(gc())
+
+            ich_mouse@gene_group[group_symbol] <- list(gene_ls)
+
+            return(ich_mouse)
+
+          })
+
 ####
 

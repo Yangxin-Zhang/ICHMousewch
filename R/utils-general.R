@@ -965,3 +965,53 @@ combined_matrix_on_column <- function(matrix_ls) {
   return(res_mat)
 
 }
+
+#' generate gene GO group
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls the gene list
+
+.generate_gene_GO_group <- function(ich_mouse,gene_ls) {
+
+  on.exit(gc())
+
+}
+
+#' extract_group_GO_result
+#'
+#' @param GO_result the GO enrichment result
+#' @param gene_set the gene list
+
+.extract_group_GO_result <- function(GO_result,gene_set) {
+
+  on.exit(gc())
+
+  gene_set_df <- tibble(gene_name = gene_set)
+
+  GO_gene_set <- GO_result[,geneID] %>%
+    strsplit(split = "/")
+  GO_id <- GO_result[,ID]
+  names(GO_gene_set) <- GO_id
+
+  for (i in 1:length(GO_id)) {
+
+    gene_set_df[[GO_id[i]]] <- gene_set_df$gene_name %in% GO_gene_set[[GO_id[i]]]
+
+  }
+
+  gene_set_df <- column_to_rownames(gene_set_df,var = "gene_name")
+
+  group_GO <- vector("list",length = length(gene_set))
+  names(group_GO) <- gene_set
+  for (i in 1:length(gene_set)) {
+
+    GO_col <- colnames(gene_set_df)
+    logi_vec <- gene_set_df[gene_set[i],] %>%
+      unlist()
+    group_GO[gene_set[i]] <- list(GO_col[logi_vec])
+
+  }
+
+  return(group_GO)
+
+}

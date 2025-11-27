@@ -365,44 +365,98 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' plotting GO term similarity heatmap
 #'
 #' @param ich_mouse the ICH_Mouse class
+#' @param cluster_symbol the GO cluster symbol
+#' @param special_block logic
+#' @param GO_group_symbol the GO group symbol
 
-.plotting_GO_term_similarity_heatmap <- function(ich_mouse) {
+.plotting_GO_term_similarity_heatmap <- function(ich_mouse,cluster_symbol = "edge-normal",special_block = FALSE,GO_group_symbol = list()) {
 
   on.exit(gc())
 
-  GO_ID_group <- ich_mouse@GO_ID_group
+  if (special_block) {
 
-  group_na <- names(GO_ID_group)
+    if (length(GO_group_symbol) == 0) {
 
-  GO_ID_pair <- vector("list",length = length(GO_ID_group))
-  names(GO_ID_pair) <- group_na
+      GO_cluster <- ich_mouse@GO_cluster[[cluster_symbol]]
+      clu_na <- names(GO_cluster)
+      GO_ID_group <- vector("list",length = length(GO_cluster))
+      names(GO_ID_group) <- clu_na
 
-  for (i in 1:length(group_na)) {
+      for (i in 1:length(clu_na)) {
 
-    id_pair <- combn(GO_ID_group[[group_na[i]]],2) %>%
-      as.data.table()
+        GO_ID_group[clu_na[i]] <- list(GO_cluster[[clu_na[i]]][,ID])
 
-    pair_da_1 <- data.table(GO_id_x = unlist(id_pair[1]),
-                            GO_id_y = unlist(id_pair[2]),
-                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+      }
 
-    pair_da_2 <- data.table(GO_id_x = unlist(id_pair[2]),
-                            GO_id_y = unlist(id_pair[1]),
-                            GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+      group_na <- names(GO_ID_group)
 
-    GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
-      rbindlist() %>%
-      list()
+      GO_ID_pair <- vector("list",length = length(GO_ID_group))
+      names(GO_ID_pair) <- group_na
+
+      for (i in 1:length(group_na)) {
+
+        id_pair <- combn(GO_ID_group[[group_na[i]]],2) %>%
+          as.data.table()
+
+        pair_da_1 <- data.table(GO_id_x = unlist(id_pair[1]),
+                                GO_id_y = unlist(id_pair[2]),
+                                GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+        pair_da_2 <- data.table(GO_id_x = unlist(id_pair[2]),
+                                GO_id_y = unlist(id_pair[1]),
+                                GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+          rbindlist() %>%
+          list()
+
+      }
+
+      special_blocks <- rbindlist(GO_ID_pair) %>%
+        as.data.frame() %>%
+        mutate(GO_id_x = factor(GO_id_x,levels = unique(GO_id_x)),
+               GO_id_y = factor(GO_id_y,levels = unique(GO_id_y)),
+               GO_id_group = factor(GO_id_group,levels = unique(GO_id_group)))
+
+    } else {
+
+      GO_ID_group <- ich_mouse@GO_ID_group[GO_group_symbol]
+
+      group_na <- names(GO_ID_group)
+
+      GO_ID_pair <- vector("list",length = length(GO_ID_group))
+      names(GO_ID_pair) <- group_na
+
+      for (i in 1:length(group_na)) {
+
+        id_pair <- combn(GO_ID_group[[group_na[i]]],2) %>%
+          as.data.table()
+
+        pair_da_1 <- data.table(GO_id_x = unlist(id_pair[1]),
+                                GO_id_y = unlist(id_pair[2]),
+                                GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+        pair_da_2 <- data.table(GO_id_x = unlist(id_pair[2]),
+                                GO_id_y = unlist(id_pair[1]),
+                                GO_id_group = rep(group_na[i],times = ncol(id_pair)))
+
+        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+          rbindlist() %>%
+          list()
+
+      }
+
+      special_blocks <- rbindlist(GO_ID_pair) %>%
+        as.data.frame() %>%
+        mutate(GO_id_x = factor(GO_id_x,levels = unique(GO_id_x)),
+               GO_id_y = factor(GO_id_y,levels = unique(GO_id_y)),
+               GO_id_group = factor(GO_id_group,levels = unique(GO_id_group)))
+
+    }
 
   }
 
-  special_blocks <- rbindlist(GO_ID_pair) %>%
-    as.data.frame() %>%
-    mutate(GO_id_x = factor(GO_id_x,levels = unique(GO_id_x)),
-           GO_id_y = factor(GO_id_y,levels = unique(GO_id_y)),
-           GO_id_group = factor(GO_id_group,levels = unique(GO_id_group)))
-
-  GO_results <- rbindlist(ich_mouse@GO_cluster$`edge-normal`)
+  GO_results <- rbindlist(ich_mouse@GO_cluster[[cluster_symbol]])
 
   sim_mat <- GO_similarity(go_id = GO_results[,ID],
                            ont = "BP",
@@ -432,32 +486,52 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     mutate(GO_id_x = factor(GO_id_x,levels = colnames(sim_mat)),
            GO_id_y = factor(GO_id_y,levels = rownames(sim_mat)))
 
-  sim_heatmap <- ggplot() +
-    geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
-    geom_tile(data = special_blocks,
-              mapping = aes(x = GO_id_x,y = GO_id_y,colour = GO_id_group),
-              fill = "white",
-              alpha = 0,
-              linetype = 1) +
-    scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
-                         values = c(0,0.75,1),
-                         limits = c(0,1)) +
-    ICHMousewch:::.plotting_theme() +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.ticks.y = element_blank()) +
-    guides(color = guide_legend(position = "top",
-                                nrow = 2,
-                                theme = theme(legend.text = element_text(size = 12,
-                                                                         family = "Arial",
-                                                                         vjust = 0.5,
-                                                                         hjust = 0),
-                                              legend.title = element_blank(),
-                                              legend.key.size = unit(12,"pt"))),
-           fill = guide_none())
+  if (special_block) {
+
+    sim_heatmap <- ggplot() +
+      geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+      geom_tile(data = special_blocks,
+                mapping = aes(x = GO_id_x,y = GO_id_y,colour = GO_id_group),
+                fill = "white",
+                alpha = 0,
+                linetype = 1) +
+      scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
+                           values = c(0,0.75,1),
+                           limits = c(0,1)) +
+      ICHMousewch:::.plotting_theme() +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank()) +
+      guides(color = guide_legend(position = "top",
+                                  nrow = 2,
+                                  theme = theme(legend.text = element_text(size = 12,
+                                                                           family = "Arial",
+                                                                           vjust = 0.5,
+                                                                           hjust = 0),
+                                                legend.title = element_blank(),
+                                                legend.key.size = unit(12,"pt"))),
+             fill = guide_none())
+
+  } else {
+
+    sim_heatmap <- ggplot() +
+      geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+      scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
+                           values = c(0,0.75,1),
+                           limits = c(0,1)) +
+      ICHMousewch:::.plotting_theme() +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank())
+
+  }
+
 
   heatmap_ls <- list("GO_heatmap" = ggplotGrob(sim_heatmap))
 
@@ -1241,8 +1315,20 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   cell_type_color <- qualitative_hcl(length(unique(reference_dataset[,cell_type])), palette = "Dark 3")
   names(cell_type_color) <- unique(reference_dataset[,cell_type])
 
+  if (reference_data_symbol == "immune_cell") {
+
+    barchart_na <- paste(gene_ls,"mouse_immune_cell",sep = "-")
+
+  }
+
+  if (reference_data_symbol == "mouse_cell") {
+
+    barchart_na <- paste(gene_ls,"mouse_cell",sep = "-")
+
+  }
+
   barchart_ls <- vector("list",length = length(gene_ls))
-  names(barchart_ls) <- paste(gene_ls,"mouse_cell",sep = "-")
+  names(barchart_ls) <- barchart_na
   for (i in 1:length(gene_ls)) {
 
     aim_gene_na <- gene_ls[i]
@@ -1318,18 +1404,6 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                        angle = 30),
             plot.margin = margin(l = 1,
                                  unit = "cm"))
-
-    if (reference_data_symbol == "immune_cell") {
-
-      barchart_na <- paste(gene_ls[i],"mouse_immune_cell",sep = "-")
-
-    }
-
-    if (reference_data_symbol == "mouse_cell") {
-
-      barchart_na <- paste(gene_ls[i],"mouse_cell",sep = "-")
-
-    }
 
     barchart_ls[barchart_na] <- list(ggplotGrob(barchart))
 
@@ -1450,6 +1524,97 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
           legend.position = "none")
 
   return(reference_heatmap)
+
+}
+
+#' create gene group barchart
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_name the gene name
+
+.create_gene_group_barchart <- function(ich_mouse,gene_name) {
+
+  on.exit(gc())
+
+  GO_result <- ich_mouse@GO_enrichment$`filtered_edge-normal`
+
+  group_GO_result <- ICHMousewch:::.extract_group_GO_result(GO_result = GO_result,
+                                             gene_set = gene_name)
+
+  bubble_chart_ls <- list()
+  for (i in 1:length(gene_name)) {
+
+    if (length(group_GO_result[[gene_name[i]]]) != 0) {
+
+      sub_GO_result <- GO_result[ID %in% group_GO_result[[gene_name[i]]]]
+      sub_GO_result[,log10p := -log10(p.adjust)]
+      setorder(sub_GO_result,-log10p)
+
+      if (length(group_GO_result[[gene_name[i]]]) <= 15) {
+
+        plotting_dataset <- sub_GO_result[,c("Description","log10p")] %>%
+          setorder(log10p) %>%
+          as_tibble() %>%
+          mutate(Description = factor(Description,levels = Description))
+
+      } else {
+
+        plotting_dataset <- sub_GO_result[1:15,c("Description","log10p")] %>%
+          setorder(log10p) %>%
+          as_tibble() %>%
+          mutate(Description = factor(Description,levels = Description))
+
+      }
+
+      bubble_chart <- ggplot() +
+        geom_col(data = plotting_dataset,
+                 mapping = aes(x = log10p,y = Description),
+                 fill = "grey90",
+                 color = "black") +
+        ICHMousewch:::.plotting_theme() +
+        theme(panel.grid.major = element_blank(),
+              axis.title.x = element_blank(),
+              axis.title.y = element_blank())
+
+      bubble_chart_ls[gene_name[i]] <- list(ggplotGrob(bubble_chart))
+
+    }
+
+  }
+
+
+  return(bubble_chart_ls)
+
+}
+
+#' create GO result overview barchart
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+.create_GO_result_overview_barchart <- function(ich_mouse) {
+
+  on.exit(gc())
+
+  filtered_GO <- ich_mouse@GO_enrichment$`filtered_total-diff_expr_genes`
+  filtered_GO[,log10p := -log10(p.adjust)]
+  setorder(filtered_GO,-FoldEnrichment)
+
+  plotting_dataset <- filtered_GO[1:25] %>%
+    setorder(FoldEnrichment) %>%
+    as_tibble() %>%
+    mutate(Description = factor(Description,levels = Description))
+
+  bubble_chart <- ggplot() +
+    geom_col(data = plotting_dataset,
+             mapping = aes(x = FoldEnrichment,y = Description),
+             fill = "grey90",
+             color = "black") +
+    ICHMousewch:::.plotting_theme() +
+    theme(panel.grid.major = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank())
+
+  return(list("overview_GO_result_barchart" = ggplotGrob(bubble_chart)))
 
 }
 
