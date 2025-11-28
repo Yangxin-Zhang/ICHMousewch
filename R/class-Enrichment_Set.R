@@ -82,88 +82,14 @@ setGeneric(name = "add_GO_term_set",
 
 setMethod(f = "add_GO_term_set",
           signature = signature(enrichment_set = "Enrichment_Set",GO_term_set_ls = "list"),
-          definition = function(enrichment_set,GO_term_set_ls,ich_mouse,diff_symbol = "edge-normal") {
+          definition = function(enrichment_set,GO_term_set_ls,ich_mouse) {
 
             on.exit(gc())
 
-            GO_results <- enrichment_set@GO_enrich[[diff_symbol]]
-
-            GO_set_name_ls <- names(GO_term_set_ls)
-
-            GO_names <- unlist(GO_term_set_ls)
-            gene_set_ls <- vector("list",length = length(GO_names))
-            names(gene_set_ls) <- GO_names
-            for (i in 1:length(GO_names)) {
-
-              GO_genes <- GO_results[ID %in% GO_names[i],geneID] %>%
-                strsplit(split = "/")
-
-              GO_genes <- GO_genes[[1]]
-
-              GO_genes <- GO_genes[GO_genes %in% ich_mouse@filtered_genes]
-
-              gene_set_ls[GO_names[i]] <- list(GO_genes)
-
-            }
-
-            sub_GO_results <- vector("list",length = length(GO_set_name_ls))
-            names(sub_GO_results) <- GO_set_name_ls
-            for (i in 1:length(GO_set_name_ls)) {
-
-              go_re <- GO_results[ID %in% GO_term_set_ls[[GO_set_name_ls[i]]]]
-
-              for (j in 1:length(GO_term_set_ls[[GO_set_name_ls[i]]])) {
-
-                go_re[ID == GO_term_set_ls[[GO_set_name_ls[i]]][j], gene := gene_set_ls[GO_term_set_ls[[GO_set_name_ls[i]]][j]]]
-
-              }
-
-              sub_GO_results[GO_set_name_ls[i]] <- list(go_re)
-
-            }
-
-            enrichment_set@GO_set <- sub_GO_results
-
-            gene_set_whole <- gene_set_ls %>%
-              unlist() %>%
-              unique()
-
-            gene_information <- data.table(gene_name = gene_set_whole,
-                                           nbarcodes = integer(length = length(gene_set_whole)),
-                                           avg_expr = numeric(length = length(gene_set_whole)),
-                                           avg_log2FC = numeric(length = length(gene_set_whole)))
-
-            sub_count_mat <- ich_mouse@raw_count_matrix[ich_mouse@filtered_genes,ich_mouse@filtered_barcodes]
-
-            sub_count_mat_gene_set <- sub_count_mat[gene_set_whole,]
-
-            sub_count_mat_order <- match(gene_set_whole,rownames(sub_count_mat_gene_set))
-
-            gene_information[,nbarcodes := Matrix::rowSums(sub_count_mat_gene_set[sub_count_mat_order,] != 0)]
-
-            au_seu_obj <- CreateSeuratObject(counts = sub_count_mat) %>%
-              NormalizeData(normalization.method = "LogNormalize",
-                            scale.factor = 1e6)
-
-            cpm_count_mat <- au_seu_obj@assays$RNA$data[gene_set_whole,]
-
-            cpm_count_mat_order <- match(gene_set_whole,rownames(cpm_count_mat))
-
-            avg_cpm_expr <- Matrix::rowMeans(cpm_count_mat[cpm_count_mat_order,])
-
-            gene_information[,avg_expr := avg_cpm_expr]
-
-            diff_expr <- ich_mouse@diff_expr_genes[[diff_symbol]][gene_name %in% gene_set_whole]
-
-            diff_order <- match(gene_set_whole,diff_expr[,gene_name])
-
-            gene_information[,avg_log2FC := diff_expr[diff_order,avg_log2FC]]
-
-            gene_information <- rbindlist(list(enrichment_set@gene_information,gene_information))
-
-            enrichment_set@gene_information <- gene_information
-
-            enrichment_set <- ICHMousewch:::.calculate_GO_term_Count(enrichment_set = enrichment_set)
+            enrichment_set <- enrichment_set %>%
+              ICHMousewch:::.generate_single_gene_GO_infomation(ich_mouse = ich_mouse,
+                                                                GO_term_set_ls = GO_term_set_ls) %>%
+              ICHMousewch:::.calculate_GO_term_Count()
 
             return(enrichment_set)
 

@@ -130,5 +130,6 @@
 #' @importFrom tibble column_to_rownames
 #' @importFrom readr read_csv
 #' @importFrom progeny progeny
+#' @importFrom sparseMatrixStats rowVars
 
 NULL

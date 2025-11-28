@@ -526,7 +526,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     as.data.frame() %>%
     mutate( GO_ID = factor(GO_ID,levels = unique(plotting_dataset[,GO_ID])),
             GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])),
-            text_y = rep(0,times = length(plotting_dataset[y_symbol == "posi_y",gene_name])))
+            text_y = (plotting_dataset[y_symbol == "posi_y",bubble_y] + 5))
 
   negt_y_da <- plotting_dataset[y_symbol == "negt_y"] %>%
     as.data.frame() %>%
@@ -542,7 +542,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   bubble_chart <- ggplot(data = plotting_dataset) +
     geom_point(data = negt_y_da,
                mapping = aes(x = GO_ID, y = bubble_y,color = bubble_color),
-               size = negt_y_da$avg_log2FC,
+               size = (negt_y_da$size_data*0.7),
                alpha = 0.5) +
     scale_color_manual(values = bubble_color) +
     geom_bar(data = posi_y_da,
@@ -552,12 +552,27 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     geom_hline(yintercept = 0,
                color = "#000000FF",
                linewidth = 0.5) +
-    geom_text(data = posi_y_da,
+    geom_text(data = posi_y_da[1,],
               mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
-              vjust = 1.5,
-              size = 0,
+              size = 8,
               size.unit = "pt",
-              family = "Arial") +
+              family = "Arial",
+              hjust = 0,
+              angle = 15) +
+    geom_text(data = posi_y_da[2:(nrow(posi_y_da) - 1),],
+              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
+              size = 8,
+              size.unit = "pt",
+              family = "Arial",
+              hjust = 0.5,
+              angle = 15) +
+    geom_text(data = posi_y_da[nrow(posi_y_da),],
+              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
+              size = 8,
+              size.unit = "pt",
+              family = "Arial",
+              hjust = 1,
+              angle = 15) +
     scale_y_continuous(breaks = y_tick,
                        labels = names(y_tick)) +
     ICHMousewch:::.plotting_theme() +
@@ -565,8 +580,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
           axis.title.y = element_blank(),
           axis.ticks.x = element_blank(),
           axis.text.x = element_blank()) +
-    guides(fill = guide_legend(position = "top",
-                               nrow = 2,
+    guides(fill = guide_legend(position = "left",
                                theme = theme(legend.text = element_text(size = 12,
                                                                         family = "Arial",
                                                                         vjust = 0.5,
@@ -1013,5 +1027,41 @@ combined_matrix_on_column <- function(matrix_ls) {
   }
 
   return(group_GO)
+
+}
+
+#' adjust special block GO group order
+#'
+#' @param GO_cluster the GO_cluster
+#' @param GO_group the GO group
+
+.adjust_special_block_GO_group_order <- function(GO_cluster,GO_group) {
+
+  on.exit(gc())
+
+  for (i in 1:length(GO_group)) {
+
+    go_group <- GO_group[[i]]
+
+    for (j in 1:length(GO_cluster)) {
+
+      go_cluster <- GO_cluster[[j]]
+
+      if (sum(go_group %in% go_cluster[,ID]) != 0) {
+
+        go_term <- go_group[go_group %in% go_cluster[,ID]]
+
+        go_term_another <- go_cluster[!ID %in% go_term,ID]
+
+        go_id_order <- factor(c(go_term,go_term_another),levels = c(go_term,go_term_another))
+
+        GO_cluster[j] <- list(go_cluster[match(go_id_order,ID)])
+      }
+
+    }
+
+  }
+
+  return(GO_cluster)
 
 }

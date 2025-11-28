@@ -406,7 +406,11 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                 GO_id_y = unlist(id_pair[1]),
                                 GO_id_group = rep(group_na[i],times = ncol(id_pair)))
 
-        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+        pair_da_self <- data.table(GO_id_x = GO_ID_group[[group_na[i]]],
+                                   GO_id_y = GO_ID_group[[group_na[i]]],
+                                   GO_id_group = rep(group_na[i],times = length(GO_ID_group[[group_na[i]]])))
+
+        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2,pair_da_self) %>%
           rbindlist() %>%
           list()
 
@@ -440,7 +444,11 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                 GO_id_y = unlist(id_pair[1]),
                                 GO_id_group = rep(group_na[i],times = ncol(id_pair)))
 
-        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2) %>%
+        pair_da_self <- data.table(GO_id_x = GO_ID_group[[group_na[i]]],
+                                   GO_id_y = GO_ID_group[[group_na[i]]],
+                                   GO_id_group = rep(group_na[i],times = length(GO_ID_group[[group_na[i]]])))
+
+        GO_ID_pair[group_na[i]] <- list(pair_da_1,pair_da_2,pair_da_self) %>%
           rbindlist() %>%
           list()
 
@@ -456,7 +464,17 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   }
 
-  GO_results <- rbindlist(ich_mouse@GO_cluster[[cluster_symbol]])
+  if (length(GO_group_symbol) != 0) {
+
+    GO_results <- ich_mouse@GO_cluster[[cluster_symbol]] %>%
+      ICHMousewch:::.adjust_special_block_GO_group_order(GO_group = GO_ID_group) %>%
+      rbindlist()
+
+  } else {
+
+    GO_results <- rbindlist(ich_mouse@GO_cluster[[cluster_symbol]])
+
+  }
 
   sim_mat <- GO_similarity(go_id = GO_results[,ID],
                            ont = "BP",
@@ -495,7 +513,24 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                 fill = "white",
                 alpha = 0,
                 linetype = 1) +
-      scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
+      scale_fill_gradientn(colours = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
+                           limits = c(0,1)) +
+      ICHMousewch:::.plotting_theme() +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank()) +
+      guides(color = guide_none(),
+             fill = guide_none()) +
+      coord_fixed()
+
+  } else {
+
+    sim_heatmap <- ggplot() +
+      geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+      scale_fill_gradientn(colours = c("grey90", "#FFA500", "#E6550D"),
                            values = c(0,0.75,1),
                            limits = c(0,1)) +
       ICHMousewch:::.plotting_theme() +
@@ -505,30 +540,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
             axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank()) +
-      guides(color = guide_legend(position = "top",
-                                  nrow = 2,
-                                  theme = theme(legend.text = element_text(size = 12,
-                                                                           family = "Arial",
-                                                                           vjust = 0.5,
-                                                                           hjust = 0),
-                                                legend.title = element_blank(),
-                                                legend.key.size = unit(12,"pt"))),
-             fill = guide_none())
-
-  } else {
-
-    sim_heatmap <- ggplot() +
-      geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
-      scale_fill_gradientn(colours = c("#FFFFFF", "#FFA500", "#E6550D"),
-                           values = c(0,0.75,1),
-                           limits = c(0,1)) +
-      ICHMousewch:::.plotting_theme() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank())
+            axis.ticks.y = element_blank()) +
+      guides(fill = guide_none()) +
+      coord_fixed()
 
   }
 
@@ -684,7 +703,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   diff_order <- match(gene_ls,diff_da[,gene_name])
 
-  diff_da <- diff_da[diff_order,avg_log2FC]
+  diff_da <- diff_da[diff_order,size_data]
 
   GO_id <- GO_results[,ID]
   GO_num <- length(GO_id)
@@ -693,7 +712,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                           GO_group = character(GO_num),
                           bubble_y = integer(GO_num),
                           y_symbol = rep("posi_y",times = GO_num),
-                          avg_log2FC = rep(NA,times = GO_num),
+                          size_data = rep(NA,times = GO_num),
                           gene_name = rep(NA,times = GO_num),
                           bubble_color = rep(NA,times = GO_num))
   GO_order <- match(GO_id,GO_results[,ID])
@@ -703,7 +722,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                           GO_group = character(GO_num*gene_num),
                           bubble_y = rep(seq(from = -5, to = -max(GO_results[,Count]), length.out = gene_num),each = GO_num),
                           y_symbol = rep("negt_y",times = GO_num*gene_num),
-                          avg_log2FC = rep(diff_da,each = GO_num),
+                          size_data = rep(diff_da,each = GO_num),
                           gene_name = rep(gene_ls,each = GO_num),
                           bubble_color = character(GO_num))
 
@@ -1599,7 +1618,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   filtered_GO[,log10p := -log10(p.adjust)]
   setorder(filtered_GO,-FoldEnrichment)
 
-  plotting_dataset <- filtered_GO[1:25] %>%
+  plotting_dataset <- filtered_GO[1:20] %>%
     setorder(FoldEnrichment) %>%
     as_tibble() %>%
     mutate(Description = factor(Description,levels = Description))
@@ -1608,11 +1627,17 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     geom_col(data = plotting_dataset,
              mapping = aes(x = FoldEnrichment,y = Description),
              fill = "grey90",
-             color = "black") +
+             color = "black",
+             width = 0.7) +
     ICHMousewch:::.plotting_theme() +
     theme(panel.grid.major = element_blank(),
           axis.title.x = element_blank(),
-          axis.title.y = element_blank())
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_text(size = 8,
+                                     hjust = 1))
 
   return(list("overview_GO_result_barchart" = ggplotGrob(bubble_chart)))
 

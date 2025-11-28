@@ -4,10 +4,15 @@
 \alias{.calculate_GO_term_Count}
 \title{calculate GO term count}
 \usage{
-.calculate_GO_term_Count(enrichment_set)
+.calculate_GO_term_Count(
+  enrichment_set,
+  GO_result_symbol = "filtered_total-diff_expr_genes"
+)
 }
 \arguments{
 \item{enrichment_set}{the class of Enrichment_Count}
+
+\item{GO_result_symbol}{GO result symbol}
 }
 \description{
 calculate GO term count

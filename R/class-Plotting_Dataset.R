@@ -50,7 +50,8 @@ setMethod(f = "initialize",
                                                                                     GO_group_symbol = c("cluster.4","cluster.5"))
 
             # create barchart
-              .Object@barchart <- ICHMousewch:::.plotting_GMM_barchart(ich_mouse = ich_mouse)
+              .Object@barchart <- ICHMousewch:::.plotting_GMM_barchart(ich_mouse = ich_mouse) %>%
+                append(ICHMousewch:::.create_GO_result_overview_barchart(ich_mouse = ich_mouse))
 
             # create violin plot
               .Object@violin_plot <- ICHMousewch:::.plotting_violin_plot(ich_mouse =ich_mouse)

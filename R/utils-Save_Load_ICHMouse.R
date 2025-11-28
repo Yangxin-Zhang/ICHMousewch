@@ -359,9 +359,9 @@ setMethod(f = "export_plotting_dataset",
                        device = "png",
                        path = slot_da_path,
                        dpi = 600,
-                       width = (297/25.4),
-                       height = (210/25.4),
-                       unit = "in")
+                       width = 297,
+                       height = 210,
+                       unit = "mm")
 
               }
 

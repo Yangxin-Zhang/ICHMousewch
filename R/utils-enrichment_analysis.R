@@ -437,31 +437,25 @@
 #' calculate GO term count
 #'
 #' @param enrichment_set the class of Enrichment_Count
+#' @param GO_result_symbol GO result symbol
 
-.calculate_GO_term_Count <- function(enrichment_set) {
+.calculate_GO_term_Count <- function(enrichment_set,GO_result_symbol = "filtered_total-diff_expr_genes") {
 
   on.exit(gc())
 
   GO_results <- rbindlist(enrichment_set@GO_set)
-  GO_results[,gene := vector("list",length = nrow(GO_results))]
+  GO_results <- ICHMousewch:::.split_GO_result_genes(GO_result = GO_results)
+
   gene_ls <- enrichment_set@gene_information[,gene_name]
-  gene_information <- enrichment_set@gene_information
-  gene_information[,GO_term_Count := numeric(length = length(gene_ls))]
-
-  for (i in 1:nrow(GO_results)) {
-
-    genes <- strsplit(GO_results[i,geneID],split = "/")
-
-    GO_results[i,gene := genes]
-
-  }
+  gene_information <- data.table(gene_name = gene_ls,
+                                 GO_term_Count = numeric(length = length(gene_ls)))
 
   for (i in 1:length(gene_ls)) {
 
     k <- 0
     for (j in 1:nrow(GO_results)) {
 
-      if (gene_ls[i] %in% GO_results[j,gene][[1]]) {
+      if (gene_ls[i] %in% GO_results[j,split_genes][[1]]) {
 
         k <- k + 1
 
@@ -473,13 +467,135 @@
 
   }
 
+  enrichment_set@gene_information <- merge(enrichment_set@gene_information,
+                                           gene_information,
+                                           by = "gene_name")
+  return(enrichment_set)
+
+}
+
+#' generate single gene GO information
+#'
+#' @param enrichment_set the class of Enrichment_Set
+#' @param ich_mouse the class of ICH_Mouse
+#' @param GO_term_set_ls the set of GO ID
+
+.generate_single_gene_GO_infomation <- function(enrichment_set,ich_mouse,GO_term_set_ls) {
+
+  on.exit(gc())
+
+  GO_results <- rbindlist(enrichment_set@GO_enrich) %>%
+    unique(by = "ID")
+
+  GO_set_name_ls <- names(GO_term_set_ls)
+
+  GO_names <- unlist(GO_term_set_ls)
+  gene_set_ls <- vector("list",length = length(GO_names))
+  names(gene_set_ls) <- GO_names
+  for (i in 1:length(GO_names)) {
+
+    GO_genes <- GO_results[ID %in% GO_names[i],geneID] %>%
+      strsplit(split = "/")
+
+    GO_genes <- GO_genes[[1]]
+
+    GO_genes <- GO_genes[GO_genes %in% ich_mouse@filtered_genes]
+
+    gene_set_ls[GO_names[i]] <- list(GO_genes)
+
+  }
+
+  sub_GO_results <- vector("list",length = length(GO_set_name_ls))
+  names(sub_GO_results) <- GO_set_name_ls
+  for (i in 1:length(GO_set_name_ls)) {
+
+    go_re <- GO_results[ID %in% GO_term_set_ls[[GO_set_name_ls[i]]]]
+
+    for (j in 1:length(GO_term_set_ls[[GO_set_name_ls[i]]])) {
+
+      go_re[ID == GO_term_set_ls[[GO_set_name_ls[i]]][j], gene := gene_set_ls[GO_term_set_ls[[GO_set_name_ls[i]]][j]]]
+
+    }
+
+    sub_GO_results[GO_set_name_ls[i]] <- list(go_re)
+
+  }
+
+  enrichment_set@GO_set <- sub_GO_results
+
+  gene_set_whole <- gene_set_ls %>%
+    unlist() %>%
+    unique()
+
+  gene_information <- data.table(gene_name = gene_set_whole)
+
+  gene_information <- merge(gene_information,
+                            ICHMousewch:::.calculate_single_gene_average_expression(ich_mosue = ich_mosue,
+                                                                                    gene_ls = gene_set_whole),
+                            by = "gene_name")
+
   enrichment_set@gene_information <- gene_information
 
   return(enrichment_set)
 
 }
 
+#' calculate single gene average expression
+#'
+#' @param ich_mosue the class of ICH_Mouse
+#' @param gene_ls the gene list
 
+.calculate_single_gene_average_expression <- function(ich_mosue,gene_ls) {
+
+  on.exit(gc())
+
+  count_mat <- ich_mouse@raw_count_matrix[ich_mouse@filtered_genes,ich_mouse@filtered_barcodes]
+
+  barcode_normal <- ich_mouse@filtered_barcodes[ich_mouse@filtered_barcodes %in% ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == "1",barcode]]
+  barcode_edge <- ich_mouse@filtered_barcodes[ich_mouse@filtered_barcodes %in% ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == "3",barcode]]
+  barcode_center <- ich_mouse@filtered_barcodes[ich_mouse@filtered_barcodes %in% ich_mouse@seu_metadata_with_cluster_symbol[center_edge_symbol == "2",barcode]]
+
+  seu_obj <- CreateSeuratObject(counts = count_mat) %>%
+    NormalizeData(normalization.method = "RC",
+                  scale.factor = 1e6)
+
+  cpm_mat <- seu_obj[gene_ls,]@assays$RNA$data
+  cpm_mat_normal <- seu_obj[gene_ls,barcode_normal]@assays$RNA$data
+  cpm_mat_edge <- seu_obj[gene_ls,barcode_edge]@assays$RNA$data
+  cpm_mat_center <- seu_obj[gene_ls,barcode_center]@assays$RNA$data
+
+  gene_info <- data.table(gene_name = gene_ls,
+                          avg_expr = Matrix::rowMeans(cpm_mat),
+                          avg_expr_normal = Matrix::rowMeans(cpm_mat_normal),
+                          avg_expr_center = Matrix::rowMeans(cpm_mat_center),
+                          avg_expr_edge = Matrix::rowMeans(cpm_mat_edge),
+                          var_expr = sparseMatrixStats::rowVars(cpm_mat),
+                          var_expr_normal = sparseMatrixStats::rowVars(cpm_mat_normal),
+                          var_expr_center = sparseMatrixStats::rowVars(cpm_mat_center),
+                          var_expr_edge = sparseMatrixStats::rowVars(cpm_mat_edge))
+
+  log2_da <- log2(gene_info[,avg_expr_edge]/min(gene_info[,avg_expr_edge]))
+
+  gene_info[,size_data := log2_da]
+
+  return(gene_info)
+
+}
+
+#' split GO result genes
+#'
+#' @param GO_result the GO enrichment result
+
+.split_GO_result_genes <- function(GO_result) {
+
+  on.exit(gc())
+
+  GO_genes <- strsplit(GO_result[,geneID],split = "/")
+  GO_result[,split_genes := GO_genes]
+
+  return(GO_result)
+
+}
 
 
 
