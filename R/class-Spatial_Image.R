@@ -387,6 +387,37 @@ setMethod(f = "create_single_gene_GO_barchart",
           })
 ####
 
+####
+#' create progeny score map
+#' @param image_set_name the name of the image set
+
+setGeneric(name = "create_progeny_score_map",
+           def = function(image_set_name) {
+
+             standardGeneric("create_progeny_score_map")
+
+           })
+
+#' create progeny score map
+#'
+#' @param image_set_name the name of the image set
+#' @export
+
+setMethod(f = "create_progeny_score_map",
+          definition = function(image_set_name) {
+
+            on.exit(gc())
+
+            progeny_graph_map_ls <- ICHMousewch:::.create_progeny_pathway_score_map(progeny_score_df = ICHMousewch::progeny_score_ich_mouse)
+
+            spatial_image_set <- ICHMousewch:::.Create_Spatial_Image(image_set_name = image_set_name,
+                                                                     spatial_image_ls = progeny_graph_map_ls)
+
+            return(spatial_image_set)
+
+          })
+####
+
 
 
 

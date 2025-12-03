@@ -67,4 +67,83 @@
 
   progeney_result_ls <- lapply(barcode_chunks,calculate_seperate_progeney_result,gene_chunks = gene_chunks)
 
+  progeney_result <- bind_rows(progeney_result_ls) %>%
+    as_tibble() %>%
+    column_to_rownames(var = "barcode")
+  progeney_result[progeney_result < 0] <- 0
+  progeney_result <- progeney_result %>%
+    rownames_to_column() %>%
+    rename(barcode = rowname) %>%
+    as.data.table()
+
+  coord_df <- merge(ich_mouse@seu_metadata_with_cluster_symbol[barcode %in% progeney_result$barcode,],progeney_result,by = "barcode")
+
+  return(coord_df)
+
+}
+
+#' create progeny pathway score map
+#'
+#' @param progeny_score_df the progeny score dataframe
+
+.create_progeny_pathway_score_map <- function(progeny_score_df) {
+
+  on.exit(gc())
+
+  pathway_symbol_ls <- c("WNT","TNFa","Trail","VEGF",
+                         "p53","PI3K","TGFb","JAK-STAT",
+                         "MAPK","NFkB","EGFR","Estrogen",
+                         "Hypoxia","Androgen")
+
+  create_pathway_graph <- function(pathway_symbol,progeny_score_df) {
+
+    on.exit(gc())
+
+    plotting_col <- progeny_score_df[,..pathway_symbol]
+    progeny_score_df[,plotting_pathway := plotting_col]
+    coord_df <- progeny_score_df[,c("plotting_pathway","row","col")]
+
+    pathway_graph <- ggplot() +
+      geom_point(data = coord_df,
+                 mapping = aes(x = -row,y = -col,colour = plotting_pathway),
+                 size = 0.01) +
+      scale_color_gradientn(colors = c("grey90","#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
+      coord_fixed() +
+      labs(title = pathway_symbol) +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "right",
+            legend.title = element_blank(),
+            legend.text = element_text(size = 8,
+                                       family = "Arial"),
+            panel.background = element_rect(fill = "white", color = "black"),
+            plot.background = element_rect(fill = "white", color = NA),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 12,
+                                      face = "bold",
+                                      family = "Arial",
+                                      hjust = 0.5,
+                                      vjust = 0,
+                                      margin = margin(b = 10)))
+
+  }
+
+  pathway_graph_ls <- vector("list",length = length(pathway_symbol_ls))
+  names(pathway_graph_ls) <- pathway_symbol_ls
+  for (i in 1:length(pathway_symbol_ls)) {
+
+    pathway_graph_ls[pathway_symbol_ls[i]] <- pathway_symbol_ls[i] %>%
+      create_pathway_graph(progeny_score_df = progeny_score_df) %>%
+      ggplotGrob() %>%
+      list()
+
+  }
+
+  return(pathway_graph_ls)
+
 }
