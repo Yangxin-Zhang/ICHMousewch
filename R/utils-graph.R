@@ -373,6 +373,9 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   on.exit(gc())
 
+  group_color <- scales::hue_pal()(length(GO_group_symbol))
+  names(group_color) <- GO_group_symbol
+
   if (special_block) {
 
     if (length(GO_group_symbol) == 0) {
@@ -497,8 +500,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   }
 
   sim_dt[,similarity := sim_data]
-  sim_dt[similarity < 0.2,similarity := 0]
-  sim_dt[similarity > 0.8,similarity := 1]
+
+  color_set <- c("#92C5DE","#D1E5F0","#F7F7F7",
+                 "#FFF7BC","#FEE391", "#FEC44F",
+                 "#FB9A29", "#EC7014", "#CC4C02",
+                 "#993404", "#662506")
+  color_break <- seq(from = min(sim_data),
+                     to = max(sim_data),
+                     length.out = length(color_set))
 
   sim_dt <- as.data.frame(sim_dt) %>%
     mutate(GO_id_x = factor(GO_id_x,levels = colnames(sim_mat)),
@@ -508,46 +517,41 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
     sim_heatmap <- ggplot() +
       geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
+      scale_fill_gradientn(colours = color_set,
+                           values = scales::rescale(color_break,to = c(0,1))) +
       geom_tile(data = special_blocks,
-                mapping = aes(x = GO_id_x,y = GO_id_y,colour = GO_id_group),
+                mapping = aes(x = GO_id_x,y = GO_id_y,color = GO_id_group),
                 fill = "white",
-                alpha = 0,
-                linetype = 1) +
-      scale_fill_gradientn(colours = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
-                           limits = c(0,1)) +
+                alpha = 0) +
+      scale_color_manual(values = group_color) +
+      labs(title = "GO Similarity Matrix",
+           x = "GO IDs",
+           y = "GO IDs",
+           color = "GO Group") +
+      coord_fixed() +
       ICHMousewch:::.plotting_theme() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank()) +
-      guides(color = guide_none(),
-             fill = guide_none()) +
-      coord_fixed()
+      guides(color = guide_legend(position = "left"))
 
   } else {
 
     sim_heatmap <- ggplot() +
       geom_tile(data = sim_dt,mapping = aes(x = GO_id_x,y = GO_id_y,fill = similarity)) +
-      scale_fill_gradientn(colours = c("grey90", "#FFA500", "#E6550D"),
-                           values = c(0,0.75,1),
-                           limits = c(0,1)) +
+      scale_fill_gradientn(colours = color_set,
+                           values = scales::rescale(color_break,to = c(0,1))) +
+      labs(title = "GO Similarity Matrix",
+           x = "GO IDs",
+           y = "GO IDs") +
+      coord_fixed(ratio = 1) +
       ICHMousewch:::.plotting_theme() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank()) +
-      theme(axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank()) +
-      guides(fill = guide_none()) +
-      coord_fixed()
+            axis.ticks.y = element_blank())
+
 
   }
 
@@ -634,7 +638,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                     hjust = 0.5,
                                     vjust = 0.5,
                                     margin = margin(b = 8,
-                                                    t = 0,
+                                                    t = 3,
                                                     unit = "pt")),
         axis.title.y = element_text(family = "Arial",
                                     size = 12,
@@ -644,14 +648,32 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                     margin = margin(r = 5,
                                                     l = 5,
                                                     unit = "pt")),
-        legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
-        legend.title = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10)),
-        legend.background = element_rect(fill = "white", color = NA),
-        legend.key = element_rect(fill = "white", color = NA),
+        legend.text = element_text(family = "Arial",
+                                   size = 12,
+                                   color = "black",
+                                   hjust = 0.5,
+                                   vjust = 0.5,
+                                   margin = margin(r = 5,
+                                                   l = 5,
+                                                   unit = "pt")),
+        legend.title = element_text(family = "Arial",
+                                    size = 12,
+                                    color = "black",
+                                    hjust = 0.5,
+                                    vjust = 0.5,
+                                    margin = margin(b = 10,
+                                                    unit = "pt")),
+        legend.background = element_rect(fill = "white",
+                                         color = NA),
+        legend.key = element_rect(fill = "white",
+                                  color = NA),
         legend.position = "right",
-        panel.background = element_rect(fill = "white", color = "black"),
-        plot.background = element_rect(fill = "white", color = NA),
-        panel.grid.major = element_line(color = "gray90", linewidth = 0.2),
+        panel.background = element_rect(fill = "white",
+                                        color = "black"),
+        plot.background = element_rect(fill = "white",
+                                       color = NA),
+        panel.grid.major = element_line(color = "gray90",
+                                        linewidth = 0.2),
         panel.grid.minor = element_blank())
 
 }
@@ -711,7 +733,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param gene_info the gene information
 #' @param GO_info the GO term information
 
-.generate_bubble_dataset <- function(gene_info,GO_info,gene_num,size_param = 0.6) {
+.generate_bubble_dataset <- function(gene_info,GO_info,gene_num,size_param = 0.5) {
 
   on.exit(gc())
 
@@ -788,7 +810,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   }
 
   bubble_dataset[,color_symbol := bubble_dataset[,GO_group]]
-  bubble_dataset[bubble_color == "#000000FF",color_symbol := "not in"]
+  bubble_dataset[bubble_color == "#000000FF",color_symbol := "not included"]
 
   return(bubble_dataset)
 

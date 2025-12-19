@@ -551,7 +551,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     unique()
 
   color_order <- names(bubble_color_value)
-  color_order <- c(color_order[!color_order %in% "not in"],"not in")
+  color_order <- c(color_order[!color_order %in% "not included"],"not included")
 
   plotting_size <- plotting_dataset[y_symbol == "negt_y",plotting_size_data] %>%
     unique()
