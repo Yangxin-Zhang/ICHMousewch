@@ -4,10 +4,10 @@
 \alias{.calculate_single_gene_average_expression}
 \title{calculate single gene average expression}
 \usage{
-.calculate_single_gene_average_expression(ich_mosue, gene_ls)
+.calculate_single_gene_average_expression(ich_mouse, gene_ls)
 }
 \arguments{
-\item{ich_mosue}{the class of ICH_Mouse}
+\item{ich_mouse}{the class of ICH_Mouse}
 
 \item{gene_ls}{the gene list}
 }

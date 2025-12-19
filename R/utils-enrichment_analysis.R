@@ -479,12 +479,13 @@
 #' @param enrichment_set the class of Enrichment_Set
 #' @param ich_mouse the class of ICH_Mouse
 #' @param GO_term_set_ls the set of GO ID
+#' @param GO_result_symbol the GO result symbol
 
-.generate_single_gene_GO_infomation <- function(enrichment_set,ich_mouse,GO_term_set_ls) {
+.generate_single_gene_GO_infomation <- function(enrichment_set,ich_mouse,GO_term_set_ls,GO_result_symbol = "filtered_total-diff_expr_genes") {
 
   on.exit(gc())
 
-  GO_results <- rbindlist(enrichment_set@GO_enrich) %>%
+  GO_results <- rbindlist(enrichment_set@GO_enrich[GO_result_symbol]) %>%
     unique(by = "ID")
 
   GO_set_name_ls <- names(GO_term_set_ls)
@@ -530,8 +531,23 @@
   gene_information <- data.table(gene_name = gene_set_whole)
 
   gene_information <- merge(gene_information,
-                            ICHMousewch:::.calculate_single_gene_average_expression(ich_mosue = ich_mosue,
+                            ICHMousewch:::.calculate_single_gene_average_expression(ich_mouse = ich_mouse,
                                                                                     gene_ls = gene_set_whole),
+                            by = "gene_name")
+
+  go_term_condition_ls <- vector("list",length = (length(GO_names)+1))
+  names(go_term_condition_ls) <- c("gene_name",GO_names)
+  go_term_condition_ls["gene_name"] <- list(gene_set_whole)
+  for (i in 1:length(GO_names)) {
+
+    go_term_condition_ls[GO_names[i]] <- list(gene_set_whole %in% gene_set_ls[[GO_names[i]]])
+
+  }
+
+  go_term_condition_ls <- as.data.table(go_term_condition_ls)
+
+  gene_information <- merge(gene_information,
+                            go_term_condition_ls,
                             by = "gene_name")
 
   enrichment_set@gene_information <- gene_information
@@ -542,10 +558,10 @@
 
 #' calculate single gene average expression
 #'
-#' @param ich_mosue the class of ICH_Mouse
+#' @param ich_mouse the class of ICH_Mouse
 #' @param gene_ls the gene list
 
-.calculate_single_gene_average_expression <- function(ich_mosue,gene_ls) {
+.calculate_single_gene_average_expression <- function(ich_mouse,gene_ls) {
 
   on.exit(gc())
 
@@ -564,6 +580,11 @@
   cpm_mat_edge <- seu_obj[gene_ls,barcode_edge]@assays$RNA$data
   cpm_mat_center <- seu_obj[gene_ls,barcode_center]@assays$RNA$data
 
+  pt_mat <- cpm_mat != 0
+  pt_mat_normal <- cpm_mat_normal != 0
+  pt_mat_edge <- cpm_mat_edge != 0
+  pt_mat_center <- cpm_mat_center != 0
+
   gene_info <- data.table(gene_name = gene_ls,
                           avg_expr = Matrix::rowMeans(cpm_mat),
                           avg_expr_normal = Matrix::rowMeans(cpm_mat_normal),
@@ -572,11 +593,37 @@
                           var_expr = sparseMatrixStats::rowVars(cpm_mat),
                           var_expr_normal = sparseMatrixStats::rowVars(cpm_mat_normal),
                           var_expr_center = sparseMatrixStats::rowVars(cpm_mat_center),
-                          var_expr_edge = sparseMatrixStats::rowVars(cpm_mat_edge))
+                          var_expr_edge = sparseMatrixStats::rowVars(cpm_mat_edge),
+                          pt = (Matrix::rowSums(pt_mat)/ncol(pt_mat))*100,
+                          pt_normal = (Matrix::rowSums(pt_mat_normal)/ncol(pt_mat_normal))*100,
+                          pt_edge = (Matrix::rowSums(pt_mat_edge)/ncol(pt_mat_edge))*100,
+                          pt_center = (Matrix::rowSums(pt_mat_center)/ncol(pt_mat_center))*100)
 
   log2_da <- log2(gene_info[,avg_expr_edge]/min(gene_info[,avg_expr_edge]))
 
   gene_info[,size_data := log2_da]
+
+  gene_info[,log_pt_normal_FC := numeric(length(gene_ls))]
+  gene_info[,log_pt_edge_FC := numeric(length(gene_ls))]
+  gene_info[,log_pt_center_FC := numeric(length(gene_ls))]
+  gene_info[,log_expr_normal := numeric(length(gene_ls))]
+  gene_info[,log_expr_center := numeric(length(gene_ls))]
+  gene_info[,log_expr_edge := numeric(length(gene_ls))]
+
+  gene_info[pt_normal != 0,log_pt_normal_FC := log2((pt_normal/pt))]
+  gene_info[pt_edge != 0,log_pt_edge_FC := log2((pt_edge/pt))]
+  gene_info[pt_center != 0,log_pt_center_FC := log2((pt_center/pt))]
+  gene_info[avg_expr_normal != 0,log_expr_normal := log2((avg_expr_normal/avg_expr))]
+  gene_info[avg_expr_center != 0 ,log_expr_center := log2((avg_expr_center/avg_expr))]
+  gene_info[avg_expr_edge != 0,log_expr_edge := log2((avg_expr_edge/avg_expr))]
+
+  gene_info[pt_normal == 0,log_pt_normal_FC := log2((pt_normal/pt)+1)]
+  gene_info[pt_edge == 0,log_pt_edge_FC := log2((pt_edge/pt)+1)]
+  gene_info[pt_center == 0,log_pt_center_FC := log2((pt_center/pt)+1)]
+  gene_info[avg_expr_normal == 0,log_expr_normal := log2((avg_expr_normal/avg_expr)+1)]
+  gene_info[avg_expr_center == 0,log_expr_center := log2((avg_expr_center/avg_expr)+1)]
+  gene_info[avg_expr_edge == 0,log_expr_edge := log2((avg_expr_edge/avg_expr)+1)]
+
 
   return(gene_info)
 
@@ -597,7 +644,39 @@
 
 }
 
+#' add go term condition information
+#'
+#' @param gene_info_df the gene information dataframe
+#' @param go_term_list the GO term list
+#' @param go_result the GO analysis result
 
+.add_go_term_condition_information <- function(gene_info_df,go_term_list,go_result) {
+
+  on.exit(gc())
+
+  gene_ls <- gene_info_df[,gene_name]
+  go_term_list <- go_term_list[go_term_list %in% go_result[,ID]]
+  go_result <- ICHMousewch:::.split_GO_result_genes(GO_result = go_result[ID %in% go_term_list])
+
+  go_term_condition_ls <- vector("list",length = (length(go_term_list)+1))
+  names(go_term_condition_ls) <- c("gene_name",go_term_list)
+  go_term_condition_ls["gene_name"] <- list(gene_ls)
+
+  for (i in 1:length(go_term_list)) {
+
+    go_term_condition_ls[go_term_list[i]] <- list(gene_ls %in% unlist(go_result[ID %in% go_term_list[i],split_genes]))
+
+  }
+
+  go_term_condition_ls <- as.data.table(go_term_condition_ls)
+
+  gene_info_df <- merge(gene_info_df,
+                        go_term_condition_ls,
+                        by = "gene_name")
+
+  return(gene_info_df)
+
+}
 
 
 

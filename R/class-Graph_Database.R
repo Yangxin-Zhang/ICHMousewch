@@ -50,6 +50,10 @@ setMethod(f = "combine_plots",
 
             on.exit()
 
+            blank_graph <- ggplot(data.frame()) +
+              geom_blank() +
+              theme_void()
+
             if (sum(!plot_name_ls %in% names(graph_database@graph_database)) != 0) {
 
               graph_database <- ICHMousewch::load_graph(graph_name = plot_name_ls,
@@ -82,12 +86,28 @@ setMethod(f = "combine_plots",
 
             if (combination_num == 4) {
 
-              plot_1 <- graph_database@graph_database[[plot_name_ls[1]]]
-              plot_2 <- graph_database@graph_database[[plot_name_ls[2]]]
-              plot_3 <- graph_database@graph_database[[plot_name_ls[3]]]
-              plot_4 <- graph_database@graph_database[[plot_name_ls[4]]]
+              if(length(plot_name_ls) == 4) {
 
-              plot_name_com <- paste(plot_name_ls,collapse = "-")
+                plot_1 <- graph_database@graph_database[[plot_name_ls[1]]]
+                plot_2 <- graph_database@graph_database[[plot_name_ls[2]]]
+                plot_3 <- graph_database@graph_database[[plot_name_ls[3]]]
+                plot_4 <- graph_database@graph_database[[plot_name_ls[4]]]
+
+                plot_name_com <- paste(plot_name_ls,collapse = "-")
+
+              }
+
+              if(length(plot_name_ls) == 2) {
+
+                plot_1 <- graph_database@graph_database[[plot_name_ls[1]]]
+                plot_2 <- graph_database@graph_database[[plot_name_ls[2]]]
+                plot_3 <- blank_graph
+                plot_4 <- blank_graph
+
+                plot_name_com <- paste(plot_name_ls,collapse = "-") %>%
+                  paste("2",sep = "_")
+
+              }
 
               com_plot <- (plot_1 | plot_2) / (plot_3 | plot_4)
 
@@ -111,6 +131,40 @@ setMethod(f = "combine_plots",
               list()
             names(new_com_plot) <- plot_name_com
             graph_database@combined_graph <- append(graph_database@combined_graph,new_com_plot)
+
+            return(graph_database)
+
+          })
+
+#' create combined plots set
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+setGeneric(name = "create_combined_plots_set",
+           def = function(ich_mouse) {
+
+             standardGeneric("create_combined_plots_set")
+
+           })
+
+#' create combined plots set
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @export
+setMethod(f = "create_combined_plots_set",
+          signature = signature(ich_mouse = "ICH_Mouse"),
+          definition = function(ich_mouse) {
+
+            on.exit(gc())
+            graph_database <- ICHMousewch::Graph_Database()
+
+            ## GMM barchart & count distribution map
+            graph_database@combined_graph["GMM_barchart&count_distribution_map"] <- list(ICHMousewch:::.combined_GMM_barchat_and_count_distribution_map(ich_mouse = ich_mouse))
+            ##
+
+            ## volcano plot & venn diagram
+            graph_database@combined_graph["volcano_plot&venn_diagram"] <- list(ICHMousewch:::.combined_volcano_plot_and_venn_diagram(ich_mouse = ich_mouse))
+            ##
 
             return(graph_database)
 

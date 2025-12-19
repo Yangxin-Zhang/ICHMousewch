@@ -577,10 +577,10 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_x_continuous(breaks = para_ncount[["x_tick"]]) +
     coord_cartesian(xlim = para_ncount[["x_width"]],
                     ylim = para_ncount[["y_high"]]) +
-    labs(title = plotting_title) +
-    ICHMousewch:::.plotting_theme() +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank())
+    labs(title = plotting_title,
+         x = "counts",
+         y = "n_spots") +
+    ICHMousewch:::.plotting_theme()
 
   para_nfeature <- ICHMousewch:::.choose_bins_for_histogram(his_dataset = seu_metadata[,nFeature_log2],bins = para_ncount[["bins"]],reso = reso)
   barchart_nfeature <- ggplot(data = seu_metadata,mapping = aes(x = nFeature_log2))+
@@ -592,10 +592,10 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_x_continuous(breaks = para_nfeature[["x_tick"]]) +
     coord_cartesian(xlim = para_nfeature[["x_width"]],
                     ylim = para_nfeature[["y_high"]]) +
-    labs(title = plotting_title) +
-    ICHMousewch:::.plotting_theme() +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank())
+    labs(title = plotting_title,
+         x = "n_features",
+         y = "n_spots") +
+    ICHMousewch:::.plotting_theme()
 
   ncount_na <- paste("Barchart_Count",plotting_title,sep = "-")
   nfeature_na <- paste("Barchart_Feature",plotting_title,sep = "-")
@@ -612,11 +612,38 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 .plotting_theme <- function() {
 
-  theme(plot.title = element_text(family = "Arial",size = 12,color = "black",face = "bold",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
+  theme(plot.title = element_text(family = "Arial",
+                                  size = 12,
+                                  color = "black",
+                                  face = "bold",
+                                  hjust = 0.5,
+                                  vjust = 0.5,
+                                  margin = margin(t = 5,
+                                                  b = 5,
+                                                  unit = "pt")),
+        plot.margin = margin(r = 10,
+                             l = 10,
+                             b = 10,
+                             t = 10,
+                             unit = "pt"),
         axis.text.x = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5),
         axis.text.y = element_text(family = "Arial",size = 8,color = "black",hjust = 0.5),
-        axis.title.x = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10, t = 10)),
-        axis.title.y = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(r = 10, l = 10)),
+        axis.title.x = element_text(family = "Arial",
+                                    size = 12,
+                                    color = "black",
+                                    hjust = 0.5,
+                                    vjust = 0.5,
+                                    margin = margin(b = 8,
+                                                    t = 0,
+                                                    unit = "pt")),
+        axis.title.y = element_text(family = "Arial",
+                                    size = 12,
+                                    color = "black",
+                                    hjust = 0.5,
+                                    vjust = 0.5,
+                                    margin = margin(r = 5,
+                                                    l = 5,
+                                                    unit = "pt")),
         legend.text = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5),
         legend.title = element_text(family = "Arial",size = 12,color = "black",hjust = 0.5,vjust = 0.5,margin = margin(b = 10)),
         legend.background = element_rect(fill = "white", color = NA),
@@ -684,7 +711,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param gene_info the gene information
 #' @param GO_info the GO term information
 
-.generate_bubble_dataset <- function(gene_info,GO_info,gene_num) {
+.generate_bubble_dataset <- function(gene_info,GO_info,gene_num,size_param = 0.6) {
 
   on.exit(gc())
 
@@ -694,7 +721,8 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   }
 
-  GO_results <- rbindlist(GO_info)
+  GO_results <- rbindlist(GO_info) %>%
+    unique(by = "ID")
 
   setorder(gene_info,-GO_term_Count)
   gene_ls <- gene_info[c(1:gene_num),gene_name]
@@ -706,23 +734,28 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   diff_da <- diff_da[diff_order,size_data]
 
   GO_id <- GO_results[,ID]
+  GO_description <- GO_results[,Description]
   GO_num <- length(GO_id)
 
   posi_y_da <- data.table(GO_ID = GO_id,
+                          GO_Description = GO_description,
                           GO_group = character(GO_num),
                           bubble_y = integer(GO_num),
                           y_symbol = rep("posi_y",times = GO_num),
                           size_data = rep(NA,times = GO_num),
+                          plotting_size_data = rep(NA,times = GO_num),
                           gene_name = rep(NA,times = GO_num),
                           bubble_color = rep(NA,times = GO_num))
   GO_order <- match(GO_id,GO_results[,ID])
   posi_y_da[,bubble_y := GO_results[GO_order,Count]]
 
   negt_y_da <- data.table(GO_ID = rep(GO_id,times = gene_num),
+                          GO_Description = rep(GO_description,times = gene_num),
                           GO_group = character(GO_num*gene_num),
                           bubble_y = rep(seq(from = -5, to = -max(GO_results[,Count]), length.out = gene_num),each = GO_num),
                           y_symbol = rep("negt_y",times = GO_num*gene_num),
                           size_data = rep(diff_da,each = GO_num),
+                          plotting_size_data = rep(diff_da*size_param,each = GO_num),
                           gene_name = rep(gene_ls,each = GO_num),
                           bubble_color = character(GO_num))
 
@@ -730,14 +763,14 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   group_na <- names(GO_info)
 
-  k <- 0
+  group_color <- scales::hue_pal()(length(group_na))
+  names(group_color) <- group_na
+
   for (i in 1:length(group_na)) {
 
     group_GO_id <- GO_info[[group_na[i]]][,ID]
 
     for (j in 1:length(group_GO_id)) {
-
-      k <- k+1
 
       gene_na_ls <- GO_info[[group_na[i]]][ID %in% group_GO_id[j],gene][[1]]
 
@@ -746,12 +779,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
       selected_gene_na <- bubble_dataset[!is.na(gene_name) & gene_name %in% gene_na_ls,gene_name]
       unselected_gene_na <- bubble_dataset[!gene_name %in% selected_gene_na,gene_name]
 
-      bubble_dataset[GO_ID %in% group_GO_id[j] & !is.na(gene_name) & gene_name %in% selected_gene_na,bubble_color := viridis::plasma(length(GO_id))[k]]
+      bubble_dataset[GO_ID %in% group_GO_id[j] & !is.na(gene_name) & gene_name %in% selected_gene_na,bubble_color := group_color[group_na[i]]]
       bubble_dataset[GO_ID %in% group_GO_id[j] & !is.na(gene_name) & gene_name %in% unselected_gene_na,bubble_color := "#000000FF"]
 
+      bubble_dataset[GO_ID %in% group_GO_id[j] & is.na(gene_name),bubble_color := group_color[group_na[i]]]
     }
 
   }
+
+  bubble_dataset[,color_symbol := bubble_dataset[,GO_group]]
+  bubble_dataset[bubble_color == "#000000FF",color_symbol := "not in"]
 
   return(bubble_dataset)
 
@@ -1205,9 +1242,9 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
   on.exit(gc())
 
-  data_ls <- list("edge_normal" = ich_mouse@diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
-                  "center_normal" = ich_mouse@diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
-                  "center_edge" = ich_mouse@diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name])
+  data_ls <- list("edge vs normal" = ich_mouse@diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                  "center vs normal" = ich_mouse@diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                  "center vs edge" = ich_mouse@diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name])
 
   venn_plot <- ggvenn::ggvenn(data_ls,
                               fill_color = c("#1F77B4","#FF7F0E","#2CA02C"),
@@ -1239,7 +1276,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                size = point_size) +
     scale_color_gradientn(colors = c("#0D0887", "#3F007D", "#6A00A8", "#B12A90", "#E16462", "#FCA636", "#F0F921"),
                           limits = range(seu_meta[,nCount_log2])) +
-    labs(title = "log2Count") +
+    labs(color = "counts") +
     coord_fixed() +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
@@ -1247,20 +1284,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
           axis.title.y = element_blank(),
           axis.ticks.x = element_blank(),
           axis.ticks.y = element_blank(),
-          legend.position = "right",
-          legend.title = element_blank(),
+          legend.position = "left",
           legend.text = element_text(size = 8,
                                      family = "Arial"),
+          legend.title = element_text(size = 12,
+                                      family = "Arial"),
           panel.background = element_rect(fill = "white", color = "black"),
           plot.background = element_rect(fill = "white", color = NA),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 12,
-                                    face = "bold",
-                                    family = "Arial",
-                                    hjust = 0.5,
-                                    vjust = 0,
-                                    margin = margin(b = 10)))
+          plot.title = element_blank())
 
   return(count_distribution_map)
 
@@ -1629,17 +1662,229 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
              fill = "grey90",
              color = "black",
              width = 0.7) +
+    labs(x = "fold enrichment",
+         title = "GO Enrichment Overview") +
     ICHMousewch:::.plotting_theme() +
     theme(panel.grid.major = element_blank(),
-          axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          axis.ticks.x = element_blank(),
           axis.ticks.y = element_blank(),
-          axis.text.x = element_blank(),
           axis.text.y = element_text(size = 8,
-                                     hjust = 1))
+                                     hjust = 1),
+          aspect.ratio = ((1/30)*nrow(plotting_dataset)))
 
   return(list("overview_GO_result_barchart" = ggplotGrob(bubble_chart)))
+
+}
+
+#' create GO result custom barchart
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param GO_term_ls the list of GO term
+
+.create_GO_result_custom_barchart <- function(ich_mouse,GO_term_ls) {
+
+  on.exit(gc())
+
+  plot_barchart <- function(ich_mouse,GO_term_set,GO_term_set_name) {
+
+    on.exit(gc())
+
+    filtered_GO <- ich_mouse@GO_enrichment$`filtered_total-diff_expr_genes`[ID %in% GO_term_set]
+    filtered_GO[,log10p := -log10(p.adjust)]
+    setorder(filtered_GO,-FoldEnrichment)
+
+    plotting_dataset <- filtered_GO %>%
+      setorder(FoldEnrichment) %>%
+      as_tibble() %>%
+      mutate(Description = factor(Description,levels = Description))
+
+    bar_chart <- ggplot() +
+      geom_col(data = plotting_dataset,
+               mapping = aes(x = FoldEnrichment,y = Description),
+               fill = "grey90",
+               color = "black",
+               width = 0.7) +
+      labs(title = GO_term_set_name,
+           x = "fold enrichment") +
+      ICHMousewch:::.plotting_theme() +
+      theme(panel.grid.major = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.y = element_text(size = 8,
+                                       hjust = 1),
+            aspect.ratio = ((1/30)*nrow(plotting_dataset)))
+
+    return(bar_chart)
+
+  }
+
+  if (length(GO_term_ls) != 0) {
+
+    barchart_name <- names(GO_term_ls)
+    barchart_ls <- vector("list",length = length(barchart_name))
+    names(barchart_ls) <- barchart_name
+
+    for (i in 1:length(barchart_name)) {
+
+      barchart_ls[barchart_name[i]] <- plot_barchart(ich_mouse = ich_mouse,
+                                                     GO_term_set = GO_term_ls[[barchart_name[i]]],
+                                                     GO_term_set_name = barchart_name[i]) %>%
+        ggplotGrob() %>%
+        list()
+
+    }
+
+  }
+
+  return(barchart_ls)
+
+}
+
+#' create single gene information heatmap
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param gene_ls the gene list
+#' @param go_term_ls the GO term list
+#' @param GO_symbol the GO analysis symbol
+
+.create_single_gene_infotmation_heatmap <- function(ich_mouse,gene_ls,go_term_ls,GO_symbol = "filtered_total-diff_expr_genes") {
+
+  on.exit(gc())
+
+  gene_info_df <- ICHMousewch:::.calculate_single_gene_average_expression(ich_mouse = ich_mouse,
+                                                                          gene_ls = gene_ls) %>%
+    ICHMousewch:::.add_go_term_condition_information(go_term_list = go_term_ls,
+                                                     go_result = ich_mouse@GO_enrichment[[GO_symbol]]) %>%
+    setorder(-log_pt_edge_FC)
+
+  plotting_df_log_pt_normal_FC <- gene_info_df[,c("gene_name","log_pt_normal_FC")]
+  plotting_df_log_pt_normal_FC <- plotting_df_log_pt_normal_FC[,x_tick := "percent_normal"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_pt_normal_FC,
+           y_tick = gene_name)
+
+  plotting_df_log_pt_edge_FC <- gene_info_df[,c("gene_name","log_pt_edge_FC")]
+  plotting_df_log_pt_edge_FC <- plotting_df_log_pt_edge_FC[,x_tick := "percent_edge"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_pt_edge_FC,
+           y_tick = gene_name)
+
+  plotting_df_log_pt_center_FC <- gene_info_df[,c("gene_name","log_pt_center_FC")]
+  plotting_df_log_pt_center_FC <- plotting_df_log_pt_center_FC[,x_tick := "percent_center"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_pt_center_FC,
+           y_tick = gene_name)
+
+  plotting_df_log_expr_normal <- gene_info_df[,c("gene_name","log_expr_normal")]
+  plotting_df_log_expr_normal <- plotting_df_log_expr_normal[,x_tick := "expression_normal"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_expr_normal,
+           y_tick = gene_name)
+
+  plotting_df_log_expr_center <- gene_info_df[,c("gene_name","log_expr_center")]
+  plotting_df_log_expr_center <- plotting_df_log_expr_center[,x_tick := "expression_center"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_expr_center,
+           y_tick = gene_name)
+
+  plotting_df_log_expr_edge <- gene_info_df[,c("gene_name","log_expr_edge")]
+  plotting_df_log_expr_edge <- plotting_df_log_expr_edge[,x_tick := "expression_edge"] %>%
+    as_tibble() %>%
+    rename(scale_dt = log_expr_edge,
+           y_tick = gene_name)
+
+  plotting_df_go_term_ls <- vector("list",length = length(go_term_ls))
+  names(plotting_df_go_term_ls) <- go_term_ls
+  for (i in 1:length(go_term_ls)) {
+
+    go_description <- ich_mouse@GO_enrichment[[GO_symbol]][ID %in% go_term_ls[i],Description]
+
+    col_chars <- c("gene_name","size_data")
+    tool_df <- gene_info_df[,..col_chars]
+    x_tick_chars <- rep(go_description,times = nrow(tool_df))
+    tool_df <- tool_df[,x_tick := x_tick_chars]
+
+    go_term_chars <- go_term_ls[i]
+    color_dt_df <- gene_info_df[,..col_chars]
+    color_dt_df <- color_dt_df[,color_dt_logi := gene_info_df[,..go_term_chars]]
+    color_dt_df <- color_dt_df[,color_dt := "0"]
+    color_dt_df <- color_dt_df[color_dt_logi == TRUE,color_dt := "1"]
+
+    tool_df <- merge(tool_df,
+                     color_dt_df[,c("gene_name","color_dt")],
+                     by = "gene_name")
+    plotting_df_go_term_ls[go_term_ls[i]] <- tool_df %>%
+      as_tibble() %>%
+      rename(y_tick = gene_name) %>%
+      list()
+
+  }
+
+  plotting_df_go_term <- bind_rows(plotting_df_go_term_ls) %>%
+    as.data.table()
+
+  plotting_df <- bind_rows(list(plotting_df_log_pt_normal_FC,
+                                plotting_df_log_pt_edge_FC,
+                                plotting_df_log_pt_center_FC,
+                                plotting_df_log_expr_normal,
+                                plotting_df_log_expr_center,
+                                plotting_df_log_expr_edge)) %>%
+    as.data.table()
+
+  plotting_df[,size_data := NA]
+  plotting_df[,color_dt := NA]
+  plotting_df[,graph_type := 0]
+  plotting_df_go_term[,scale_dt := NA]
+  plotting_df_go_term[,graph_type := 1]
+
+  plotting_df <- bind_rows(plotting_df,
+                           plotting_df_go_term) %>%
+    as_tibble() %>%
+    mutate(x_tick = factor(x_tick,levels = c("percent_normal",
+                                             "expression_normal",
+                                             "percent_edge",
+                                             "expression_edge",
+                                             "percent_center",
+                                             "expression_center",
+                                             ich_mouse@GO_enrichment[[GO_symbol]][ID %in% go_term_ls,Description])),
+           y_tick = factor(y_tick,levels = gene_info_df[,gene_name]))
+
+  plotting_df_tile <- plotting_df[plotting_df[,"graph_type"] == 0,]
+  plotting_df_point <- plotting_df[plotting_df[,"graph_type"] == 1,]
+  single_gene_info_heatmap <- ggplot() +
+    geom_tile(data = plotting_df_tile,
+              mapping = aes(x = x_tick,
+                            y = y_tick,
+                            fill = scale_dt)) +
+    scale_fill_gradientn(colors = c("#053061","#2166AC","#4393C3","#92C5DE","#D1E5F0","#F7F7F7","#F4A582","#D6604D","#B2182B"),
+                         values = scales::rescale(c(-6,-5,-4,-3,-2,0,1,2,3),
+                                                  to = c(0,1),
+                                                  from = c(-6,3))) +
+    geom_tile(data = plotting_df_point[plotting_df_point["color_dt"] == "0",],
+              mapping = aes(x = x_tick,
+                            y = y_tick),
+              fill = "grey90",
+              color = "black") +
+    new_scale_fill() +
+    geom_tile(data = plotting_df_point[plotting_df_point["color_dt"] == "1",],
+              mapping = aes(x = x_tick,
+                            y = y_tick,
+                            fill = size_data),
+              color = "black") +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          panel.background = element_blank(),
+          panel.grid = element_blank(),
+          axis.text.x = element_text(family = "Arial",
+                                      size = 8,
+                                      color = "black",
+                                      hjust = 1,
+                                      angle = 45),
+          axis.text.y = element_text(family = "Arial",
+                                      size = 8,
+                                      color = "black"))
+
+  return(single_gene_info_heatmap)
 
 }
 

@@ -4,7 +4,12 @@
 \alias{.generate_single_gene_GO_infomation}
 \title{generate single gene GO information}
 \usage{
-.generate_single_gene_GO_infomation(enrichment_set, ich_mouse, GO_term_set_ls)
+.generate_single_gene_GO_infomation(
+  enrichment_set,
+  ich_mouse,
+  GO_term_set_ls,
+  GO_result_symbol = "filtered_total-diff_expr_genes"
+)
 }
 \arguments{
 \item{enrichment_set}{the class of Enrichment_Set}
@@ -12,6 +17,8 @@
 \item{ich_mouse}{the class of ICH_Mouse}
 
 \item{GO_term_set_ls}{the set of GO ID}
+
+\item{GO_result_symbol}{the GO result symbol}
 }
 \description{
 generate single gene GO information

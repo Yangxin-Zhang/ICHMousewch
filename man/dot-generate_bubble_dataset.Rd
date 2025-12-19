@@ -4,7 +4,7 @@
 \alias{.generate_bubble_dataset}
 \title{generate bubble dataset}
 \usage{
-.generate_bubble_dataset(gene_info, GO_info, gene_num)
+.generate_bubble_dataset(gene_info, GO_info, gene_num, size_param = 0.6)
 }
 \arguments{
 \item{gene_info}{the gene information}

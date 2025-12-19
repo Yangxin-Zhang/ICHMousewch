@@ -433,17 +433,21 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
     on.exit(gc())
 
+    plot_na <- strsplit(symbol,split = "-")
+    plot_na <- plot_na[[1]]
+    plot_na <- paste(plot_na, collapse = " vs ")
+
     diff_expr_mat <- ich_mouse@diff_expr_genes[[symbol]]
 
     diff_expr_mat[,Threshold := rep("No",nrow(diff_expr_mat))]
 
     if (absolute == FALSE) {
 
-      diff_expr_mat[avg_log2FC >= 1 & p_val_adj < 0.01,Threshold := "Up"]
+      diff_expr_mat[avg_log2FC >= 1 & p_val_adj < 0.01,Threshold := "Yes"]
 
     } else {
 
-      diff_expr_mat[abs(avg_log2FC) >= 1 & p_val_adj < 0.01,Threshold := "Up"]
+      diff_expr_mat[abs(avg_log2FC) >= 1 & p_val_adj < 0.01,Threshold := "Yes"]
 
     }
 
@@ -454,18 +458,19 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
     diff_expr_mat[avg_log2FC < -10, avg_log2FC := -10]
 
     volcano_plot <- ggplot(data = diff_expr_mat,mapping = aes(x = avg_log2FC, y = log10p_val_adj, color = Threshold)) +
-      labs(title = symbol) +
+      labs(title = plot_na) +
       geom_point(size = 1,alpha = 0.7) +
       coord_cartesian(xlim = c(-10, 10), ylim = c(-1, 300)) +
       scale_x_continuous(breaks = c(-10,-5,-1,0,1,5,10)) +
       scale_y_continuous(breaks = c(0,100,200,300)) +
-      scale_color_manual(values = c("No" = "#999999", "Up" = "#E41A1C")) +
+      scale_color_manual(values = c("No" = "#999999", "Yes" = "#E41A1C")) +
       geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")  +
+      labs(color = "Significance",
+           x = "expression fold change(log2)",
+           y = "adjusted p value(log10)") +
       ICHMousewch:::.plotting_theme() +
       guides(color = guide_legend(keywidth = unit(0.8, "cm"),keyheight = unit(0.8, "cm"),
-                                  override.aes = list(size = 3,alpha = 1))) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank())
+                                  override.aes = list(size = 3,alpha = 1)))
 
     if (absolute == FALSE) {
 
@@ -510,6 +515,9 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   GO_term_set_ls <- ich_mouse@GO_ID_group
 
+  num_go_term <- unlist(GO_term_set_ls) %>%
+    length()
+
   enri_set <- ICHMousewch::Create_Enrichment_Set(ich_mouse = ich_mouse)
   enri_set <- ICHMousewch::add_GO_term_set(enrichment_set = enri_set,
                                            GO_term_set_ls = GO_term_set_ls,
@@ -517,6 +525,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   gene_info <- enri_set@gene_information
   GO_info <- enri_set@GO_set
+  total_GO_info <- rbindlist(GO_info) %>%
+    unique(by = "ID")
 
   plotting_dataset <- ICHMousewch:::.generate_bubble_dataset(gene_info = gene_info,
                                                              GO_info = GO_info,
@@ -524,70 +534,78 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   posi_y_da <- plotting_dataset[y_symbol == "posi_y"] %>%
     as.data.frame() %>%
-    mutate( GO_ID = factor(GO_ID,levels = unique(plotting_dataset[,GO_ID])),
+    mutate( GO_Description = factor(GO_Description,levels = unique(plotting_dataset[,GO_Description])),
             GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])),
             text_y = (plotting_dataset[y_symbol == "posi_y",bubble_y] + 5))
 
   negt_y_da <- plotting_dataset[y_symbol == "negt_y"] %>%
     as.data.frame() %>%
-    mutate(GO_ID = factor(GO_ID,levels = unique(plotting_dataset[,GO_ID])),
+    mutate(GO_Description = factor(GO_Description,levels = unique(plotting_dataset[,GO_Description])),
            GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])))
 
   y_tick <- ICHMousewch:::.generate_bubble_chart_y_tick(plotting_dataset = plotting_dataset)
 
-  bubble_color <- plotting_dataset[y_symbol == "negt_y",bubble_color] %>%
+  bubble_color_value <- plotting_dataset[,bubble_color] %>%
     unique()
-  names(bubble_color) <- bubble_color
+  names(bubble_color_value) <- plotting_dataset[,color_symbol] %>%
+    unique()
+
+  color_order <- names(bubble_color_value)
+  color_order <- c(color_order[!color_order %in% "not in"],"not in")
+
+  plotting_size <- plotting_dataset[y_symbol == "negt_y",plotting_size_data] %>%
+    unique()
+
+  size_breaks <- seq(from = min(plotting_size),
+                     to = max(plotting_size),
+                     length.out = 4)
 
   bubble_chart <- ggplot(data = plotting_dataset) +
     geom_point(data = negt_y_da,
-               mapping = aes(x = GO_ID, y = bubble_y,color = bubble_color),
-               size = (negt_y_da$size_data*0.7),
+               mapping = aes(x = GO_Description, y = bubble_y,color = color_symbol,size = plotting_size_data),
                alpha = 0.5) +
-    scale_color_manual(values = bubble_color) +
-    geom_bar(data = posi_y_da,
-             mapping = aes(x = GO_ID, y = bubble_y,fill = GO_group),
-             stat = "identity",
-             width = 0.5) +
+    scale_color_manual(values = bubble_color_value,
+                       limits = color_order) +
+    scale_size_identity(guide = "legend",
+                        breaks = size_breaks) +
     geom_hline(yintercept = 0,
                color = "#000000FF",
                linewidth = 0.5) +
-    geom_text(data = posi_y_da[1,],
-              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
-              size = 8,
-              size.unit = "pt",
-              family = "Arial",
-              hjust = 0,
-              angle = 15) +
-    geom_text(data = posi_y_da[2:(nrow(posi_y_da) - 1),],
-              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
-              size = 8,
-              size.unit = "pt",
-              family = "Arial",
-              hjust = 0.5,
-              angle = 15) +
-    geom_text(data = posi_y_da[nrow(posi_y_da),],
-              mapping = aes(x = GO_ID,y = text_y,label = GO_ID),
-              size = 8,
-              size.unit = "pt",
-              family = "Arial",
-              hjust = 1,
-              angle = 15) +
+    geom_bar(data = posi_y_da,
+             mapping = aes(x = GO_Description, y = bubble_y,fill = color_symbol),
+             stat = "identity",
+             width = 0.5) +
+    scale_fill_manual(values = bubble_color_value) +
     scale_y_continuous(breaks = y_tick,
                        labels = names(y_tick)) +
+    labs(title = "GO Cluster Overview",
+         size = "Expression",
+         color = "GO Group",
+         y = "n_genes") +
     ICHMousewch:::.plotting_theme() +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.text.x = element_blank()) +
-    guides(fill = guide_legend(position = "left",
-                               theme = theme(legend.text = element_text(size = 12,
-                                                                        family = "Arial",
-                                                                        vjust = 0.5,
-                                                                        hjust = 0),
-                                             legend.title = element_blank(),
-                                             legend.key.size = unit(12,"pt"))),
-           color = guide_none())
+    theme(axis.title.y = element_text(hjust = 0.8),
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 30,
+                                     hjust = 1),
+          aspect.ratio = (15/(num_go_term))) +
+    guides(color = guide_legend(position = "left",
+                                theme = theme(legend.text = element_text(size = 12,
+                                                                         family = "Arial",
+                                                                         vjust = 0.5,
+                                                                         hjust = 0),
+                                              legend.title = element_text(size = 12,
+                                                                          family = "Arial",
+                                                                          hjust = 0.5),
+                                              legend.key.size = unit(12,"pt")),
+                                override.aes = list(size = 5)),
+           size = guide_legend(position = "right",
+                               theme = theme(legend.text = element_blank(),
+                                             legend.title = element_text(size = 12,
+                                                                         family = "Arial",
+                                                                         hjust = 0.5),
+                                             legend.key.size = unit(12,"pt")),
+                               override.aes = list(size = scales::rescale(size_breaks,to = c(2,5)))),
+           fill = guide_none())
 
   bubble_chart_ls <- list("bubble_chart" = ggplotGrob(bubble_chart))
 
@@ -608,7 +626,7 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
   seu_metadata_hematoma <- ich_mouse@seu_metadata_with_cluster_symbol[hematoma_symbol == 2]
 
   barchart_ori <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata,
-                                                                  plotting_title = "Origin")
+                                                                  plotting_title = "Original")
 
   barchart_normal <- ICHMousewch:::.create_ncount_nfeature_histogram(seu_metadata = seu_metadata_normal,
                                                                      plotting_title = "Normal")
@@ -1063,5 +1081,42 @@ combined_matrix_on_column <- function(matrix_ls) {
   }
 
   return(GO_cluster)
+
+}
+
+#' find single gene go terms
+#'
+#' @param gene_ls the gene list
+#' @param ich_mouse the class of ICH_Mouse
+#' @param go_result_symbol the GO result symbol
+
+.find_single_gene_go_terms <- function(gene_ls,ich_mouse,go_result_symbol = "filtered_total-diff_expr_genes") {
+
+  on.exit(gc())
+
+  go_result <- ich_mouse@GO_enrichment[[go_result_symbol]] %>%
+    ICHMousewch:::.split_GO_result_genes()
+  go_id <- go_result[,ID]
+
+  go_term_ls <- vector("list",length = length(gene_ls))
+  names(go_term_ls) <- gene_ls
+  for (i in 1:length(go_id)) {
+
+    gene_na <- gene_ls[gene_ls %in% unlist(go_result[ID %in% go_id[i],split_genes])]
+
+    if (length(gene_na) != 0) {
+
+      for (j in 1:length(gene_na)) {
+
+        go_term_ls[gene_na[j]] <- c(go_term_ls[[gene_na[j]]],go_id[i]) %>%
+          list()
+
+      }
+
+    }
+
+  }
+
+  return(go_term_ls)
 
 }

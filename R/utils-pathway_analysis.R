@@ -101,13 +101,25 @@
 
     plotting_col <- progeny_score_df[,..pathway_symbol]
     progeny_score_df[,plotting_pathway := plotting_col]
-    coord_df <- progeny_score_df[,c("plotting_pathway","row","col")]
+    progeny_score_df[,point_symbol := "point_symbol"]
+    progeny_score_df[center_edge_symbol %in% c("2","3") & plotting_pathway == 0,point_symbol := "0"]
+    progeny_score_df[plotting_pathway == 0 & !center_edge_symbol %in% c("2","3"),point_symbol := "1"]
+    progeny_score_df[plotting_pathway != 0,point_symbol := "2"]
+    coord_df <- progeny_score_df[,c("plotting_pathway","row","col","point_symbol")]
 
     pathway_graph <- ggplot() +
-      geom_point(data = coord_df,
+      geom_point(data = coord_df[point_symbol == "0"],
+                 mapping = aes(x = -row,y = -col),
+                 color = "white",
+                 size = 0.01) +
+      geom_point(data = coord_df[point_symbol == "1"],
+                 mapping = aes(x = -row,y = -col),
+                 color = "grey90",
+                 size = 0.01) +
+      geom_point(data = coord_df[point_symbol == "2"],
                  mapping = aes(x = -row,y = -col,colour = plotting_pathway),
                  size = 0.01) +
-      scale_color_gradientn(colors = c("grey90","#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
+      scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
       coord_fixed() +
       labs(title = pathway_symbol) +
       theme(axis.text.x = element_blank(),
