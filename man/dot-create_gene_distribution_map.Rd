@@ -5,26 +5,19 @@
 \title{create gene distribution map}
 \usage{
 .create_gene_distribution_map(
-  seu_meta,
-  raw_count_matrix,
-  filtered_genes,
-  filtered_barcodes,
-  diff_expr_gene,
+  ich_mouse,
+  diff_expr_gene_symbol = "edge-normal",
   aim_gene = character(),
   background_genes = c("Hbb-bt", "Hbb-bs", "Hba-a2"),
-  point_size = 1e-04
+  point_size = 1e-04,
+  normalized_data = FALSE,
+  scaled_data = TRUE
 )
 }
 \arguments{
-\item{seu_meta}{the Seurat metadata}
+\item{ich_mouse}{the class of ICH_Mouse}
 
-\item{raw_count_matrix}{the raw count matrix}
-
-\item{filtered_genes}{the filtered genes}
-
-\item{filtered_barcodes}{the filtered barcodes}
-
-\item{diff_expr_gene}{the differential expression genes}
+\item{diff_expr_gene_symbol}{the differential expression genes symbol}
 
 \item{aim_gene}{the aim gene for plotting}
 

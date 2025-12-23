@@ -21,44 +21,24 @@
 
 #' create spatial image with cluster symbol
 #'
-#' @param in_tissue_metadata the Seurat Object metadata of in tissue barcodes
+#' @param ich_mouse the ICH_Mouse class
 #' @param cluster_symbol the cluster for spatial image
-#' @param raw_count_matrix the matrix of raw count dataset
-#' @param background_image_address image for background
 #' @param self_definition_color a set of color defined by user
-#' @param giotto_instruction the instruction of Giotto Object
+#' @param plot_title the title of spatial image
+#' @param legend_lable the legend label
 
-.create_spatial_image_with_cluster_symbol <- function(in_tissue_metadata,cluster_symbol,raw_count_matrix,background_image_address,giotto_instruction,self_definition_color = character(),theme_param = list(),plot_title = character(),legend_lable = character(),show_image = TRUE,show_legend_label = FALSE,show_plot_title = FALSE) {
+.create_spatial_image_with_cluster_symbol <- function(ich_mouse,cluster_symbol,self_definition_color = character(),theme_param = list(),plot_title = character(),legend_lable = character(),show_image = TRUE,show_legend_label = FALSE,show_plot_title = FALSE) {
 
   on.exit(gc())
 
+  in_tissue_metadata <- ich_mouse@seu_metadata_with_cluster_symbol
   in_tissue_metadata[,cell_ID := barcode]
 
-  if (show_plot_title == FALSE) {
+  raw_count_matrix <- ich_mouse@raw_count_matrix
 
-    theme_param <- c(theme_param,list(plot.title = element_blank()))
+  giotto_instruction <- ich_mouse@giotto_instruction[[1]]
 
-  } else {
-
-    if (length(plot_title) != 0) {
-
-      aim_col <- in_tissue_metadata[,..cluster_symbol]
-
-      in_tissue_metadata[,(plot_title) := aim_col]
-
-      cluster_symbol <- plot_title
-
-    }
-
-    theme_param <- c(theme_param,list(plot.title = element_text(family = "Arial",
-                                                                size = 12,
-                                                                color = "black",
-                                                                face = "bold",
-                                                                hjust = 0.5,
-                                                                vjust = 0.5,
-                                                                margin = margin(b = 10, t = 10))))
-
-  }
+  background_image_address <- ich_mouse@file_address["background_image_address"]
 
   if (show_legend_label == FALSE) {
 
@@ -72,20 +52,24 @@
 
       for (i in 1:length(ori_lable)) {
 
-        filter_condition <- as.character(in_tissue_metadata[,..cluster_symbol]) %in% ori_lable[i]
+        filter_condition <- unlist(in_tissue_metadata[,..cluster_symbol]) %in% ori_lable[i]
 
-        in_tissue_metadata[filter_condition,..cluster_symbol := legend_lable[ori_lable[i]]]
+        in_tissue_metadata[filter_condition,new_cluster_symbol := legend_lable[ori_lable[i]]]
 
       }
 
+      in_tissue_metadata <- ICHMousewch::add_new_col_to_data_table(original_data_table = in_tissue_metadata,
+                                                                   new_col = in_tissue_metadata[,new_cluster_symbol],
+                                                                   new_col_name = cluster_symbol)
+
       if (length(self_definition_color) != 0) {
 
-        for (i in 1:length(legend_lable)) {
+        new_self_def_col <- vector("character",length = length(ori_lable))
+        names(new_self_def_col) <- legend_lable
 
-          new_self_def_col <- vector("character",length = length(ori_lable))
-          names(new_self_def_col) <- legend_lable
+        for (i in 1:length(ori_lable)) {
 
-          new_self_def_col[legend_lable[i]] <- self_definition_color[names(legend_lable[i])]
+          new_self_def_col[legend_lable[ori_lable[i]]] <- self_definition_color[ori_lable[i]]
 
         }
 
@@ -95,14 +79,7 @@
 
     }
 
-    theme_param <- c(theme_param,list(legend.position = "top",
-                                      legend.text = element_text(family = "Arial",
-                                                                 size = 12,
-                                                                 color = "black",
-                                                                 face = "bold",
-                                                                 hjust = 0,
-                                                                 vjust = 0.5),
-                                      legend.key.size = unit(12,"pt")))
+    theme_param <- c(theme_param,list(legend.position = "right"))
 
   }
 
@@ -151,7 +128,12 @@
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
                               show_image = TRUE,
-                              theme_param = c(theme_param,list(plot.background = element_rect(fill = "white",color = NA),
+                              show_legend = show_legend_label,
+                              title = plot_title,
+                              coord_fix_ratio = 1,
+                              return_plot = TRUE,
+                              legend_symbol_size = 5,
+                              theme_param = c(theme_param,list(ICHMousewch:::.plotting_theme(),
                                                                axis.ticks.x = element_blank(),
                                                                axis.ticks.y = element_blank(),
                                                                axis.text.x = element_blank(),
@@ -159,7 +141,7 @@
                                                                axis.title.x = element_blank(),
                                                                axis.title.y = element_blank())))
 
-  return(spatial_image)
+  return(ggplotGrob(spatial_image))
 
 }
 
@@ -527,14 +509,22 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
       labs(title = "GO Similarity Matrix",
            x = "GO IDs",
            y = "GO IDs",
-           color = "GO Group") +
+           color = "GO Group",
+           fill = "Similarity") +
       coord_fixed() +
       ICHMousewch:::.plotting_theme() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank()) +
-      guides(color = guide_legend(position = "left"))
+            axis.ticks.y = element_blank(),
+            legend.title = element_text(size = 12)) +
+      guides(fill = guide_colorbar(position = "left",
+                                   theme = theme(legend.key.size = unit(13,"pt"),
+                                                 legend.text = element_text(size = 10))),
+             color = guide_legend(position = "right",
+                                  theme = theme(legend.key.size = unit(10,"pt")),
+                                  override.aes = list(fill = "white",
+                                                      linewidth = 1)))
 
   } else {
 
@@ -544,13 +534,16 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                            values = scales::rescale(color_break,to = c(0,1))) +
       labs(title = "GO Similarity Matrix",
            x = "GO IDs",
-           y = "GO IDs") +
+           y = "GO IDs",
+           fill = "Similarity") +
       coord_fixed(ratio = 1) +
       ICHMousewch:::.plotting_theme() +
       theme(axis.text.x = element_blank(),
             axis.text.y = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank())
+            axis.ticks.y = element_blank()) +
+      guides(fill = guide_colorbar(position = "left",
+                                   theme = theme(legend.key.size = unit(12,"pt"))))
 
 
   }
@@ -621,7 +614,7 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                   color = "black",
                                   face = "bold",
                                   hjust = 0.5,
-                                  vjust = 0.5,
+                                  vjust = 0,
                                   margin = margin(t = 5,
                                                   b = 5,
                                                   unit = "pt")),
@@ -923,70 +916,9 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' @param ich_mouse the class of ICH_Mouse
 #' @param spaceranger_result the file address of spaceranger_result
 
-.create_umap_plot <- function(ich_mouse,spaceranger_result) {
+.create_umap_plot <- function(ich_mouse,spaceranger_result,DEGs_dims = FALSE) {
 
   on.exit(gc())
-
-  raw_count_matrix <- ich_mouse@raw_count_matrix
-  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
-  diff_expr_genes <- ich_mouse@diff_expr_genes
-  filter_genes <- ich_mouse@filtered_genes
-
-  spaceranger_umap <- read_csv(spaceranger_result[["spacerange_umap_address"]]) %>%
-    as.tibble()
-  spaceranger_umap <- tibble(barcode = spaceranger_umap$Barcode,
-                             UMAP_1 = spaceranger_umap$`UMAP-1`,
-                             UMAP_2 = spaceranger_umap$`UMAP-2`)
-
-  spaceranger_cluster <- read_csv(spaceranger_result[["spacerange_cluster_address"]]) %>%
-    as.tibble()
-  spaceranger_cluster <- tibble(barcode = spaceranger_cluster$Barcode,
-                                cluster_spaceranger = as.character(spaceranger_cluster$Cluster))
-
-  barcodes <- seu_meta[barcode %in% spaceranger_umap$barcode,barcode]
-
-  fil_count_matrix <- raw_count_matrix[filter_genes,barcodes]
-
-  seu_meta[center_edge_symbol == "1", cluster := "normal"]
-  seu_meta[center_edge_symbol == "2", cluster := "center"]
-  seu_meta[center_edge_symbol == "3", cluster := "edge"]
-
-  hematoma_cluster <- seu_meta[barcode %in% barcodes,c("barcode","cluster")]
-  hematoma_cluster <- tibble(barcode = hematoma_cluster$barcode,
-                             cluster_hematoma = hematoma_cluster$cluster)
-
-  seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
-    NormalizeData()
-
-  DEG_genes <- c(diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
-                 diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name],
-                 diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name]) %>%
-    unique()
-
-  seu_obj <- seu_obj[DEG_genes,]
-
-  seu_obj <- ScaleData(seu_obj) %>%
-    RunPCA(seed.use = 2025,
-           npcs = 10,
-           features = DEG_genes) %>%
-    RunUMAP(dims = 1:10,
-            min.dist = 1,
-            seed.use = 2025)
-
-  umap_coord_DEG <- Embeddings(seu_obj,"umap") %>%
-    as.data.frame() %>%
-    rownames_to_column()
-  umap_coord_DEG <- tibble(barcode = umap_coord_DEG$rowname,
-                           UMAP_1 = umap_coord_DEG$umap_1,
-                           UMAP_2 = umap_coord_DEG$umap_2)
-
-  umap_coord_DEG <- merge(umap_coord_DEG,hematoma_cluster,by = "barcode") %>%
-    merge(spaceranger_cluster,by = "barcode") %>%
-    column_to_rownames(var = "barcode")
-
-  spaceranger_umap <- merge(spaceranger_umap,hematoma_cluster,by = "barcode") %>%
-    merge(spaceranger_cluster,by = "barcode") %>%
-    column_to_rownames(var = "barcode")
 
   create_umap_plot <- function(umap_coord,cluster_symbol) {
 
@@ -996,44 +928,145 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
       umap_coord$cluster <-umap_coord$cluster_hematoma
 
+      umap_title <- "Hematoma vs Normal Tissue"
+
+      color_set <- c("center" = "#F8766D",
+                     "edge" = "#00BA38",
+                     "normal" = "#619CFF")
+
+      umap_labels <- c("center","edge","normal")
+
     }
 
     if (cluster_symbol == "spaceranger") {
 
       umap_coord$cluster <-umap_coord$cluster_spaceranger
 
+      umap_title <- "SpaceRanger Cluster"
+
+      n_colors <- umap_coord$cluster %>%
+        unique() %>%
+        length()
+
+      color_set <- scales::hue_pal()(n_colors)
+
+      clu_sym <- seq(from = 1,
+                     to = n_colors) %>%
+        as.character()
+
+      names(color_set) <- clu_sym
+
+      umap_labels <- paste("cluster",clu_sym,sep = " ")
+
     }
 
     umap_plot <- ggplot() +
       geom_point(data = umap_coord,
-                 mapping = aes(x = UMAP_1, y = UMAP_2, colour = cluster),
+                 mapping = aes(x = UMAP_1, y = UMAP_2, color = cluster),
                  size = 0.01) +
+      scale_color_manual(values = color_set,
+                         labels = umap_labels) +
+      labs(title = umap_title,
+           x = "UMAP-1",
+           y = "UMAP-2") +
       ICHMousewch:::.plotting_theme() +
-      theme(legend.position = "none",
+      theme(legend.position = "right",
+            legend.title = element_blank(),
             panel.grid.major = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
             axis.text.x = element_blank(),
-            axis.text.y = element_blank())
+            axis.text.y = element_blank()) +
+      guides(color = guide_legend(theme = theme(legend.key.size = unit(10,"pt")),
+                                  override.aes = list(size = 5)))
 
     return(umap_plot)
 
   }
 
-  umap_hematoma_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
-                                             cluster_symbol = "hematoma")
+  raw_count_matrix <- ich_mouse@raw_count_matrix
+  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
+  diff_expr_genes <- ich_mouse@diff_expr_genes
+  filter_genes <- ich_mouse@filtered_genes
+
+  spaceranger_cluster <- read_csv(spaceranger_result[["spacerange_cluster_address"]]) %>%
+    as_tibble()
+  spaceranger_cluster <- tibble(barcode = spaceranger_cluster$Barcode,
+                                cluster_spaceranger = as.character(spaceranger_cluster$Cluster))
+
+  spaceranger_umap <- read_csv(spaceranger_result[["spacerange_umap_address"]]) %>%
+    as_tibble()
+  spaceranger_umap <- tibble(barcode = spaceranger_umap$Barcode,
+                             UMAP_1 = spaceranger_umap$`UMAP-1`,
+                             UMAP_2 = spaceranger_umap$`UMAP-2`)
+
+  barcodes <- seu_meta[barcode %in% spaceranger_umap$barcode,barcode]
+
+
+  seu_meta[center_edge_symbol == "1", cluster := "normal"]
+  seu_meta[center_edge_symbol == "2", cluster := "center"]
+  seu_meta[center_edge_symbol == "3", cluster := "edge"]
+
+  hematoma_cluster <- seu_meta[barcode %in% barcodes,c("barcode","cluster")]
+  hematoma_cluster <- tibble(barcode = hematoma_cluster$barcode,
+                             cluster_hematoma = hematoma_cluster$cluster)
+
+  spaceranger_umap <- merge(spaceranger_umap,hematoma_cluster,by = "barcode") %>%
+    merge(spaceranger_cluster,by = "barcode") %>%
+    column_to_rownames(var = "barcode")
+
   umap_hematoma_spaceranger <- create_umap_plot(umap_coord = spaceranger_umap,
-                                             cluster_symbol = "hematoma")
-  umap_spaceranger_cluster_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
-                                                        cluster_symbol = "spaceranger")
+                                                cluster_symbol = "hematoma")
   umap_spaceranger_cluster_spaceranger <- create_umap_plot(umap_coord = spaceranger_umap,
-                                                        cluster_symbol = "spaceranger")
+                                                           cluster_symbol = "spaceranger")
 
-
-  umap_plot_ls <- list("umap_hematoma_ichmouse" = ggplotGrob(umap_hematoma_ichmouse),
-                       "umap_hematoma_spaceranger" = ggplotGrob(umap_hematoma_spaceranger),
-                       "umap_spaceranger_cluster_ichmouse" = ggplotGrob(umap_spaceranger_cluster_ichmouse),
+  umap_plot_ls <- list("umap_hematoma_spaceranger" = ggplotGrob(umap_hematoma_spaceranger),
                        "umap_spaceranger_cluster_spaceranger" = ggplotGrob(umap_spaceranger_cluster_spaceranger))
+
+  if (DEGs_dims) {
+
+    fil_count_matrix <- raw_count_matrix[filter_genes,barcodes]
+
+    seu_obj <- CreateSeuratObject(fil_count_matrix) %>%
+      NormalizeData()
+
+    DEG_genes <- c(diff_expr_genes$`edge-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name],
+                   diff_expr_genes$`center-edge`[abs(avg_log2FC) > 1 & p_val_adj < 0.01,gene_name],
+                   diff_expr_genes$`center-normal`[avg_log2FC > 1 & p_val_adj < 0.01,gene_name]) %>%
+      unique()
+
+    seu_obj <- seu_obj[DEG_genes,]
+
+    seu_obj <- ScaleData(seu_obj) %>%
+      RunPCA(seed.use = 2025,
+             npcs = 10,
+             features = DEG_genes) %>%
+      RunUMAP(dims = 1:10,
+              min.dist = 1,
+              seed.use = 2025)
+
+    umap_coord_DEG <- Embeddings(seu_obj,"umap") %>%
+      as.data.frame() %>%
+      rownames_to_column()
+    umap_coord_DEG <- tibble(barcode = umap_coord_DEG$rowname,
+                             UMAP_1 = umap_coord_DEG$umap_1,
+                             UMAP_2 = umap_coord_DEG$umap_2)
+
+    umap_coord_DEG <- merge(umap_coord_DEG,hematoma_cluster,by = "barcode") %>%
+      merge(spaceranger_cluster,by = "barcode") %>%
+      column_to_rownames(var = "barcode")
+
+    umap_hematoma_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
+                                               cluster_symbol = "hematoma")
+
+    umap_spaceranger_cluster_ichmouse <- create_umap_plot(umap_coord = umap_coord_DEG,
+                                                          cluster_symbol = "spaceranger")
+
+    umap_plot_ls <- append(umap_plot_ls,
+                           list("umap_hematoma_ichmouse" = ggplotGrob(umap_hematoma_ichmouse),
+                                "umap_spaceranger_cluster_ichmouse" = ggplotGrob(umap_spaceranger_cluster_ichmouse)))
+
+  }
 
   return(umap_plot_ls)
 
@@ -1041,17 +1074,27 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 
 #' create gene distribution map
 #'
-#' @param seu_meta the Seurat metadata
-#' @param raw_count_matrix the raw count matrix
-#' @param filtered_genes the filtered genes
-#' @param filtered_barcodes the filtered barcodes
-#' @param diff_expr_gene the differential expression genes
+#' @param ich_mouse the class of ICH_Mouse
+#' @param diff_expr_gene_symbol the differential expression genes symbol
 #' @param background_genes the background genes for graph
 #' @param aim_gene the aim gene for plotting
 
-.create_gene_distribution_map <- function(seu_meta,raw_count_matrix,filtered_genes,filtered_barcodes,diff_expr_gene,aim_gene = character(),background_genes = c("Hbb-bt","Hbb-bs","Hba-a2"),point_size = 0.0001) {
+.create_gene_distribution_map <- function(ich_mouse,diff_expr_gene_symbol = "edge-normal",aim_gene = character(),background_genes = c("Hbb-bt","Hbb-bs","Hba-a2"),point_size = 0.0001,normalized_data = FALSE,scaled_data = TRUE) {
 
   on.exit(gc())
+
+  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
+  raw_count_matrix <- ich_mouse@raw_count_matrix
+  filtered_genes <- ich_mouse@filtered_genes
+  filtered_barcodes <- ich_mouse@filtered_barcodes
+  diff_expr_gene <- ich_mouse@diff_expr_genes[[diff_expr_gene_symbol]]
+
+  if (scaled_data == normalized_data) {
+
+    scaled_data <- TRUE
+    normalized_data <- FALSE
+
+  }
 
   seu_meta <- seu_meta[cell_ID %in% filtered_barcodes]
 
@@ -1062,12 +1105,35 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
   seu_meta[,plot_row := -row]
   seu_meta[,plot_col := -col]
 
-  seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
-    NormalizeData() %>%
-    ScaleData(features = diff_expr_gene[avg_log2FC > 1,gene_name])
+  if (scaled_data) {
 
-  gene_expr_matrix <- t(seu_obj@assays$RNA$scale.data) %>%
-    as.data.frame()
+    seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
+      NormalizeData() %>%
+      ScaleData(features = diff_expr_gene[avg_log2FC > 1,gene_name])
+
+    gene_expr_matrix <- t(seu_obj@assays$RNA$scale.data) %>%
+      as.data.frame()
+
+    color_legend_na <- "Scaled\nExpression"
+
+  }
+
+  if (normalized_data) {
+
+    seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
+      NormalizeData()
+
+    sub_seu_obj <- seu_obj[diff_expr_gene[avg_log2FC > 1,gene_name],]
+
+    gene_expr_matrix <- sub_seu_obj@assays$RNA$data %>%
+      as.matrix() %>%
+      t() %>%
+      as.data.frame()
+
+    color_legend_na <- "Normalized\nExpression"
+
+  }
+
   gene_expr_matrix <- bind_cols(data.frame(barcode = rownames(gene_expr_matrix)),
                                 gene_expr_matrix) %>%
     as.data.table()
@@ -1132,10 +1198,10 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
         geom_point(data = graph_df[color_symbol == "2"],
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
                    size = point_size) +
-        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
-                              limits = range(graph_df[color_symbol == "2",plotting_gene])) +
+        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026")) +
         coord_fixed() +
-        labs(title = aim_gene_na) +
+        labs(title = aim_gene_na,
+             color = color_legend_na) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               axis.title.x = element_blank(),
@@ -1143,7 +1209,6 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
               axis.ticks.x = element_blank(),
               axis.ticks.y = element_blank(),
               legend.position = "right",
-              legend.title = element_blank(),
               legend.text = element_text(size = 8,
                                          family = "Arial"),
               panel.background = element_rect(fill = "white", color = "black"),
@@ -1765,18 +1830,26 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
 #' create single gene information heatmap
 #'
 #' @param ich_mouse the class of ICH_Mouse
-#' @param gene_ls the gene list
 #' @param go_term_ls the GO term list
 #' @param GO_symbol the GO analysis symbol
 
-.create_single_gene_infotmation_heatmap <- function(ich_mouse,gene_ls,go_term_ls,GO_symbol = "filtered_total-diff_expr_genes") {
+.create_single_gene_infotmation_heatmap <- function(ich_mouse,go_term_ls,GO_symbol = "filtered_total-diff_expr_genes") {
 
   on.exit(gc())
+
+  go_results <- ich_mouse@GO_enrichment[[GO_symbol]]
+
+  aim_go_results <- go_results[ID %in% go_term_ls] %>%
+    ICHMousewch:::.split_GO_result_genes()
+
+  gene_ls <- aim_go_results[,split_genes] %>%
+    unlist() %>%
+    unique()
 
   gene_info_df <- ICHMousewch:::.calculate_single_gene_average_expression(ich_mouse = ich_mouse,
                                                                           gene_ls = gene_ls) %>%
     ICHMousewch:::.add_go_term_condition_information(go_term_list = go_term_ls,
-                                                     go_result = ich_mouse@GO_enrichment[[GO_symbol]]) %>%
+                                                     go_result = go_results) %>%
     setorder(-log_pt_edge_FC)
 
   plotting_df_log_pt_normal_FC <- gene_info_df[,c("gene_name","log_pt_normal_FC")]
@@ -1881,18 +1954,23 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
     scale_fill_gradientn(colors = c("#053061","#2166AC","#4393C3","#92C5DE","#D1E5F0","#F7F7F7","#F4A582","#D6604D","#B2182B"),
                          values = scales::rescale(c(-6,-5,-4,-3,-2,0,1,2,3),
                                                   to = c(0,1),
-                                                  from = c(-6,3))) +
+                                                  from = c(-6,3)),
+                         name = "Percent(log2)") +
     geom_tile(data = plotting_df_point[plotting_df_point["color_dt"] == "0",],
               mapping = aes(x = x_tick,
                             y = y_tick),
               fill = "grey90",
-              color = "black") +
+              color = "white") +
     new_scale_fill() +
     geom_tile(data = plotting_df_point[plotting_df_point["color_dt"] == "1",],
               mapping = aes(x = x_tick,
                             y = y_tick,
                             fill = size_data),
-              color = "black") +
+              color = "white") +
+    scale_fill_gradient2(low = "#2166AC",
+                         mid = "#F7F7F7",
+                         high = "#D6604D",
+                         name = "Expression") +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           panel.background = element_blank(),
@@ -1906,7 +1984,105 @@ save_gtable_plot <- function(gtable_plot,saving_path,file_name) {
                                       size = 8,
                                       color = "black"))
 
-  return(single_gene_info_heatmap)
+  return(ggplotGrob(single_gene_info_heatmap))
 
 }
 
+#' create percent distribution map
+#'
+#' @param ich_mouse the class of ICH_Mouse
+#' @param aim_gene the aim gene list
+#' @param distribution_region the region for distribution
+
+.create_percent_distribution_map <- function(ich_mouse,aim_gene,diff_expr_gene_symbol = "edge-normal",distribution_region  = "center_edge_symbol") {
+
+  on.exit(gc())
+
+  seu_meta <- ich_mouse@seu_metadata_with_cluster_symbol
+  raw_count_matrix <- ich_mouse@raw_count_matrix
+  filtered_genes <- ich_mouse@filtered_genes
+  filtered_barcodes <- ich_mouse@filtered_barcodes
+  diff_expr_gene <- ich_mouse@diff_expr_genes[[diff_expr_gene_symbol]]
+
+  seu_meta <- seu_meta[cell_ID %in% filtered_barcodes]
+
+  aim_gene <- aim_gene[aim_gene %in% filtered_genes]
+
+  filtered_count_matrix <- raw_count_matrix[filtered_genes,seu_meta[,cell_ID]]
+
+  gene_expr_matrix <- filtered_count_matrix[diff_expr_gene[avg_log2FC > 1,gene_name],] %>%
+    as.matrix() %>%
+    t() %>%
+    as.data.frame()
+
+  gene_expr_matrix <- bind_cols(data.frame(barcode = rownames(gene_expr_matrix)),
+                                gene_expr_matrix) %>%
+    as.data.table()
+
+  graph_df <- merge(seu_meta,gene_expr_matrix,by = "barcode")
+
+  percent_distribution_map <- function(graph_df,aim_gene,background_symbol,distribution_region = "center_edge_symbol") {
+
+    on.exit(gc())
+
+    graph_df[,color_symbol := 0]
+
+    graph_df[,distribution_logi := graph_df[,..distribution_region]]
+    graph_df[distribution_logi == background_symbol,color_symbol := 1]
+    graph_df[,aim_gene_logi := graph_df[,..aim_gene]]
+    graph_df[aim_gene_logi != 0 & distribution_logi == background_symbol,color_symbol := 2]
+
+    per_dist_map <- ggplot() +
+      geom_point(data = graph_df[color_symbol == "0"],
+                 mapping = aes(x = -row,y = -col,colour = color_symbol),
+                 size = 0.01,
+                 color = "gray90") +
+      geom_point(data = graph_df[color_symbol == "1"],
+                 mapping = aes(x = -row,y = -col,colour = color_symbol),
+                 size = 0.01,
+                 color = "lightblue") +
+      geom_point(data = graph_df[color_symbol == "2"],
+                 mapping = aes(x = -row,y = -col,colour = color_symbol),
+                 color = "red",
+                 size = 0.01) +
+      coord_fixed() +
+      labs(title = aim_gene) +
+      ICHMousewch:::.plotting_theme() +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            panel.grid.major = element_blank())
+
+    return(ggplotGrob(per_dist_map))
+
+  }
+
+  region_symbol <- graph_df[,..distribution_region] %>%
+    unique() %>%
+    unlist()
+  names(region_symbol) <- NULL
+  region_num <- length(region_symbol)
+  graph_ls <- list()
+  for (i in 1:length(aim_gene)) {
+
+    for (j in 1:region_num) {
+
+      graph_na <- paste(distribution_region,aim_gene[i],sep = "-") %>%
+        paste(region_symbol[j],sep = "-")
+
+      graph_ls[graph_na] <- graph_df %>%
+        percent_distribution_map(aim_gene = aim_gene[i],
+                                 background_symbol = region_symbol[j],
+                                 distribution_region = distribution_region) %>%
+        list()
+
+    }
+
+  }
+
+  return(graph_ls)
+
+}

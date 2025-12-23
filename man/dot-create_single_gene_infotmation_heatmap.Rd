@@ -6,15 +6,12 @@
 \usage{
 .create_single_gene_infotmation_heatmap(
   ich_mouse,
-  gene_ls,
   go_term_ls,
   GO_symbol = "filtered_total-diff_expr_genes"
 )
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}
-
-\item{gene_ls}{the gene list}
 
 \item{go_term_ls}{the GO term list}
 

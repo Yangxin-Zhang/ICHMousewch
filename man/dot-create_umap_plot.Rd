@@ -4,7 +4,7 @@
 \alias{.create_umap_plot}
 \title{create umap plot}
 \usage{
-.create_umap_plot(ich_mouse, spaceranger_result)
+.create_umap_plot(ich_mouse, spaceranger_result, DEGs_dims = FALSE)
 }
 \arguments{
 \item{ich_mouse}{the class of ICH_Mouse}

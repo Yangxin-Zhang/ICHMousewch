@@ -5,11 +5,8 @@
 \title{create spatial image with cluster symbol}
 \usage{
 .create_spatial_image_with_cluster_symbol(
-  in_tissue_metadata,
+  ich_mouse,
   cluster_symbol,
-  raw_count_matrix,
-  background_image_address,
-  giotto_instruction,
   self_definition_color = character(),
   theme_param = list(),
   plot_title = character(),
@@ -20,17 +17,15 @@
 )
 }
 \arguments{
-\item{in_tissue_metadata}{the Seurat Object metadata of in tissue barcodes}
+\item{ich_mouse}{the ICH_Mouse class}
 
 \item{cluster_symbol}{the cluster for spatial image}
 
-\item{raw_count_matrix}{the matrix of raw count dataset}
-
-\item{background_image_address}{image for background}
-
-\item{giotto_instruction}{the instruction of Giotto Object}
-
 \item{self_definition_color}{a set of color defined by user}
+
+\item{plot_title}{the title of spatial image}
+
+\item{legend_lable}{the legend label}
 }
 \description{
 create spatial image with cluster symbol

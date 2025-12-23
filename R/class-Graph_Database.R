@@ -166,6 +166,11 @@ setMethod(f = "create_combined_plots_set",
             graph_database@combined_graph["volcano_plot&venn_diagram"] <- list(ICHMousewch:::.combined_volcano_plot_and_venn_diagram(ich_mouse = ich_mouse))
             ##
 
+            ## GO overview plot
+            graph_database@combined_graph["GO_overview_plot"] <- list(ICHMousewch:::.combined_GO_overview_plot(ich_mouse = ich_mouse,
+                                                                                                               group_symbol = names(ich_mouse@GO_ID_group)))
+            ##
+
             return(graph_database)
 
           })

@@ -389,12 +389,12 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 
   log2Count <- ICHMousewch:::.create_count_distribution_map(seu_meta = ich_mouse@seu_metadata_with_cluster_symbol)
 
-  plotting_list <- list("log2Count" = ggplotGrob(log2Count),
-                        "GMM_cluster" = ggplotGrob(GMM_cluster),
-                        "Louvain_cluster_posi" = ggplotGrob(Louvain_cluster_posi),
-                        "original_hematoma" = ggplotGrob(original_hematoma),
-                        "Louvain_cluster_filt_gene" = ggplotGrob(Louvain_cluster_filt_gene),
-                        "hematoma_center_edge" = ggplotGrob(hematoma_center_edge))
+  plotting_list <- list("log2Count" = log2Count,
+                        "GMM_cluster" = GMM_cluster,
+                        "Louvain_cluster_posi" = Louvain_cluster_posi,
+                        "original_hematoma" = original_hematoma,
+                        "Louvain_cluster_filt_gene" = Louvain_cluster_filt_gene,
+                        "hematoma_center_edge" = hematoma_center_edge)
 
   return(plotting_list)
 
@@ -508,12 +508,21 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 #' plotting bubble chart
 #'
 #' @param ich_mouse the ICH_Mouse class
+#' @param group_na the group name
 
-.plotting_bubble_chart <- function(ich_mouse,gene_num = 10) {
+.plotting_bubble_chart <- function(ich_mouse,gene_num = 10,group_na = character()) {
 
   on.exit(gc())
 
-  GO_term_set_ls <- ich_mouse@GO_ID_group
+  if (length(group_na) == 0) {
+
+    GO_term_set_ls <- ich_mouse@GO_ID_group
+
+  } else {
+
+    GO_term_set_ls <- ich_mouse@GO_ID_group[group_na]
+
+  }
 
   num_go_term <- unlist(GO_term_set_ls) %>%
     length()
@@ -1118,5 +1127,38 @@ combined_matrix_on_column <- function(matrix_ls) {
   }
 
   return(go_term_ls)
+
+}
+
+#' add new col to data table
+#'
+#' @param original_data_table the original data table
+#' @param new_col the new col
+#' @param new_col_name the new col name
+#' @export
+
+add_new_col_to_data_table <- function(original_data_table,new_col,new_col_name) {
+
+  on.exit(gc())
+
+  orgi_dt_cols <- colnames(original_data_table)
+  adj_orgi_dt_cols <- orgi_dt_cols[!orgi_dt_cols %in% new_col_name]
+  by_symbol <- adj_orgi_dt_cols[1]
+
+  tool_col <-  new_col %>%
+    as.matrix()
+  colnames(tool_col) <- new_col_name
+
+  by_col <- original_data_table[,..by_symbol] %>%
+    as.matrix()
+
+  tool_col <- cbind(tool_col,by_col) %>%
+    as.data.table()
+
+  new_data_table <- merge(original_data_table[,..adj_orgi_dt_cols],
+                          tool_col,
+                          by = by_symbol)
+
+  return(new_data_table)
 
 }
