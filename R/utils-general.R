@@ -10,7 +10,13 @@
 #' @param spaceranger_umap_address address for spaceranger umap
 #' @param spaceranger_cluster_address address for spaceranger cluster
 
-.integrate_file_address <- function(raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,spaceranger_umap_address = character(),spaceranger_cluster_address = character()) {
+.integrate_file_address <- function(raw_count_matrix_address,
+                                    filtered_count_matrix_address,
+                                    tissue_position_address,
+                                    background_image_address,
+                                    spaceranger_umap_address = character(),
+                                    spaceranger_cluster_address = character())
+  {
 
   on.exit(gc())
 
@@ -29,7 +35,8 @@
 #'
 #' @param tissue_position_address the address of tissue position matrix
 
-.load_tissue_position_matrix <- function(tissue_position_address) {
+.load_tissue_position_matrix <- function(tissue_position_address)
+  {
 
   on.exit(gc())
 
@@ -46,7 +53,8 @@
 #'
 #' @param raw_count_matrix_address the file address of raw count matrix
 
-.load_raw_count_matrix <- function(raw_count_matrix_address) {
+.load_raw_count_matrix <- function(raw_count_matrix_address)
+  {
 
   on.exit(gc())
 
@@ -61,7 +69,9 @@
 #' @param raw_count_matrix the matrix of raw count dataset
 #' @param original_seu_metadata the original Seurat Object metadata
 
-.find_filtered_barcodes <- function(raw_count_matrix,original_seu_metadata) {
+.find_filtered_barcodes <- function(raw_count_matrix,
+                                    original_seu_metadata)
+  {
 
   on.exit(gc())
 
@@ -89,7 +99,9 @@
 #' @param raw_count_matrix the matrix of raw count dataset
 #' @param original_seu_metadata the original Seurat Object metadata
 
-.find_filtered_genes <- function(raw_count_matrix,original_seu_metadata) {
+.find_filtered_genes <- function(raw_count_matrix,
+                                 original_seu_metadata)
+  {
 
   on.exit(gc())
 
@@ -502,123 +514,6 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
                           "edge_center" = ggplotGrob(edge_center))
 
   return(volcano_plot_ls)
-
-}
-
-#' plotting bubble chart
-#'
-#' @param ich_mouse the ICH_Mouse class
-#' @param group_na the group name
-
-.plotting_bubble_chart <- function(ich_mouse,gene_num = 10,group_na = character()) {
-
-  on.exit(gc())
-
-  if (length(group_na) == 0) {
-
-    GO_term_set_ls <- ich_mouse@GO_ID_group
-
-  } else {
-
-    GO_term_set_ls <- ich_mouse@GO_ID_group[group_na]
-
-  }
-
-  num_go_term <- unlist(GO_term_set_ls) %>%
-    length()
-
-  enri_set <- ICHMousewch::Create_Enrichment_Set(ich_mouse = ich_mouse)
-  enri_set <- ICHMousewch::add_GO_term_set(enrichment_set = enri_set,
-                                           GO_term_set_ls = GO_term_set_ls,
-                                           ich_mouse = ich_mouse)
-
-  gene_info <- enri_set@gene_information
-  GO_info <- enri_set@GO_set
-  total_GO_info <- rbindlist(GO_info) %>%
-    unique(by = "ID")
-
-  plotting_dataset <- ICHMousewch:::.generate_bubble_dataset(gene_info = gene_info,
-                                                             GO_info = GO_info,
-                                                             gene_num = gene_num)
-
-  posi_y_da <- plotting_dataset[y_symbol == "posi_y"] %>%
-    as.data.frame() %>%
-    mutate( GO_Description = factor(GO_Description,levels = unique(plotting_dataset[,GO_Description])),
-            GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])),
-            text_y = (plotting_dataset[y_symbol == "posi_y",bubble_y] + 5))
-
-  negt_y_da <- plotting_dataset[y_symbol == "negt_y"] %>%
-    as.data.frame() %>%
-    mutate(GO_Description = factor(GO_Description,levels = unique(plotting_dataset[,GO_Description])),
-           GO_group = factor(GO_group,levels = unique(plotting_dataset[,GO_group])))
-
-  y_tick <- ICHMousewch:::.generate_bubble_chart_y_tick(plotting_dataset = plotting_dataset)
-
-  bubble_color_value <- plotting_dataset[,bubble_color] %>%
-    unique()
-  names(bubble_color_value) <- plotting_dataset[,color_symbol] %>%
-    unique()
-
-  color_order <- names(bubble_color_value)
-  color_order <- c(color_order[!color_order %in% "not included"],"not included")
-
-  plotting_size <- plotting_dataset[y_symbol == "negt_y",plotting_size_data] %>%
-    unique()
-
-  size_breaks <- seq(from = min(plotting_size),
-                     to = max(plotting_size),
-                     length.out = 4)
-
-  bubble_chart <- ggplot(data = plotting_dataset) +
-    geom_point(data = negt_y_da,
-               mapping = aes(x = GO_Description, y = bubble_y,color = color_symbol,size = plotting_size_data),
-               alpha = 0.5) +
-    scale_color_manual(values = bubble_color_value,
-                       limits = color_order) +
-    scale_size_identity(guide = "legend",
-                        breaks = size_breaks) +
-    geom_hline(yintercept = 0,
-               color = "#000000FF",
-               linewidth = 0.5) +
-    geom_bar(data = posi_y_da,
-             mapping = aes(x = GO_Description, y = bubble_y,fill = color_symbol),
-             stat = "identity",
-             width = 0.5) +
-    scale_fill_manual(values = bubble_color_value) +
-    scale_y_continuous(breaks = y_tick,
-                       labels = names(y_tick)) +
-    labs(title = "GO Cluster Overview",
-         size = "Expression",
-         color = "GO Group",
-         y = "n_genes") +
-    ICHMousewch:::.plotting_theme() +
-    theme(axis.title.y = element_text(hjust = 0.8),
-          axis.title.x = element_blank(),
-          axis.text.x = element_text(angle = 30,
-                                     hjust = 1),
-          aspect.ratio = (15/(num_go_term))) +
-    guides(color = guide_legend(position = "left",
-                                theme = theme(legend.text = element_text(size = 12,
-                                                                         family = "Arial",
-                                                                         vjust = 0.5,
-                                                                         hjust = 0),
-                                              legend.title = element_text(size = 12,
-                                                                          family = "Arial",
-                                                                          hjust = 0.5),
-                                              legend.key.size = unit(12,"pt")),
-                                override.aes = list(size = 5)),
-           size = guide_legend(position = "right",
-                               theme = theme(legend.text = element_blank(),
-                                             legend.title = element_text(size = 12,
-                                                                         family = "Arial",
-                                                                         hjust = 0.5),
-                                             legend.key.size = unit(12,"pt")),
-                               override.aes = list(size = scales::rescale(size_breaks,to = c(2,5)))),
-           fill = guide_none())
-
-  bubble_chart_ls <- list("bubble_chart" = ggplotGrob(bubble_chart))
-
-  return(bubble_chart_ls)
 
 }
 

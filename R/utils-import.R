@@ -128,6 +128,7 @@
 #' @importFrom openxlsx saveWorkbook
 #' @importFrom viridis plasma
 #' @importFrom utils combn
+#' @importFrom utils menu
 #' @importFrom stats filter
 #' @importFrom stats dist
 #' @importFrom kernlab rbfdot

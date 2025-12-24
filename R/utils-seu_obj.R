@@ -5,7 +5,8 @@
 #'
 #' @param seu_obj A Seurat Object
 
-.get_seu_obj_metadata <- function(seu_obj) {
+.get_seu_obj_metadata <- function(seu_obj)
+  {
 
   on.exit(gc())
 
@@ -18,7 +19,9 @@
 #' @param raw_count_matrix the count  matrix of raw dataset
 #' @param tissue_position_matrix the matrix of tissue position
 
-.generate_original_seu_metadata <- function(raw_count_matrix,tissue_position_matrix) {
+.generate_original_seu_metadata <- function(raw_count_matrix,
+                                            tissue_position_matrix)
+  {
 
   on.exit(gc())
 
@@ -53,6 +56,8 @@
   seu_obj_metadata[,neg_row := -adj_tissue_position_matrix[,row]]
   seu_obj_metadata[,col := adj_tissue_position_matrix[,col]]
   seu_obj_metadata[,neg_col := -adj_tissue_position_matrix[,col]]
+
+  seu_obj_metadata[,cell_ID := barcode]
 
   return(seu_obj_metadata)
 

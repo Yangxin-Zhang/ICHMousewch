@@ -265,7 +265,9 @@ setGeneric(name = "export_plotting_dataset",
 
 setMethod(f = "export_plotting_dataset",
           signature = signature(plotting_dataset = "Plotting_Dataset",saving_path = "character"),
-          definition = function(plotting_dataset,saving_path) {
+          definition = function(plotting_dataset,
+                                saving_path)
+            {
 
             on.exit(gc())
 
@@ -305,9 +307,9 @@ setMethod(f = "export_plotting_dataset",
                          device = "png",
                          path = slot_da_path,
                          dpi = 600,
-                         width = (297/25.4),
-                         height = (210/25.4),
-                         unit = "in")
+                         width = (297),
+                         height = (210),
+                         unit = "mm")
 
                 }
 
@@ -327,7 +329,9 @@ setMethod(f = "export_plotting_dataset",
 
 setMethod(f = "export_plotting_dataset",
           signature = signature(plotting_dataset = "Spatial_Image",saving_path = "character"),
-          definition = function(plotting_dataset,saving_path) {
+          definition = function(plotting_dataset,
+                                saving_path)
+            {
 
             on.exit(gc())
 
@@ -381,7 +385,10 @@ setMethod(f = "export_plotting_dataset",
 
 setMethod(f = "Save_ICHMouse",
           signature = signature(Class_ICHMouse = "Spatial_Image"),
-          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+          definition = function(Class_ICHMouse,
+                                data_symbol = "ich_mouse",
+                                saving_path = NULL)
+            {
 
             on.exit(gc())
 
@@ -432,7 +439,10 @@ setMethod(f = "Save_ICHMouse",
 
 setMethod(f = "Save_ICHMouse",
           signature = signature(Class_ICHMouse = "Plotting_Dataset"),
-          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+          definition = function(Class_ICHMouse,
+                                data_symbol = "ich_mouse",
+                                saving_path = NULL)
+            {
 
             on.exit(gc())
 
@@ -490,7 +500,11 @@ setMethod(f = "Save_ICHMouse",
 #' @param graph_database the Graph_Database class
 
 setGeneric(name = "load_graph",
-           def = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL,graph_database = ICHMousewch::Graph_Database()) {
+           def = function(graph_name,
+                          data_symbol = "ich_mouse",
+                          loading_path = NULL,
+                          graph_database = ICHMousewch::Graph_Database())
+             {
 
              standardGeneric("load_graph")
 
@@ -505,7 +519,11 @@ setGeneric(name = "load_graph",
 #' @export
 
 setMethod(f = "load_graph",
-          definition = function(graph_name,data_symbol = "ich_mouse",loading_path = NULL,graph_database = ICHMousewch::Graph_Database()) {
+          definition = function(graph_name,
+                                data_symbol = "ich_mouse",
+                                loading_path = NULL,
+                                graph_database = ICHMousewch::Graph_Database())
+            {
 
             on.exit(gc())
 

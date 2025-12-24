@@ -93,23 +93,15 @@ setMethod(f = "initialize",
               .Object@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_cluster_symbol(original_seu_metadata = .Object@original_seu_metadata,
                                                                                                                    raw_count_matrix = .Object@raw_count_matrix)
 
-              # create spatial image plot
-              .Object@spatial_image$GMM_cluster <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                          cluster_symbol = "GMM_cluster",
-                                                                                                          raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                          background_image_address = .Object@file_address["background_image_address"],
-                                                                                                          self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                          giotto_instruction = .Object@giotto_instruction[[1]]) %>%
-                ggplotGrob()
-
-              .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = .Object@seu_metadata_with_cluster_symbol,
-                                                                                                                   cluster_symbol = "Louvain_cluster_posi",
-                                                                                                                   raw_count_matrix = .Object@raw_count_matrix,
-                                                                                                                   background_image_address = .Object@file_address["background_image_address"],
-                                                                                                                   self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                   giotto_instruction = .Object@giotto_instruction[[1]],
-                                                                                                                   show_legend_label = TRUE) %>%
-                ggplotGrob()
+              # # create spatial image plot
+              # .Object@spatial_image$GMM_cluster <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ,
+              #                                                                                             cluster_symbol = "GMM_cluster",
+              #                                                                                             self_definition_color = c("1"="#F5D2A8","2"="#D1352B"))
+              #
+              # .Object@spatial_image$Louvain_cluster_posi <-ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ,
+              #                                                                                                      cluster_symbol = "Louvain_cluster_posi",
+              #                                                                                                      self_definition_color = c("1"="#F5D2A8"),
+              #                                                                                                      show_legend_label = TRUE)
 
             } else {
 
@@ -196,22 +188,14 @@ setMethod(f = "identify_hematoma",
 
             hematoma@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_hematoma_symbol(hematoma = hematoma)
 
-            hematoma@spatial_image$hematoma <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
-                                                                                                       cluster_symbol = "hematoma_symbol",
-                                                                                                       raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                       background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                       self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
-                                                                                                       giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
-              ggplotGrob()
-
-            hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
-                                                                                                                        cluster_symbol = "Louvain_cluster_filt_gene",
-                                                                                                                        raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                                        background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                                        self_definition_color = c("1"="#F5D2A8"),
-                                                                                                                        giotto_instruction = hematoma@giotto_instruction[[1]],
-                                                                                                                        show_legend_label = TRUE) %>%
-              ggplotGrob()
+            # hematoma@spatial_image$hematoma <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
+            #                                                                                            cluster_symbol = "hematoma_symbol",
+            #                                                                                            self_definition_color = c("1"="#F5D2A8","2"="#D1352B"))
+            #
+            # hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
+            #                                                                                                             cluster_symbol = "Louvain_cluster_filt_gene",
+            #                                                                                                             self_definition_color = c("1"="#F5D2A8"),
+            #                                                                                                             show_legend_label = TRUE)
 
             return(hematoma)
 
@@ -254,13 +238,9 @@ setMethod(f = "identify_hematoma_center_and_edge",
 
             hematoma@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_hematoma_center_and_edge_symbol(hematoma = hematoma)
 
-            hematoma@spatial_image$hematoma_center_edge <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = hematoma@seu_metadata_with_cluster_symbol,
-                                                                                                                   cluster_symbol = "center_edge_symbol",
-                                                                                                                   raw_count_matrix = hematoma@raw_count_matrix,
-                                                                                                                   background_image_address = hematoma@file_address["background_image_address"],
-                                                                                                                   self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
-                                                                                                                   giotto_instruction = hematoma@giotto_instruction[[1]]) %>%
-              ggplotGrob()
+            # hematoma@spatial_image$hematoma_center_edge <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
+            #                                                                                                        cluster_symbol = "center_edge_symbol",
+            #                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"))
 
             return(hematoma)
 

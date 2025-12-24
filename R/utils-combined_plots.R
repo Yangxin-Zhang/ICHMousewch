@@ -5,7 +5,8 @@
 #'
 #' @param ich_mouse the ICH_Mouse
 
-.combined_GMM_barchat_and_count_distribution_map <- function(ich_mouse) {
+.combined_GMM_barchat_and_count_distribution_map <- function(ich_mouse)
+  {
 
   on.exit(gc())
 
