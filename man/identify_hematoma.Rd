@@ -4,12 +4,10 @@
 \alias{identify_hematoma}
 \title{the generic function of identify_hematoma}
 \usage{
-identify_hematoma(hematoma, hematoma_symbols)
+identify_hematoma(hematoma)
 }
 \arguments{
 \item{hematoma}{the class of HematomaICHMousewch}
-
-\item{hematoma_symbols}{the symbols identified by user as the the symbol of hematoma}
 }
 \description{
 the generic function of identify_hematoma

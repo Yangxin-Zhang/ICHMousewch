@@ -30,29 +30,45 @@ setClass(Class = "ICH_Mouse",
 #' @param giotto_python_path the path to a python which the Giotto can use
 #' @param giotto_results_folder the folder for Giotto save plots
 #' @param initialization whether start at beginning
-#' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
-#' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 
 setMethod(f = "initialize",
           signature = signature(.Object = "ICH_Mouse"),
-          definition = function(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization,spaceranger_umap_address,spaceranger_cluster_address) {
+          definition = function(.Object,
+                                analysis_symbol,
+                                raw_count_matrix_address,
+                                filtered_count_matrix_address,
+                                tissue_position_address,
+                                background_image_address,
+                                giotto_python_path,
+                                giotto_results_folder,
+                                initialization,
+                                spaceranger_umap_address,
+                                spaceranger_cluster_address) {
 
             on.exit(gc())
 
             if (initialization) {
 
-              .Object <- callNextMethod(.Object,analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,initialization,spaceranger_umap_address,spaceranger_cluster_address)
+              .Object <- callNextMethod(.Object,
+                                        analysis_symbol,
+                                        raw_count_matrix_address,
+                                        filtered_count_matrix_address,
+                                        tissue_position_address,
+                                        background_image_address,
+                                        giotto_python_path,
+                                        giotto_results_folder,
+                                        initialization,
+                                        spaceranger_umap_address,
+                                        spaceranger_cluster_address)
 
-              .Object <- ICHMousewch:::identify_hematoma(hematoma = .Object,
-                                                         hematoma_symbols = hematoma_symbols)
+              .Object <- ICHMousewch:::identify_hematoma(hematoma = .Object)
 
-              .Object <- ICHMousewch:::identify_hematoma_center_and_edge(hematoma = .Object,
-                                                                         center_symbols = center_symbols)
+              .Object <- ICHMousewch:::identify_hematoma_center_and_edge(hematoma = .Object)
 
-              .Object@symbol_genes$normal_tissue <- ICHMousewch:::.find_symbol_genes(raw_count_matrix = .Object@raw_count_matrix,
-                                                                                     seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
-                                                                                     filtered_genes = .Object@filtered_genes,
-                                                                                     cluster_symbol = 1)
+              # .Object@symbol_genes$normal_tissue <- ICHMousewch:::.find_symbol_genes(raw_count_matrix = .Object@raw_count_matrix,
+              #                                                                        seu_metadata_with_cluster_symbol = .Object@seu_metadata_with_cluster_symbol,
+              #                                                                        filtered_genes = .Object@filtered_genes,
+              #                                                                        cluster_symbol = 1)
 
               .Object@diff_expr_genes <- vector("list",length = 3)
               names(.Object@diff_expr_genes) <- c("edge-normal","center-edge","center-normal")
@@ -99,11 +115,19 @@ setMethod(f = "initialize",
 #' @param tissue_position_address address for tissue position matrix
 #' @param background_image_address address for background address
 #' @param initialization whether start at beginning
-#' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
-#' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 #' @export
 
-Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_count_matrix_address,tissue_position_address,background_image_address,giotto_python_path,giotto_results_folder,hematoma_symbols,center_symbols,initialization = TRUE,spaceranger_umap_address = character(),spaceranger_cluster_address = character()) {
+Create_ICH_Mouse <- function(analysis_symbol,
+                             raw_count_matrix_address,
+                             filtered_count_matrix_address,
+                             tissue_position_address,
+                             background_image_address,
+                             giotto_python_path,
+                             giotto_results_folder,
+                             initialization = TRUE,
+                             spaceranger_umap_address = character(),
+                             spaceranger_cluster_address = character())
+  {
 
   on.exit(gc())
 
@@ -115,8 +139,6 @@ Create_ICH_Mouse <- function(analysis_symbol,raw_count_matrix_address,filtered_c
                    background_image_address = background_image_address,
                    giotto_python_path = giotto_python_path,
                    giotto_results_folder = giotto_results_folder,
-                   hematoma_symbols = hematoma_symbols,
-                   center_symbols = center_symbols,
                    initialization = initialization,
                    spaceranger_umap_address = spaceranger_umap_address,
                    spaceranger_cluster_address = spaceranger_cluster_address)

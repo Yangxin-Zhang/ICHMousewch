@@ -80,11 +80,13 @@
                                  name = "background_image",
                                  negative_y = FALSE)
 
-  giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
-                                      spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
-                                      cell_metadata = in_tissue_metadata,
-                                      instructions = giotto_instruction,
-                                      images = list(image_obj))
+  suppressWarnings(
+    giotto_object <- createGiottoObject(expression = in_tissue_count_matrix,
+                                        spatial_locs = in_tissue_metadata[,c("imagerow","neg_imagecol")],
+                                        cell_metadata = in_tissue_metadata,
+                                        instructions = giotto_instruction,
+                                        images = list(image_obj))
+  )
 
   color_symbols <- in_tissue_metadata %>%
     subset(select = cluster_symbol) %>%
@@ -118,7 +120,7 @@
                               point_border_stroke = 0,
                               cell_color_code = c(self_definition_color,random_colors),
                               background_color = "#00000000",
-                              show_image = TRUE,
+                              show_image = show_image,
                               show_legend = show_legend_label,
                               title = plot_title,
                               coord_fix_ratio = 1,

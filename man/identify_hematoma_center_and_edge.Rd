@@ -4,12 +4,10 @@
 \alias{identify_hematoma_center_and_edge}
 \title{identify hematoma center and edge}
 \usage{
-identify_hematoma_center_and_edge(hematoma, center_symbols)
+identify_hematoma_center_and_edge(hematoma)
 }
 \arguments{
 \item{hematoma}{the class of HematomaICHMousewch}
-
-\item{center_symbols}{the symbols identified by user as the the symbol of hematoma center}
 }
 \description{
 identify hematoma center and edge

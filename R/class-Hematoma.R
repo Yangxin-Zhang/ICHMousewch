@@ -163,11 +163,10 @@ Create_Hematoma <- function(analysis_symbol,raw_count_matrix_address,filtered_co
 #' the generic function of identify_hematoma
 #'
 #' @param hematoma the class of HematomaICHMousewch
-#' @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
 #' @export
 
 setGeneric(name = "identify_hematoma",
-           def = function(hematoma,hematoma_symbols) {
+           def = function(hematoma) {
 
              standardGeneric("identify_hematoma")
 
@@ -176,26 +175,16 @@ setGeneric(name = "identify_hematoma",
 #'  identify the exact hematoma location
 #'
 #'  @param hematoma the class of HematomaICHMousewch
-#'  @param hematoma_symbols the symbols identified by user as the the symbol of hematoma
 
 setMethod(f = "identify_hematoma",
-          signature = signature(hematoma = "Hematoma",hematoma_symbols = "numeric"),
-          definition = function(hematoma,hematoma_symbols) {
+          signature = signature(hematoma = "Hematoma"),
+          definition = function(hematoma) {
 
             on.exit(gc())
 
-            hematoma@identification_symbols$hematoma_symbols <- hematoma_symbols
+            hematoma@identification_symbols$hematoma_symbols <- ICHMousewch:::.choose_hematoma_symbol(hematoma = hematoma)
 
             hematoma@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_hematoma_symbol(hematoma = hematoma)
-
-            # hematoma@spatial_image$hematoma <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
-            #                                                                                            cluster_symbol = "hematoma_symbol",
-            #                                                                                            self_definition_color = c("1"="#F5D2A8","2"="#D1352B"))
-            #
-            # hematoma@spatial_image$Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
-            #                                                                                                             cluster_symbol = "Louvain_cluster_filt_gene",
-            #                                                                                                             self_definition_color = c("1"="#F5D2A8"),
-            #                                                                                                             show_legend_label = TRUE)
 
             return(hematoma)
 
@@ -206,11 +195,10 @@ setMethod(f = "identify_hematoma",
 #' identify hematoma center and edge
 #'
 #' @param hematoma the class of HematomaICHMousewch
-#' @param center_symbols the symbols identified by user as the the symbol of hematoma center
 #' @export
 
 setGeneric(name = "identify_hematoma_center_and_edge",
-           def = function(hematoma,center_symbols) {
+           def = function(hematoma) {
 
              standardGeneric("identify_hematoma_center_and_edge")
 
@@ -220,27 +208,22 @@ setGeneric(name = "identify_hematoma_center_and_edge",
 #'  identify the exact hematoma center and edge
 #'
 #'  @param hematoma the class of HematomaICHMousewch
-#'  @param center_symbols the symbols identified by user as the the symbol of hematoma center
 
 setMethod(f = "identify_hematoma_center_and_edge",
-          signature = signature(hematoma = "Hematoma",center_symbols = "numeric"),
-          definition = function(hematoma,center_symbols) {
+          signature = signature(hematoma = "Hematoma"),
+          definition = function(hematoma) {
 
             on.exit(gc())
 
-            hematoma@identification_symbols$center_symbols <- center_symbols
+            hematoma@identification_symbols$edge_symbols <- ICHMousewch:::.choose_center_edge_symbol(hematoma = hematoma)
 
             Louvain_cluster_filt_gene <- hematoma@seu_metadata_with_cluster_symbol[,Louvain_cluster_filt_gene] %>%
               unique() %>%
               unlist()
 
-            hematoma@identification_symbols$edge_symbols <- Louvain_cluster_filt_gene[!Louvain_cluster_filt_gene %in% c(center_symbols,1)]
+            hematoma@identification_symbols$center_symbols <- Louvain_cluster_filt_gene[!Louvain_cluster_filt_gene %in% c(hematoma@identification_symbols$edge_symbols,1)]
 
             hematoma@seu_metadata_with_cluster_symbol <- ICHMousewch:::.generate_seu_metadata_with_hematoma_center_and_edge_symbol(hematoma = hematoma)
-
-            # hematoma@spatial_image$hematoma_center_edge <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = .Object,
-            #                                                                                                        cluster_symbol = "center_edge_symbol",
-            #                                                                                                        self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"))
 
             return(hematoma)
 

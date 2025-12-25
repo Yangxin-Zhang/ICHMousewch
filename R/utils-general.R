@@ -356,8 +356,8 @@ export_data.table_as_excel <- function(data.table_obj,saving_path,file_name) {
 #'
 #' @param ich_mouse the class of ICH_Mouse
 
-.plotting_spatial_image <- function(ich_mouse) {
-
+.plotting_spatial_image <- function(ich_mouse)
+  {
   on.exit(gc())
 
   GMM_cluster <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(in_tissue_metadata = ich_mouse@seu_metadata_with_cluster_symbol,
