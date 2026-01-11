@@ -148,5 +148,6 @@
 #' @importFrom sparseMatrixStats rowVars
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom magick image_read
+#' @importFrom magick image_display
 
 NULL

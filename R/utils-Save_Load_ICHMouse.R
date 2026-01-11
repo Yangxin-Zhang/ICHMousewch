@@ -7,7 +7,9 @@
 #' @param saving_path the path for saving
 
 setGeneric(name = "Save_ICHMouse",
-           def = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+           def = function(Class_ICHMouse,
+                          data_symbol = character(),
+                          saving_path = NULL) {
 
              standardGeneric("Save_ICHMouse")
 
@@ -20,7 +22,9 @@ setGeneric(name = "Save_ICHMouse",
 #' @param class_symbol the class type
 
 setGeneric(name = "Load_ICHMouse",
-           def = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
+           def = function(class_symbol,
+                          data_symbol = character(),
+                          loading_path = NULL) {
 
              standardGeneric("Load_ICHMouse")
 
@@ -36,13 +40,21 @@ setGeneric(name = "Load_ICHMouse",
 
 setMethod(f = "Save_ICHMouse",
           signature = signature(Class_ICHMouse = "Hematoma"),
-          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+          definition = function(Class_ICHMouse,
+                                data_symbol = character(),
+                                saving_path = NULL) {
 
             on.exit(gc())
 
             if (is.null(saving_path)) {
 
               saving_path <- getwd()
+
+            }
+
+            if (length(data_symbol) == 0) {
+
+              data_symbol <- Class_ICHMouse@analysis_symbol
 
             }
 
@@ -93,7 +105,10 @@ setMethod(f = "Save_ICHMouse",
 #' @export
 
 setMethod(f = "Load_ICHMouse",
-          definition = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
+          definition = function(class_symbol,
+                                data_symbol = character(),
+                                loading_path = NULL)
+            {
 
             on.exit(gc())
 
@@ -105,9 +120,24 @@ setMethod(f = "Load_ICHMouse",
 
             class_type <- paste("Class",class_symbol,sep = "-")
 
-            file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
-              paste(data_symbol,sep = "/") %>%
-              paste(class_type,sep = "/")
+            if (length(data_symbol) == 0) {
+
+              dir_ls <- list.dirs(path = paste(loading_path,"ICHMouse_Database",sep = "/"),
+                                  full.names = TRUE,
+                                  recursive = FALSE)
+
+              choice_num <- menu(choices = dir_ls,
+                                 title = "Database Address")
+
+              file_path <- paste(dir_ls[choice_num],class_type,sep = "/")
+
+            } else {
+
+              file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
+                paste(data_symbol,sep = "/") %>%
+                paste(class_type,sep = "/")
+
+            }
 
             hematoma <- new(Class = "Hematoma",
                             analysis_symbol = NULL,
@@ -141,13 +171,21 @@ setMethod(f = "Load_ICHMouse",
 
 setMethod(f = "Save_ICHMouse",
           signature = signature(Class_ICHMouse = "ICH_Mouse"),
-          definition = function(Class_ICHMouse,data_symbol = "ich_mouse",saving_path = NULL) {
+          definition = function(Class_ICHMouse,
+                                data_symbol = character(),
+                                saving_path = NULL) {
 
             on.exit(gc())
 
             if (is.null(saving_path)) {
 
               saving_path <- getwd()
+
+            }
+
+            if (length(data_symbol) == 0) {
+
+              data_symbol <- Class_ICHMouse@analysis_symbol
 
             }
 
@@ -198,9 +236,11 @@ setMethod(f = "Save_ICHMouse",
 #' @export
 
 setMethod(f = "Load_ICHMouse",
-          definition = function(class_symbol,data_symbol = "ich_mouse",loading_path = NULL) {
+          definition = function(class_symbol,data_symbol,loading_path = NULL) {
 
             on.exit(gc())
+
+            class_type <- paste("Class",class_symbol,sep = "-")
 
             if (is.null(loading_path)) {
 
@@ -208,11 +248,24 @@ setMethod(f = "Load_ICHMouse",
 
             }
 
-            class_type <- paste("Class",class_symbol,sep = "-")
+            if (length(data_symbol) == 0) {
 
-            file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
-              paste(data_symbol,sep = "/") %>%
-              paste(class_type,sep = "/")
+              dir_ls <- list.dirs(path = paste(loading_path,"ICHMouse_Database",sep = "/"),
+                                  full.names = TRUE,
+                                  recursive = FALSE)
+
+              choice_num <- menu(choices = dir_ls,
+                                 title = "Database Address")
+
+              file_path <- paste(dir_ls[choice_num],class_type,sep = "/")
+
+            } else {
+
+              file_path <- paste(loading_path,"ICHMouse_Database",sep = "/") %>%
+                paste(data_symbol,sep = "/") %>%
+                paste(class_type,sep = "/")
+
+            }
 
             ich_mouse <- new(Class = "ICH_Mouse",
                              analysis_symbol = NULL,
@@ -222,8 +275,6 @@ setMethod(f = "Load_ICHMouse",
                              background_image_address = NULL,
                              giotto_python_path = NULL,
                              giotto_results_folder = NULL,
-                             hematoma_symbols = NULL,
-                             center_symbols = NULL,
                              initialization = FALSE,
                              spaceranger_umap_address = NULL,
                              spaceranger_cluster_address = NULL)

@@ -10,7 +10,6 @@
   aim_gene = character(),
   background_genes = c("Hbb-bt", "Hbb-bs", "Hba-a2"),
   point_size = 1e-04,
-  normalized_data = FALSE,
   scaled_data = TRUE
 )
 }

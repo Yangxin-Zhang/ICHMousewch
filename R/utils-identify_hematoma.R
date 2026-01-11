@@ -73,10 +73,12 @@
   hematoma_symbol <- numeric()
   for (i in 1:posi_cluster_num) {
 
-    ICHMousewch::show_image(posi_cluster_image_ls[[posi_cluster[i]]])
+    ICHMousewch:::show_image(posi_cluster_image_ls[[posi_cluster[i]]])
+
+    choice_title <- paste("choose Hematoma",as.character(posi_cluster[i]),sep = "-")
 
     choice <- menu(choices = c("Yes","No"),
-                   title = as.character(posi_cluster[i]),
+                   title = choice_title,
                    graphics = FALSE)
 
     if (choice == 1) {
@@ -168,10 +170,12 @@
   center_edge_symbol <- numeric()
   for (i in 1:posi_cluster_num) {
 
-    ICHMousewch::show_image(posi_cluster_image_ls[[posi_cluster[i]]])
+    ICHMousewch:::show_image(posi_cluster_image_ls[[posi_cluster[i]]])
+
+    choice_title <- paste("choose Hematoma Edge",as.character(posi_cluster[i]),sep = "-")
 
     choice <- menu(choices = c("Yes","No"),
-                   title = as.character(posi_cluster[i]),
+                   title = choice_title,
                    graphics = FALSE)
 
     if (choice == 1) {
@@ -188,5 +192,34 @@
   }
 
   return(center_edge_symbol)
+
+}
+
+#' show choice plots
+#'
+#' @param graph the graph
+
+.show_choice_plots <- function(graph)
+  {
+
+  on.exit(gc())
+
+  dir_path <- getwd()
+
+  ggsave(filename = ".choice_graph.png",
+         path = dir_path,
+         device = "png",
+         plot = as.ggplot(graph),
+         dpi = 600,
+         width = 297,
+         height = 210,
+         unit = "mm")
+
+  img <- image_read(path = paste(dir_path,".choice_graph.png",sep = "/"))
+
+  print(img)
+
+  unlink(dir_path,
+         recursive = TRUE)
 
 }

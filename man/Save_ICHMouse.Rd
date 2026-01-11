@@ -4,7 +4,7 @@
 \alias{Save_ICHMouse}
 \title{save ICHMouse data}
 \usage{
-Save_ICHMouse(Class_ICHMouse, data_symbol = "ich_mouse", saving_path = NULL)
+Save_ICHMouse(Class_ICHMouse, data_symbol = character(), saving_path = NULL)
 }
 \arguments{
 \item{Class_ICHMouse}{the class of ICHMouse}

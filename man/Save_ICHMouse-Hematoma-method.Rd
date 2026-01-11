@@ -4,7 +4,7 @@
 \alias{Save_ICHMouse,Hematoma-method}
 \title{save Hematoma}
 \usage{
-\S4method{Save_ICHMouse}{Hematoma}(Class_ICHMouse, data_symbol = "ich_mouse", saving_path = NULL)
+\S4method{Save_ICHMouse}{Hematoma}(Class_ICHMouse, data_symbol = character(), saving_path = NULL)
 }
 \arguments{
 \item{Class_ICHMouse}{the class of ICHMouse}

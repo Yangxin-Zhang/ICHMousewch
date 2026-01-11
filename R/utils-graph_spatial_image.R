@@ -279,9 +279,8 @@
 .create_gene_distribution_map <- function(ich_mouse,
                                           diff_expr_gene_symbol = "edge-normal",
                                           aim_gene = character(),
-                                          background_genes = c("Hbb-bt","Hbb-bs","Hba-a2"),
+                                          background_genes = character(),
                                           point_size = 0.0001,
-                                          normalized_data = FALSE,
                                           scaled_data = TRUE)
   {
 
@@ -293,28 +292,35 @@
   filtered_barcodes <- ich_mouse@filtered_barcodes
   diff_expr_gene <- ich_mouse@diff_expr_genes[[diff_expr_gene_symbol]]
 
-  if (scaled_data == normalized_data) {
+  if (scaled_data == TRUE) {
 
-    scaled_data <- TRUE
     normalized_data <- FALSE
+
+  } else {
+
+    normalized_data <- TRUE
 
   }
 
   seu_meta <- seu_meta[,cell_ID := barcode]
   seu_meta <- seu_meta[barcode %in% filtered_barcodes]
 
-  aim_gene <- aim_gene[aim_gene %in% filtered_genes]
+  total_genes <- c(filtered_genes,aim_gene,background_genes) %>%
+    unique()
 
-  filtered_count_matrix <- raw_count_matrix[filtered_genes,seu_meta[,cell_ID]]
+  total_genes <- total_genes[total_genes %in% rownames(raw_count_matrix)]
+
+  filtered_count_matrix <- raw_count_matrix[total_genes,seu_meta[,cell_ID]]
 
   seu_meta[,plot_row := -row]
   seu_meta[,plot_col := -col]
 
-  if (scaled_data) {
+  if (scaled_data & length(aim_gene) != 0) {
 
     seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
-      NormalizeData() %>%
-      ScaleData(features = diff_expr_gene[avg_log2FC > 1,gene_name])
+      NormalizeData(scale.factor = 1e4,
+                    normalization.method = "LogNormalize") %>%
+      ScaleData(features = unique(c(aim_gene,filtered_genes[1:10])))
 
     gene_expr_matrix <- t(seu_obj@assays$RNA$scale.data) %>%
       as.data.frame()
@@ -326,16 +332,17 @@
   if (normalized_data) {
 
     seu_obj <- CreateSeuratObject(counts = filtered_count_matrix) %>%
-      NormalizeData()
+      NormalizeData(scale.factor = 1e4,
+                    normalization.method = "LogNormalize")
 
-    sub_seu_obj <- seu_obj[diff_expr_gene[avg_log2FC > 1,gene_name],]
+    sub_seu_obj <- seu_obj[unique(c(aim_gene,filtered_genes[1:10])),]
 
     gene_expr_matrix <- sub_seu_obj@assays$RNA$data %>%
       as.matrix() %>%
       t() %>%
       as.data.frame()
 
-    color_legend_na <- "Normalized\nExpression"
+    color_legend_na <- "Normalized\nExpression\n(Log-1e4)"
 
   }
 
@@ -347,22 +354,31 @@
 
   initialize_color_symbol <- function(background_genes,filtered_count_matrix,graph_df) {
 
-    graph_df[,color_symbol := "0"]
+    if (length(background_genes) == 0) {
 
-    if (length(background_genes) == 1) {
-
-      background_df <- data.frame(background_genes_name = filtered_count_matrix[background_genes,])
+      graph_df[,color_symbol := "0"]
+      graph_df[center_edge_symbol %in% c(3,2),color_symbol := "1"]
 
     } else {
 
-      background_df <- filtered_count_matrix[background_genes,] %>%
-        as.data.frame() %>%
-        t()
+      graph_df[,color_symbol := "0"]
+
+      if (length(background_genes) == 1) {
+
+        background_df <- data.frame(background_genes_name = filtered_count_matrix[background_genes,])
+
+      } else {
+
+        background_df <- filtered_count_matrix[background_genes,] %>%
+          as.data.frame() %>%
+          t()
+
+      }
+
+      graph_df[,background_count := Matrix::rowSums(background_df != 0)]
+      graph_df[background_count != 0,color_symbol := "1"]
 
     }
-
-    graph_df[,background_count := Matrix::rowSums(background_df != 0)]
-    graph_df[background_count != 0,color_symbol := "1"]
 
     return(graph_df)
 
@@ -404,10 +420,11 @@
                    mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
                    size = point_size) +
         scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
-                              values = scales::rescale(seq(from = min(graph_df[color_symbol == "2",plotting_gene]),
-                                                           to = max(graph_df[color_symbol == "2",plotting_gene]),
+                              values = scales::rescale(seq(from = min(graph_df[,plotting_gene]),
+                                                           to = max(graph_df[,plotting_gene]),
                                                            length.out = 7),
-                                                       to = c(0,1))) +
+                                                       to = c(0,1)),
+                              limits = c(min(graph_df[,plotting_gene]),max(graph_df[,plotting_gene]))) +
         coord_fixed() +
         labs(title = aim_gene_na,
              color = color_legend_na) +
@@ -666,5 +683,50 @@
   }
 
   return(graph_ls)
+
+}
+
+#' plotting spatial image
+#'
+#' @param ich_mouse the class of ICH_Mouse
+
+.plotting_spatial_image <- function(ich_mouse)
+  {
+  on.exit(gc())
+
+  GMM_cluster <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ich_mouse,
+                                                                         cluster_symbol = "GMM_cluster",
+                                                                         self_definition_color = c("1"="#F5D2A8","2"="#D1352B"))
+
+  Louvain_cluster_posi <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ich_mouse,
+                                                                                  cluster_symbol = "Louvain_cluster_posi",
+                                                                                  self_definition_color = c("1"="#F5D2A8"))
+
+  original_hematoma <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ich_mouse,
+                                                                               cluster_symbol = "hematoma_symbol",
+                                                                               self_definition_color = c("1"="#F5D2A8","2"="#D1352B"),
+                                                                               plot_title = "Hematoma",
+                                                                               show_plot_title = TRUE)
+
+  Louvain_cluster_filt_gene <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ich_mouse,
+                                                                                       cluster_symbol = "Louvain_cluster_filt_gene",
+                                                                                       self_definition_color = c("1"="#F5D2A8","2"="#D1352B"))
+
+  hematoma_center_edge <- ICHMousewch:::.create_spatial_image_with_cluster_symbol(ich_mouse = ich_mouse,
+                                                                                  cluster_symbol = "center_edge_symbol",
+                                                                                  self_definition_color = c("1"="#F5D2A8","2"="#D1352B","3"="#3C77AF"),
+                                                                                  plot_title = "Center__Edge",
+                                                                                  show_plot_title = TRUE)
+
+  log2Count <- ICHMousewch:::.create_count_distribution_map(seu_meta = ich_mouse@seu_metadata_with_cluster_symbol)
+
+  plotting_list <- list("log2Count" = log2Count,
+                        "GMM_cluster" = GMM_cluster,
+                        "Louvain_cluster_posi" = Louvain_cluster_posi,
+                        "original_hematoma" = original_hematoma,
+                        "Louvain_cluster_filt_gene" = Louvain_cluster_filt_gene,
+                        "hematoma_center_edge" = hematoma_center_edge)
+
+  return(plotting_list)
 
 }

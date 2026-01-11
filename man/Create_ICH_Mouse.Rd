@@ -12,8 +12,6 @@ Create_ICH_Mouse(
   background_image_address,
   giotto_python_path,
   giotto_results_folder,
-  hematoma_symbols,
-  center_symbols,
   initialization = TRUE,
   spaceranger_umap_address = character(),
   spaceranger_cluster_address = character()
@@ -27,10 +25,6 @@ Create_ICH_Mouse(
 \item{tissue_position_address}{address for tissue position matrix}
 
 \item{background_image_address}{address for background address}
-
-\item{hematoma_symbols}{the symbols identified by user as the the symbol of hematoma}
-
-\item{center_symbols}{the symbols identified by user as the the symbol of hematoma center}
 
 \item{initialization}{whether start at beginning}
 
