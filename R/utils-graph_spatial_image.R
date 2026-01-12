@@ -871,6 +871,8 @@
                                       family = "Arial",
                                       hjust = 0.5))
 
+    comb_gene_dist_map[gene_set[i]] <- list(comb_plot)
+
   }
 
   return(comb_gene_dist_map)
