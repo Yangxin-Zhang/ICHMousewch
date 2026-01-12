@@ -4,13 +4,29 @@
 \alias{.identify_gene_distribution_pattern}
 \title{identify gene distribution pattern}
 \usage{
-.identify_gene_distribution_pattern(ich_mouse, threshold)
+.identify_gene_distribution_pattern(
+  threshold = 2,
+  gene_set = character(),
+  diff_expr_symbol = "edge-normal",
+  ...
+)
+
+.identify_gene_distribution_pattern(
+  threshold = 2,
+  gene_set = character(),
+  diff_expr_symbol = "edge-normal",
+  ...
+)
 }
 \arguments{
-\item{ich_mouse}{the class of ICH_Mouse}
-
 \item{threshold}{the avg_log2FC threshold}
+
+\item{gene_set}{the gene set}
+
+\item{ich_mouse}{the class of ICH_Mouse}
 }
 \description{
 identify gene distribution pattern
+
+identify gene distribution difference
 }

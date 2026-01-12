@@ -8,9 +8,11 @@
   ich_mouse,
   diff_expr_gene_symbol = "edge-normal",
   aim_gene = character(),
-  background_genes = c("Hbb-bt", "Hbb-bs", "Hba-a2"),
+  background_genes = character(),
   point_size = 1e-04,
-  scaled_data = TRUE
+  scaled_data = TRUE,
+  legend_position = "right",
+  output_dataset = FALSE
 )
 }
 \arguments{
@@ -21,6 +23,8 @@
 \item{aim_gene}{the aim gene for plotting}
 
 \item{background_genes}{the background genes for graph}
+
+\item{output_dataset}{whether to output plotting dataset}
 }
 \description{
 create gene distribution map

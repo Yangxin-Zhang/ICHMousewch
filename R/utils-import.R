@@ -78,6 +78,7 @@
 #' @importFrom ggplot2 coord_fixed
 #' @importFrom ggplot2 coord_flip
 #' @importFrom ggplot2 position_jitter
+#' @importFrom ggplot2 facet_wrap
 #' @importFrom cowplot ggdraw
 #' @importFrom cowplot draw_image
 #' @importFrom ggnewscale new_scale_fill

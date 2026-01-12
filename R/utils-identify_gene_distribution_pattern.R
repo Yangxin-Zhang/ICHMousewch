@@ -7,13 +7,26 @@
 #' @param threshold the avg_log2FC threshold
 
 .identify_gene_distribution_pattern <- function(ich_mouse,
-                                                threshold)
+                                                threshold = 2,
+                                                gene_set = character(),
+                                                diff_expr_symbol = "edge-normal")
   {
 
   on.exit(gc())
 
-  gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse,
-                                                                       aim_gene = ich_mouse@diff_expr_genes$`edge-normal`[avg_log2FC >= threshold,gene_name])
+  if (length(gene_set) != 0) {
+
+    gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse,
+                                                                         aim_gene = gene_set)
+
+  } else {
+
+    diff_expr <- ich_mouse@diff_expr_genes[[`edge-normal`]]
+
+    gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse,
+                                                                         aim_gene = diff_expr[avg_log2FC >= threshold,gene_name])
+
+  }
 
   gene_na_ls <- names(gene_distribution_map)
 
@@ -67,5 +80,35 @@
                          "No-Significance" = choice_no_significance)
 
   return(choice_results)
+
+}
+
+#' identify gene distribution difference
+#'
+#' @param threshold the avg_log2FC threshold
+#' @param gene_set the gene set
+
+.identify_gene_distribution_pattern <- function(threshold = 2,
+                                                gene_set = character(),
+                                                diff_expr_symbol = "edge-normal",
+                                                ...)
+  {
+
+  on.exit(gc())
+
+  ich_mouse_ls <- list(...)
+  if (length(gene_set) != 0) {
+
+    gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse,
+                                                                         aim_gene = gene_set)
+
+  } else {
+
+    diff_expr <- ich_mouse@diff_expr_genes[[`edge-normal`]]
+
+    gene_distribution_map <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse,
+                                                                         aim_gene = diff_expr[avg_log2FC >= threshold,gene_name])
+
+  }
 
 }

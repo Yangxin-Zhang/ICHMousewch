@@ -275,13 +275,16 @@
 #' @param diff_expr_gene_symbol the differential expression genes symbol
 #' @param background_genes the background genes for graph
 #' @param aim_gene the aim gene for plotting
+#' @param output_dataset whether to output plotting dataset
 
 .create_gene_distribution_map <- function(ich_mouse,
                                           diff_expr_gene_symbol = "edge-normal",
                                           aim_gene = character(),
                                           background_genes = character(),
                                           point_size = 0.0001,
-                                          scaled_data = TRUE)
+                                          scaled_data = TRUE,
+                                          legend_position = "right",
+                                          output_dataset = FALSE)
   {
 
   on.exit(gc())
@@ -352,6 +355,13 @@
 
   graph_df <- merge(seu_meta,gene_expr_matrix,by = "barcode")
 
+  if (output_dataset) {
+
+    output_plotting_dataset <- as.data.table(graph_df)
+    output_plotting_dataset[,ich_mouse_symbol := ich_mouse@analysis_symbol]
+
+  }
+
   initialize_color_symbol <- function(background_genes,filtered_count_matrix,graph_df) {
 
     if (length(background_genes) == 0) {
@@ -387,9 +397,6 @@
 
   if (length(aim_gene) != 0) {
 
-    distribution_graph_ls <- vector("list",length = length(aim_gene))
-    names(distribution_graph_ls) <- aim_gene
-
     for (i in 1:length(aim_gene)) {
 
       graph_df <- initialize_color_symbol(background_genes = background_genes,
@@ -407,37 +414,115 @@
 
       graph_df[aim_gene_count != 0,color_symbol := "2"]
 
+      if (output_dataset) {
+
+        output_plotting_dataset <- ICHMousewch::add_new_col_to_data_table(original_data_table = output_plotting_dataset,
+                                                                          new_col = graph_df[,color_symbol],
+                                                                          new_col_name = paste(aim_gene[i],"color_symbol",sep = "_"))
+
+      } else {
+
+        distribution_graph_ls <- vector("list",length = length(aim_gene))
+        names(distribution_graph_ls) <- aim_gene
+
+        distribution_graph <- ggplot() +
+          geom_point(data = graph_df[color_symbol == "0"],
+                     mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                     size = point_size,
+                     color = "gray90") +
+          geom_point(data = graph_df[color_symbol == "1"],
+                     mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
+                     size = point_size,
+                     color = "white") +
+          geom_point(data = graph_df[color_symbol == "2"],
+                     mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
+                     size = point_size) +
+          scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
+                                values = scales::rescale(seq(from = min(graph_df[,plotting_gene]),
+                                                             to = max(graph_df[,plotting_gene]),
+                                                             length.out = 7),
+                                                         to = c(0,1)),
+                                limits = c(min(graph_df[,plotting_gene]),max(graph_df[,plotting_gene]))) +
+          scale_x_continuous(limits = c(min(c(graph_df[,plot_row],graph_df[,plot_col])),
+                                        max(c(graph_df[,plot_row],graph_df[,plot_col])))) +
+          scale_y_continuous(limits = c(min(c(graph_df[,plot_row],graph_df[,plot_col])),
+                                        max(c(graph_df[,plot_row],graph_df[,plot_col])))) +
+          coord_fixed() +
+          labs(title = aim_gene_na,
+               color = color_legend_na) +
+          ICHMousewch:::.plotting_theme() +
+          theme(axis.text.x = element_blank(),
+                axis.text.y = element_blank(),
+                axis.title.x = element_blank(),
+                axis.title.y = element_blank(),
+                axis.ticks.x = element_blank(),
+                axis.ticks.y = element_blank(),
+                legend.position = legend_position,
+                legend.title = element_text(hjust = 0.5),
+                legend.text = element_text(size = 8,
+                                           family = "Arial"),
+                panel.background = element_rect(fill = "white", color = "black"),
+                plot.background = element_rect(fill = "white", color = NA),
+                panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                plot.title = element_text(size = 12,
+                                          face = "bold",
+                                          family = "Arial",
+                                          hjust = 0.5,
+                                          vjust = 0,
+                                          margin = margin(b = 10)))
+
+        distribution_graph_ls[aim_gene_na] <- list(ggplotGrob(distribution_graph))
+
+      }
+
+    }
+
+    chosed_cols <- colnames(output_plotting_dataset)
+    chosed_cols <- chosed_cols[!chosed_cols %in% c("color_symbol","plotting_gene","aim_gene_count")]
+    output_plotting_dataset <- output_plotting_dataset[,..chosed_cols]
+
+    distribution_graph_ls <- list()
+    distribution_graph_ls["output_plotting_dataset"] <- list(output_plotting_dataset)
+
+  } else {
+
+    graph_df <- initialize_color_symbol(background_genes = background_genes,
+                                        filtered_count_matrix = filtered_count_matrix,
+                                        graph_df = graph_df)
+
+    if (output_dataset) {
+
+      distribution_graph_ls <- list()
+      distribution_graph_ls["background_dataset"] <- list(graph_df)
+
+    } else {
+
       distribution_graph <- ggplot() +
         geom_point(data = graph_df[color_symbol == "0"],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                   size = point_size,
-                   color = "gray90") +
+                   size = 0.01) +
+        scale_colour_manual(values = c("0" = "grey")) +
         geom_point(data = graph_df[color_symbol == "1"],
                    mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                   size = point_size,
+                   size = 0.01,
                    color = "white") +
-        geom_point(data = graph_df[color_symbol == "2"],
-                   mapping = aes(x = plot_row,y = plot_col,colour = plotting_gene),
-                   size = point_size) +
-        scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
-                              values = scales::rescale(seq(from = min(graph_df[,plotting_gene]),
-                                                           to = max(graph_df[,plotting_gene]),
-                                                           length.out = 7),
-                                                       to = c(0,1)),
-                              limits = c(min(graph_df[,plotting_gene]),max(graph_df[,plotting_gene]))) +
+        labs(title = "Background") +
         coord_fixed() +
-        labs(title = aim_gene_na,
-             color = color_legend_na) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               axis.title.x = element_blank(),
               axis.title.y = element_blank(),
               axis.ticks.x = element_blank(),
               axis.ticks.y = element_blank(),
-              legend.position = "right",
-              legend.title = element_text(hjust = 0.5),
+              legend.position = legend_position,
+              legend.title = element_blank(),
               legend.text = element_text(size = 8,
-                                         family = "Arial"),
+                                         family = "Arial",
+                                         color = "white"),
+              legend.key = element_blank(),
+              legend.background = element_blank(),
+              legend.box.background = element_blank(),
               panel.background = element_rect(fill = "white", color = "black"),
               plot.background = element_rect(fill = "white", color = NA),
               panel.grid.major = element_blank(),
@@ -447,60 +532,16 @@
                                         family = "Arial",
                                         hjust = 0.5,
                                         vjust = 0,
-                                        margin = margin(b = 10)))
+                                        margin = margin(b = 10))) +
+        guides(color = guide_legend(override.aes = list(colour = "white")))
 
-      distribution_graph_ls[aim_gene_na] <- list(ggplotGrob(distribution_graph))
+      background_na <- background_genes %>%
+        paste(collapse = "-") %>%
+        paste("background",sep = "_")
+      distribution_graph_ls <- list()
+      distribution_graph_ls[background_na] <- list(ggplotGrob(distribution_graph))
 
     }
-
-  } else {
-
-    graph_df <- initialize_color_symbol(background_genes = background_genes,
-                                        filtered_count_matrix = filtered_count_matrix,
-                                        graph_df = graph_df)
-
-    distribution_graph <- ggplot() +
-      geom_point(data = graph_df[color_symbol == "0"],
-                 mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                 size = 0.01) +
-      scale_colour_manual(values = c("0" = "grey")) +
-      geom_point(data = graph_df[color_symbol == "1"],
-                 mapping = aes(x = plot_row,y = plot_col,colour = color_symbol),
-                 size = 0.01,
-                 color = "white") +
-      labs(title = "Background") +
-      coord_fixed() +
-      theme(axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "right",
-            legend.title = element_blank(),
-            legend.text = element_text(size = 8,
-                                       family = "Arial",
-                                       color = "white"),
-            legend.key = element_blank(),
-            legend.background = element_blank(),
-            legend.box.background = element_blank(),
-            panel.background = element_rect(fill = "white", color = "black"),
-            plot.background = element_rect(fill = "white", color = NA),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 12,
-                                      face = "bold",
-                                      family = "Arial",
-                                      hjust = 0.5,
-                                      vjust = 0,
-                                      margin = margin(b = 10))) +
-      guides(color = guide_legend(override.aes = list(colour = "white")))
-
-    background_na <- background_genes %>%
-      paste(collapse = "-") %>%
-      paste("background",sep = "_")
-    distribution_graph_ls <- list()
-    distribution_graph_ls[background_na] <- list(ggplotGrob(distribution_graph))
 
   }
 
@@ -728,5 +769,110 @@
                         "hematoma_center_edge" = hematoma_center_edge)
 
   return(plotting_list)
+
+}
+
+#' combine gene distribution map
+#'
+#' @param gene_set the gene set
+
+.combine_gene_distribution_map <- function(gene_set,
+                                           ...)
+  {
+
+  on.exit(gc())
+
+  ich_mouse_ls <- list(...)
+
+  num_ich_mouse <- length(ich_mouse_ls)
+
+  ich_mouse_na <- paste("ich_mouse",c(1:num_ich_mouse),sep = "-")
+  names(ich_mouse_ls) <- ich_mouse_na
+
+  gene_dist_map_ls <- vector("list",length = num_ich_mouse)
+  names(gene_dist_map_ls) <- ich_mouse_na
+
+  for (i in 1:length(ich_mouse_na)) {
+
+    gene_dist_map_ls[ich_mouse_na[i]] <- ICHMousewch:::.create_gene_distribution_map(ich_mouse = ich_mouse_ls[[ich_mouse_na[i]]],
+                                                                                     aim_gene = gene_set,
+                                                                                     scaled_data = FALSE,
+                                                                                     output_dataset = TRUE)
+
+  }
+
+  graph_df <- rbindlist(gene_dist_map_ls,
+                        fill = FALSE,
+                        use.names = FALSE)
+
+  comb_gene_dist_map <- vector("list",length = length(gene_set))
+  names(comb_gene_dist_map) <- gene_set
+
+  for (i in 1:length(gene_set)) {
+
+    gene_na <- gene_set[i]
+    gene_color_symbol <- paste(gene_na,"color_symbol",sep = "_")
+
+    aim_gene_plotting_data <- graph_df[,..gene_na]
+    graph_df[,plotting_gene := aim_gene_plotting_data]
+    aim_gene_color_symbol <- graph_df[,..gene_color_symbol]
+    graph_df[,color_symbol := aim_gene_color_symbol]
+
+    comb_plot <- ggplot() +
+      geom_point(data = graph_df[color_symbol == "0"],
+                 mapping = aes(x = -row,y = -col),
+                 size = 0.001,
+                 color = "gray90") +
+      geom_point(data = graph_df[color_symbol == "1"],
+                 mapping = aes(x = -row,y = -col),
+                 size = 0.001,
+                 color = "white") +
+      geom_point(data = graph_df[color_symbol == "2"],
+                 mapping = aes(x = -row,y = -col,color = plotting_gene),
+                 size = 0.001) +
+      scale_color_gradientn(colors = c("#FEF4E8", "#FED9A6", "#FEB24C", "#FC4E2A", "#E31A1C", "#BD0026", "#800026"),
+                            values = scales::rescale(seq(from = min(graph_df[,plotting_gene]),
+                                                         to = max(graph_df[,plotting_gene]),
+                                                         length.out = 7),
+                                                     to = c(0,1)),
+                            limits = c(min(graph_df[,plotting_gene]),max(graph_df[,plotting_gene]))) +
+      scale_x_continuous(limits = c(min(c(-graph_df[,row],-graph_df[,col])),
+                                    max(c(-graph_df[,row],-graph_df[,col])))) +
+      scale_y_continuous(limits = c(min(c(-graph_df[,row],-graph_df[,col])),
+                                    max(c(-graph_df[,row],-graph_df[,col])))) +
+      facet_wrap(~ ich_mouse_symbol) +
+      coord_fixed() +
+      labs(title = gene_na,
+           color = "Normalized\nExpression\n(Log-1e4)") +
+      ICHMousewch:::.plotting_theme() +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = legend_position,
+            legend.title = element_text(hjust = 0),
+            legend.text = element_text(size = 8,
+                                       family = "Arial"),
+            panel.background = element_rect(fill = "white", color = "black"),
+            plot.background = element_rect(fill = "white", color = NA),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 12,
+                                      face = "bold",
+                                      family = "Arial",
+                                      hjust = 0.5,
+                                      vjust = 0,
+                                      margin = margin(b = 10)),
+            strip.background = element_rect(fill = "white",
+                                            color = NA),
+            strip.text = element_text(size = 8,
+                                      family = "Arial",
+                                      hjust = 0.5))
+
+  }
+
+  return(comb_gene_dist_map)
 
 }
