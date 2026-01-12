@@ -851,7 +851,7 @@
             axis.title.y = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
-            legend.position = legend_position,
+            legend.position = "right",
             legend.title = element_text(hjust = 0),
             legend.text = element_text(size = 8,
                                        family = "Arial"),
